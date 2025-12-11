@@ -66,7 +66,7 @@ const TrialTimer: React.FC<TrialTimerProps> = ({
             <Clock className="w-4 h-4 text-red-600 dark:text-red-400" />
             <div className="flex flex-col">
                 <span className="text-xs font-medium text-red-900 dark:text-red-200">
-                    {isExpired ? 'Trial Expired' : '18-Minute Free Trial'}
+                    {isExpired ? 'Trial Expired' : '20-Minute Free Trial'}
                 </span>
                 <span className="text-xs tabular-nums text-red-700 dark:text-red-300">
                     {isExpired ? (

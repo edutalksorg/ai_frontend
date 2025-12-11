@@ -89,12 +89,23 @@ const RegisterPage: React.FC = () => {
     handleSubmit,
     formState: { errors },
     setError: setFormError,
+    watch,
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       role: 'user',
     },
   });
+
+  const passwordValue = watch('password') || '';
+
+  const passwordRequirements = [
+    { label: 'At least 8 characters', met: passwordValue.length >= 8 },
+    { label: 'At least 1 uppercase letter', met: /[A-Z]/.test(passwordValue) },
+    { label: 'At least 1 lowercase letter', met: /[a-z]/.test(passwordValue) },
+    { label: 'At least 1 number', met: /[0-9]/.test(passwordValue) },
+    { label: 'At least 1 special character (!@#$%^&*)', met: /[!@#$%^&*]/.test(passwordValue) },
+  ];
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
@@ -292,7 +303,7 @@ const RegisterPage: React.FC = () => {
                     if (!code) return;
                     try {
                       const res = await import('../../services/referrals').then(m => m.referralsService.validateCode(code));
-                      // Adjust check based on API response structure. 
+                      // Adjust check based on API response structure.
                       // Usually validate returns { data: true/false } or throws 404
                       const isValid = (res as any)?.data === true || (res as any)?.success === true;
 
@@ -326,6 +337,30 @@ const RegisterPage: React.FC = () => {
               {errors.password && (
                 <p className="text-red-600 text-sm mt-1">{errors.password.message}</p>
               )}
+
+              <div className="mt-3 space-y-1.5 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
+                <p className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-2">Password must contain:</p>
+                {passwordRequirements.map((req, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${req.met
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                      : 'bg-slate-200 dark:bg-slate-700 text-slate-400'
+                      }`}>
+                      {req.met ? (
+                        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        <div className="w-1.5 h-1.5 rounded-full bg-current" />
+                      )}
+                    </div>
+                    <span className={`text-xs ${req.met ? 'text-slate-600 dark:text-slate-300 line-through opacity-50' : 'text-slate-500 dark:text-slate-400'
+                      }`}>
+                      {req.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Confirm Password */}
@@ -375,3 +410,4 @@ const RegisterPage: React.FC = () => {
 };
 
 export default RegisterPage;
+

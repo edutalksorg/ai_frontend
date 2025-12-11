@@ -81,11 +81,11 @@ const UserReferrals: React.FC = () => {
                     <div className="flex flex-col sm:flex-row gap-4 items-end justify-between">
                         <div className="flex-1 min-w-0 text-left w-full space-y-2">
                             <p className="text-xs uppercase tracking-wider opacity-75 text-blue-100 font-semibold pl-1">Your Referral Link</p>
-                            <div className="bg-black/20 px-4 py-3 rounded-xl flex items-center border border-white/10">
+                            <div className="bg-black/20 px-4 py-3 rounded-xl flex items-center border border-blue-300">
                                 <p className="font-mono text-sm truncate select-all text-white w-full">{referralLink}</p>
                             </div>
                         </div>
-                        <Button onClick={() => { navigator.clipboard.writeText(referralLink); dispatch(showToast({ message: 'Link copied!', type: 'success' })); }} className="bg-white text-blue-600 hover:bg-blue-50 border-none shadow-lg shrink-0 whitespace-nowrap px-8 py-3 rounded-xl h-[46px]">
+                        <Button onClick={() => { navigator.clipboard.writeText(referralLink); dispatch(showToast({ message: 'Link copied!', type: 'success' })); }} className="bg-white/20 text-white hover:bg-white/30 border border-white/40 shadow-lg shrink-0 whitespace-nowrap px-8 py-3 rounded-xl h-[46px]">
                             <Copy size={18} className="mr-2" /> Copy Link
                         </Button>
                     </div>
@@ -94,7 +94,7 @@ const UserReferrals: React.FC = () => {
                     <div className="flex flex-col sm:flex-row gap-4 items-end justify-between">
                         <div className="flex-1 min-w-0 text-left w-full space-y-2">
                             <p className="text-xs uppercase tracking-wider opacity-75 text-blue-100 font-semibold pl-1">Your Referral Code</p>
-                            <div className="bg-black/20 px-4 py-3 rounded-xl flex items-center border border-white/10">
+                            <div className="bg-black/20 px-4 py-3 rounded-xl flex items-center border border-blue-300">
                                 <p className="font-mono text-xl font-bold tracking-widest text-white w-full">{referralCode}</p>
                             </div>
                         </div>

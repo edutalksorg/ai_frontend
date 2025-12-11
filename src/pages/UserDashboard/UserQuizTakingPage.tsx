@@ -129,22 +129,59 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
             setSubmitting(true);
             setTimerActive(false);
 
-            const result = await quizzesService.submit(quiz.id || quiz._id, answers, startedAt);
+            // DEBUG: Log what we're sending
+            console.log('=== QUIZ SUBMISSION DEBUG ===');
+            console.log('Quiz ID:', quiz.id || quiz._id);
+            console.log('Answers object (original):', answers);
+            console.log('Started at:', startedAt);
+            console.log('Quiz questions (full structure):', JSON.stringify(quiz.questions, null, 2));
 
-            // Debug logging to see the actual response structure
-            console.log('Quiz submission result:', result);
-            console.log('Result data:', (result as any)?.data);
+            // Transform answers from object to array format
+            // Backend likely expects: [{ questionId: 'xxx', selectedAnswer: 'yyy' }, ...]
+            const answersArray = Object.entries(answers).map(([questionId, selectedAnswer]) => ({
+                questionId,
+                selectedAnswer
+            }));
 
-            // Handle both nested and flat response structures
-            const resultData = (result as any)?.data || result;
-            console.log('Extracted result data:', resultData);
+            console.log('Answers array (transformed):', answersArray);
 
-            setQuizResult(resultData);
-            dispatch(showToast({ message: 'Quiz submitted successfully!', type: 'success' }));
-            // navigate('/dashboard?tab=quizzes'); // Don't navigate immediately
+            // 1. Submit the quiz
+            const submitResponse = await quizzesService.submit(quiz.id || quiz._id, answersArray, startedAt);
+
+            // 2. Extract attempt ID
+            // Handle various possible response structures
+            const submitData = (submitResponse as any)?.data || submitResponse;
+            const attemptId = submitData?.id || submitData?._id || submitData?.attemptId;
+
+            console.log('Submission response:', submitResponse);
+            console.log('Extracted attemptId:', attemptId);
+
+            if (attemptId) {
+                // 3. Fetch detailed results
+                try {
+                    const attemptDetails = await quizzesService.getAttemptDetails(quiz.id || quiz._id, attemptId);
+                    console.log('Fetched attempt details:', attemptDetails);
+
+                    const resultData = (attemptDetails as any)?.data || attemptDetails;
+                    setQuizResult(resultData);
+                    dispatch(showToast({ message: 'Quiz submitted successfully!', type: 'success' }));
+                } catch (fetchError) {
+                    console.error('Error fetching attempt details:', fetchError);
+                    // Fallback to submission response if detail fetch fails
+                    setQuizResult(submitData);
+                    dispatch(showToast({ message: 'Quiz submitted, but could not load detailed results.', type: 'warning' }));
+                }
+            } else {
+                console.warn('No attempt ID returned from submission');
+                setQuizResult(submitData);
+                dispatch(showToast({ message: 'Quiz submitted successfully!', type: 'success' }));
+            }
+
         } catch (error: any) {
+            console.error('Quiz submission error:', error);
             const errorMsg = error.response?.data?.message || error.response?.data?.messages?.[0] || 'Failed to submit quiz';
             dispatch(showToast({ message: errorMsg, type: 'error' }));
+        } finally {
             setSubmitting(false);
         }
     };
@@ -239,6 +276,14 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
                                     Retake Quiz
                                 </Button>
                             )}
+                        </div>
+
+                        {/* DEBUG SECTION - REMOVE AFTER FIXING */}
+                        <div className="mt-8 p-4 bg-slate-100 dark:bg-slate-900 rounded text-left overflow-auto max-h-60">
+                            <p className="text-xs font-bold text-red-500 mb-2">DEBUG: Raw API Response (Please check this data)</p>
+                            <pre className="text-xs font-mono text-slate-600 dark:text-slate-400">
+                                {JSON.stringify(quizResult, null, 2)}
+                            </pre>
                         </div>
                     </div>
                 </div>
