@@ -8,6 +8,7 @@ import { LANGUAGES } from '../../constants/languages';
 
 const POPUP_SEEN_KEY = 'has_seen_language_popup';
 
+
 export const LanguagePopup: React.FC = () => {
     const dispatch = useDispatch();
     const { language, modal } = useSelector((state: RootState) => state.ui);
