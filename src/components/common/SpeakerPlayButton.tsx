@@ -85,4 +85,5 @@ export const SpeakerPlayButton: React.FC<SpeakerPlayButtonProps> = ({
             </span>
         </button>
     );
+
 };
