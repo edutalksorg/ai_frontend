@@ -109,14 +109,37 @@ const UserProfile: React.FC = () => {
 
     const handleUpdateProfile = async () => {
         try {
-            await usersService.updateProfile({
+            const updatedProfile = await usersService.updateProfile({
                 fullName: formData.fullName,
                 phoneNumber: formData.phone
             });
+
+            // Use returned data or fall back to local form data
+            const mergedProfile = {
+                ...profile,
+                ...updatedProfile, // If API returns the object
+                fullName: formData.fullName, // Ensure local values take precedence if API void/partial
+                phoneNumber: formData.phone
+            };
+
+            setProfile(mergedProfile);
+
+            // Dispatch to Redux
+            if (user) {
+                dispatch(setUser({
+                    ...user,
+                    ...mergedProfile,
+                    id: user.id
+                }));
+            }
+
             dispatch(showToast({ message: 'Profile updated successfully', type: 'success' }));
             setIsEditing(false);
-            fetchProfile();
+
+            // Optional: Re-fetch silently if needed, but we trust the update
+            // fetchProfile(); 
         } catch (error) {
+            console.error('Update profile failed:', error);
             dispatch(showToast({ message: 'Failed to update profile', type: 'error' }));
         }
     };

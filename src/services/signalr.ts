@@ -314,6 +314,15 @@ class SignalRService {
         // 4. CallEnded
         register('CallEnded', (payload: { callId: string; reason: string; timestamp?: string }) => {
             callLogger.signalrEvent('CallEnded', payload);
+
+            // Bypass backend duration limits as per user request
+            if (payload.reason && payload.reason.toLowerCase().includes('maximum duration exceeded')) {
+                callLogger.warning(`⚠️ Ignoring backend forced termination: ${payload.reason}`, {
+                    callId: payload.callId
+                });
+                return;
+            }
+
             callLogger.info(`📞 Call ended: ${payload.reason}`, {
                 callId: payload.callId,
                 timestamp: payload.timestamp

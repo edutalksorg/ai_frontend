@@ -8,8 +8,8 @@ export const usersService = {
     return apiService.get<UserProfile>(API_ENDPOINTS.GET_PROFILE);
   },
 
-  updateProfile: async (data: Partial<UserProfile>): Promise<void> => {
-    return apiService.put<void>(API_ENDPOINTS.UPDATE_PROFILE, data);
+  updateProfile: async (data: Partial<UserProfile>): Promise<UserProfile> => {
+    return apiService.put<UserProfile>(API_ENDPOINTS.UPDATE_PROFILE, data);
   },
 
   uploadAvatar: async (file: File): Promise<string> => {
@@ -240,3 +240,4 @@ export const usersService = {
 };
 
 export default usersService;
+

@@ -153,19 +153,29 @@ const AdminProfilePage: React.FC = () => {
         try {
             setLoading(true);
             const updatePayload = {
+                fullName: editForm.fullName,
                 bio: editForm.bio || '',
                 preferredLanguage: editForm.preferredLanguage || '',
                 country: editForm.country || '',
                 city: editForm.city || '',
+                phoneNumber: editForm.phoneNumber
             };
 
-            await usersService.updateProfile(updatePayload);
-            const updatedProfile = await usersService.getProfile();
-            setProfile(updatedProfile);
-            setEditForm(updatedProfile);
+            const updatedProfile = await usersService.updateProfile(updatePayload);
+
+            // Merge with existing profile to ensure we have a complete object
+            const mergedProfile = {
+                ...profile,
+                ...updatedProfile,
+                ...updatePayload
+            };
+
+            setProfile(mergedProfile);
+            setEditForm(mergedProfile);
             setIsEditing(false);
             dispatch(showToast({ message: 'Profile updated', type: 'success' }));
         } catch (error) {
+            console.error('Update failed:', error);
             dispatch(showToast({ message: 'Update failed', type: 'error' }));
         } finally {
             setLoading(false);

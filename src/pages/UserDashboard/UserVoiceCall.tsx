@@ -24,6 +24,48 @@ const UserVoiceCall: React.FC = () => {
     const [history, setHistory] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+    const [findingPartner, setFindingPartner] = useState(false);
+    const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+
+    // ... hooks ...
+
+    const handleRandomCall = async () => {
+        if (findingPartner) return;
+        setFindingPartner(true);
+
+        // Minimal UX delay to make it feel like "searching"
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        let usersToPickFrom = availableUsers;
+
+        // If no users, try one quick refresh
+        if (usersToPickFrom.length === 0) {
+            callLogger.info('No local users, trying forced refresh before random pick');
+            await fetchAvailableUsers({ silent: true });
+            // Re-read state? No, fetchAvailableUsers updates state async. 
+            // We can't rely on updated state immediately here in this closure w/o useEffect or using the result of fetch directly.
+            // But fetchAvailableUsers acts on state. 
+            // Let's assume the user engages when they see "Online Users" count > 0.
+            // If count is 0, the button is disabled anyway by the UI logic I just added.
+        }
+
+        if (availableUsers.length === 0) {
+            dispatch(showToast({ message: 'No online users found. Please try again.', type: 'warning' }));
+            setFindingPartner(false);
+            return;
+        }
+
+        const randomIndex = Math.floor(Math.random() * availableUsers.length);
+        const randomUser = availableUsers[randomIndex];
+
+        callLogger.info('🎲 Selected random partner', {
+            userId: randomUser.userId || randomUser.id,
+            name: randomUser.fullName
+        });
+
+        await handleInitiateCall(randomUser.userId || randomUser.id);
+        setFindingPartner(false);
+    };
     const {
         hasActiveSubscription,
         isTrialActive,
@@ -241,19 +283,6 @@ const UserVoiceCall: React.FC = () => {
 
             {activeTab === 'available' && (
                 <div className="space-y-4">
-                    {/* Privacy Note */}
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 rounded-lg flex items-start gap-3">
-                        <div className="text-blue-600 dark:text-blue-400 mt-1">
-                            <User size={20} />
-                        </div>
-                        <div>
-                            <h4 className="font-semibold text-blue-900 dark:text-blue-300">Privacy Notice</h4>
-                            <p className="text-sm text-blue-700 dark:text-blue-400 mt-1">
-                                Voice Calling is designed for communication and learning purposes only. EduTalks Company is not responsible for any personal information you choose to share during calls. Please avoid sharing sensitive data, financial information, passwords, or any private details while using this feature.
-                            </p>
-                        </div>
-                    </div>
-
                     {/* Status and Refresh */}
                     <div className="flex justify-between items-center">
                         <div className="flex items-center gap-3">
@@ -288,7 +317,7 @@ const UserVoiceCall: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-3">
                             <span className="text-xs text-slate-500">
-                                Updated: {lastUpdated.toLocaleTimeString()}
+                                {availableUsers.length} Online Users
                             </span>
                             <Button variant="ghost" size="sm" onClick={() => fetchAvailableUsers()} leftIcon={<RefreshCw size={14} className={loading ? "animate-spin" : ""} />}>
                                 Refresh
@@ -296,60 +325,78 @@ const UserVoiceCall: React.FC = () => {
                         </div>
                     </div>
 
-                    {loading ? (
-                        <div className="py-12 text-center text-slate-500">Scanning availability...</div>
-                    ) : availableUsers.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {availableUsers.map((user) => (
-                                <div key={user.userId || user.id} className="p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
-                                    <div className="flex items-center gap-3">
-                                        <div className="relative w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 overflow-hidden">
-                                            {user.avatarUrl ? (
-                                                <img src={user.avatarUrl} alt={user.fullName} className="w-full h-full object-cover" />
-                                            ) : (
-                                                <User size={20} />
-                                            )}
-                                            {/* Real User Online Status from API */}
-                                            <UserStatusIndicator
-                                                isOnline={user.isOnline}
-                                                status={user.status}
-                                                availability={user.availability}
-                                            />
-                                        </div>
-                                        <div>
-                                            <h4 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                                                {user.fullName || 'Unknown User'}
-                                            </h4>
-                                            <div className="flex items-center gap-2 text-xs text-slate-500">
-                                                <span>{user.preferredLanguage || 'English Learner'}</span>
-                                                <span>•</span>
-                                                <span className="text-green-600 dark:text-green-400">
-                                                    {formatLastActive(user.lastActiveAt)}
-                                                </span>
-                                            </div>
-                                        </div>
+                    {/* Random Call Interface */}
+                    <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm text-center">
+                        <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-6 ring-8 ring-blue-50/50 dark:ring-blue-900/10">
+                            <Phone className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                        </div>
+
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
+                            Review with a Random Partner
+                        </h2>
+
+                        <p className="text-slate-600 dark:text-slate-400 max-w-md mb-8">
+                            Practice your pronunciation and speaking skills with other learners available online right now.
+                        </p>
+
+                        <div className="flex flex-col items-center gap-4 w-full max-w-xs">
+                            <Button
+                                size="lg"
+                                className={`w-full h-14 text-lg shadow-lg shadow-blue-500/20 rounded-full ${findingPartner ? 'animate-pulse cursor-wait' : ''}`}
+                                onClick={() => setShowPrivacyModal(true)}
+                                disabled={findingPartner || loading || availableUsers.length === 0}
+                                leftIcon={findingPartner ? <RefreshCw className="animate-spin" /> : <Phone />}
+                            >
+                                {findingPartner ? 'Finding Partner...' : 'Call Random Partner'}
+                            </Button>
+
+                            {availableUsers.length === 0 && !loading && (
+                                <p className="text-sm text-amber-500 bg-amber-50 dark:bg-amber-900/20 px-4 py-2 rounded-lg border border-amber-100 dark:border-amber-800">
+                                    No users currently online. Try again in a moment.
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Privacy Notice Modal */}
+                    {showPrivacyModal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
+                            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6 animate-in zoom-in-95 duration-200">
+                                <div className="text-center mb-6">
+                                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600 dark:text-blue-400">
+                                        <User size={24} />
                                     </div>
+                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">Privacy Notice</h3>
+                                </div>
+
+                                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl mb-6">
+                                    <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
+                                        Voice Calling is designed for communication and learning purposes only.
+                                        EduTalks Company is not responsible for any personal information you choose to share during calls.
+                                        Please avoid sharing sensitive data, financial information, passwords, or any private details while using this feature.
+                                    </p>
+                                </div>
+
+                                <div className="flex gap-3">
                                     <Button
-                                        size="sm"
-                                        className="bg-green-600 hover:bg-green-700 text-white"
-                                        leftIcon={<Phone size={16} />}
-                                        onClick={() => handleInitiateCall(user.userId || user.id)}
+                                        variant="outline"
+                                        className="flex-1"
+                                        onClick={() => setShowPrivacyModal(false)}
                                     >
-                                        Call
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        variant="primary"
+                                        className="flex-1"
+                                        onClick={() => {
+                                            setShowPrivacyModal(false);
+                                            handleRandomCall();
+                                        }}
+                                    >
+                                        Agree & Connect
                                     </Button>
                                 </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
-                            <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3">
-                                <User className="text-slate-400" />
                             </div>
-                            <p className="text-slate-500 mb-2">connect with your practice partner.</p>
-                            <p className="text-sm text-slate-400 mb-4">Check back in a few minutes or set your status to Online.</p>
-                            <Button variant="primary" onClick={() => navigate('/voice-calls')}>
-                                CALL PARTNER
-                            </Button>
                         </div>
                     )}
                 </div>

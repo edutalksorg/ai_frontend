@@ -282,8 +282,8 @@ const CallManager: React.FC = () => {
                                 signalRService.notifyCallActive(currentCall.callId);
                                 dispatch(setCallStatus('active'));
                             } else if (pc!.connectionState === 'failed') {
-                                callLogger.error('❌ WebRTC connection failed');
-                                dispatch(endCall());
+                                callLogger.error('❌ WebRTC connection failed (persistence mode: NOT ending call)');
+                                // dispatch(endCall()); // User requested to only end manually
                             }
                         };
 
