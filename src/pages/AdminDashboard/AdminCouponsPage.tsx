@@ -105,10 +105,12 @@ const AdminCouponsPage: React.FC = () => {
         if (applicableToFilter !== 'all') {
             filtered = filtered.filter(c => {
                 const type = c.applicableTo;
+                // Convert to number for comparison if it's a number
+                const typeNum = typeof type === 'number' ? type : undefined;
                 // Map API enum string/number to filter logic
-                if (applicableToFilter === 'Both') return type === 'AllSubscriptions' || type === 'Both' || type === 1;
-                if (applicableToFilter === 'Quiz') return type === 'SpecificQuizzes' || type === 'Quiz' || type === 2;
-                if (applicableToFilter === 'Plan') return type === 'SpecificPlans' || type === 'Plan' || type === 3;
+                if (applicableToFilter === 'Both') return type === 'AllSubscriptions' || type === 'Both' || typeNum === 1;
+                if (applicableToFilter === 'Quiz') return type === 'SpecificQuizzes' || type === 'Quiz' || typeNum === 2;
+                if (applicableToFilter === 'Plan') return type === 'SpecificPlans' || type === 'Plan' || typeNum === 3;
                 return true;
             });
         }
