@@ -140,7 +140,7 @@ const CallManager: React.FC = () => {
     // 4. WebRTC - Initialize & Event subscription
     useEffect(() => {
         // Run logic while connecting OR active to keep listeners alive
-        if ((callState === 'connecting' || callState === 'active') && currentCall) {
+        if ((callState === 'connecting' || callState === 'active') && currentCall && user) {
             // Pending buffers for signals arriving before PC is ready
             const pendingOffer = { current: null as string | null };
             const pendingCandidates = { current: [] as IceCandidatePayload[] };
@@ -318,6 +318,21 @@ const CallManager: React.FC = () => {
                     }
                 } else {
                     callLogger.debug('Peer connection exists, re-registering listeners');
+                }
+
+                // B. Role Re-evaluation / Recovery (Fix for Race Condition)
+                // If I am the Caller, and PC exists, but I haven't set a local description (Offer), DO IT NOW.
+                // This handles the case where we might have initialized as 'callee' due to temporary state mismatch, or if offer sending failed.
+                const pcSafe = peerConnection.current;
+                if (pcSafe && currentCall.callerId === user.id && !pcSafe.localDescription && pcSafe.signalingState === 'stable') {
+                    try {
+                        callLogger.info('👤 I am the caller (RECOVERY), creating SDP offer');
+                        const offer = await pcSafe.createOffer();
+                        await pcSafe.setLocalDescription(offer);
+                        await signalRService.sendOffer(currentCall.callId, offer.sdp || '');
+                    } catch (err) {
+                        callLogger.error('❌ Failed to send Offer during recovery', err);
+                    }
                 }
             };
 

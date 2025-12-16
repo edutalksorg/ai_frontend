@@ -50,7 +50,7 @@ export const LanguagePopup: React.FC = () => {
 
                 <div className="p-4 max-h-[60vh] overflow-y-auto">
                     <div className="grid grid-cols-1 gap-2">
-                        {LANGUAGES.map((lang) => (
+                        {LANGUAGES.filter(lang => lang.code !== 'English').map((lang) => (
                             <button
                                 key={lang.code}
                                 onClick={() => setSelectedLang(lang.code)}
@@ -62,8 +62,8 @@ export const LanguagePopup: React.FC = () => {
                                 <div className="flex items-center gap-3">
                                     <span className="text-2xl">{lang.flag}</span>
                                     <span className={`font-medium ${selectedLang === lang.code
-                                            ? 'text-blue-700 dark:text-blue-300'
-                                            : 'text-slate-700 dark:text-slate-300'
+                                        ? 'text-blue-700 dark:text-blue-300'
+                                        : 'text-slate-700 dark:text-slate-300'
                                         }`}>
                                         <span className="block text-sm font-bold">{lang.name}</span>
                                         <span className="block text-xs opacity-75">{lang.nativeName}</span>

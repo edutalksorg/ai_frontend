@@ -298,42 +298,51 @@ class SignalRService {
         });
 
         // 2. CallAccepted
-        register('CallAccepted', (payload: { callId: string }) => {
+        register('CallAccepted', (payload: any) => {
             callLogger.signalrEvent('CallAccepted', payload);
-            callLogger.info('✅ Call accepted by callee', payload);
+            const callId = payload.callId || payload.CallId;
+            callLogger.info('✅ Call accepted by callee', { callId });
             store.dispatch(setCallStatus('connecting'));
         });
 
         // 3. CallRejected
-        register('CallRejected', (payload: { callId: string }) => {
+        register('CallRejected', (payload: any) => {
             callLogger.signalrEvent('CallRejected', payload);
-            callLogger.warning('❌ Call rejected by callee', payload);
+            const callId = payload.callId || payload.CallId;
+            callLogger.warning('❌ Call rejected by callee', { callId });
             store.dispatch(endCall());
         });
 
         // 4. CallEnded
-        register('CallEnded', (payload: { callId: string; reason: string; timestamp?: string }) => {
+        register('CallEnded', (payload: any) => {
             callLogger.signalrEvent('CallEnded', payload);
 
+            const reason = payload.reason || payload.Reason;
+            const callId = payload.callId || payload.CallId;
+            const timestamp = payload.timestamp || payload.Timestamp;
+
             // Bypass backend duration limits as per user request
-            if (payload.reason && payload.reason.toLowerCase().includes('maximum duration exceeded')) {
-                callLogger.warning(`⚠️ Ignoring backend forced termination: ${payload.reason}`, {
-                    callId: payload.callId
+            if (reason && reason.toLowerCase().includes('maximum duration exceeded')) {
+                callLogger.warning(`⚠️ Ignoring backend forced termination: ${reason}`, {
+                    callId
                 });
                 return;
             }
 
-            callLogger.info(`📞 Call ended: ${payload.reason}`, {
-                callId: payload.callId,
-                timestamp: payload.timestamp
+            callLogger.info(`📞 Call ended: ${reason}`, {
+                callId,
+                timestamp
             });
+
+            // Ensure we dispatch endCall to clean up UI and state
             store.dispatch(endCall());
         });
 
         // 5. CallActive
-        register('CallActive', (payload: { callId: string }) => {
+        register('CallActive', (payload: any) => {
             callLogger.signalrEvent('CallActive', payload);
-            callLogger.info('🟢 Call is now active', payload);
+            const callId = payload.callId || payload.CallId;
+            callLogger.info('🟢 Call is now active', { callId });
             store.dispatch(setCallStatus('active'));
         });
 

@@ -27,7 +27,15 @@ const UserVoiceCall: React.FC = () => {
     const [findingPartner, setFindingPartner] = useState(false);
     const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
-    // ... hooks ...
+    const {
+        hasActiveSubscription,
+        isTrialActive,
+        isFreeTrial,
+        voiceCallRemainingSeconds,
+        hasVoiceCallTimeRemaining,
+        voiceCallLimitSeconds,
+        triggerUpgradeModal,
+    } = useUsageLimits();
 
     const handleRandomCall = async () => {
         if (findingPartner) return;
@@ -42,11 +50,6 @@ const UserVoiceCall: React.FC = () => {
         if (usersToPickFrom.length === 0) {
             callLogger.info('No local users, trying forced refresh before random pick');
             await fetchAvailableUsers({ silent: true });
-            // Re-read state? No, fetchAvailableUsers updates state async. 
-            // We can't rely on updated state immediately here in this closure w/o useEffect or using the result of fetch directly.
-            // But fetchAvailableUsers acts on state. 
-            // Let's assume the user engages when they see "Online Users" count > 0.
-            // If count is 0, the button is disabled anyway by the UI logic I just added.
         }
 
         if (availableUsers.length === 0) {
@@ -66,15 +69,6 @@ const UserVoiceCall: React.FC = () => {
         await handleInitiateCall(randomUser.userId || randomUser.id);
         setFindingPartner(false);
     };
-    const {
-        hasActiveSubscription,
-        isTrialActive,
-        isFreeTrial, // Add this
-        voiceCallRemainingSeconds,
-        hasVoiceCallTimeRemaining,
-        voiceCallLimitSeconds,
-        triggerUpgradeModal,
-    } = useUsageLimits();
 
     const fetchAvailableUsers = async (options?: { silent?: boolean }) => {
         try {
@@ -82,8 +76,6 @@ const UserVoiceCall: React.FC = () => {
             callLogger.debug('Fetching available users');
 
             const res = await callsService.availableUsers({ limit: 1000 });
-
-            // ... (keep extracting logic same as before, no changes to logic) ... 
 
             // Log the full response structure to understand what we're getting
             if (!options?.silent) callLogger.debug('Available users API response:', res);
@@ -103,14 +95,6 @@ const UserVoiceCall: React.FC = () => {
             } else {
                 items = [res];
                 if (!options?.silent) callLogger.debug('Data extracted: Wrapped response');
-            }
-
-            if (!options?.silent) {
-                callLogger.debug('Extracted items count:', items.length);
-                if (items.length > 0) {
-                    callLogger.debug('First user structure:', items[0]);
-                    callLogger.debug('First user keys:', Object.keys(items[0] || {}));
-                }
             }
 
             // Filter to show only online users and EXCLUDE current user
@@ -140,8 +124,12 @@ const UserVoiceCall: React.FC = () => {
         try {
             setLoading(true);
             callLogger.debug('Fetching call history');
-            const res = await callsService.history({ limit: 1000 });
+            // FIX: Use pageSize instead of limit as per Swagger
+            const res = await callsService.history({ pageSize: 100 });
+
+            // Handle flat array response directly from Swagger example
             const items = (res as any)?.data || (Array.isArray(res) ? res : (res as any)?.items) || [];
+
             callLogger.info(`Found ${items.length} call history items`);
             setHistory(items);
         } catch (error) {
@@ -429,31 +417,72 @@ const UserVoiceCall: React.FC = () => {
                         <div className="py-12 text-center text-slate-500">Loading history...</div>
                     ) : history.length > 0 ? (
                         <div className="space-y-3">
-                            {history.map((call) => (
-                                <div key={call.id} className="p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-slate-500">
-                                            <History size={20} />
+                            {history.map((call) => {
+                                // Map flat API fields
+                                const startTime = call.initiatedAt || call.startTime;
+                                const duration = call.durationSeconds !== undefined ? call.durationSeconds : call.duration;
+                                const isIncoming = call.isIncoming;
+                                const status = call.status || 'Unknown';
+
+                                return (
+                                    <div key={call.callId || call.id} className="p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-between transition-hover hover:border-blue-300 dark:hover:border-blue-700">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`p-2.5 rounded-full ${status === 'Completed' ? 'bg-green-100 text-green-600 dark:bg-green-900/30' :
+                                                    status === 'Missed' ? 'bg-red-100 text-red-600 dark:bg-red-900/30' :
+                                                        'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+                                                }`}>
+                                                {/* Direction Icon */}
+                                                {isIncoming ? (
+                                                    <div className="relative">
+                                                        <Phone size={20} />
+                                                        <ArrowLeft size={12} className="absolute -bottom-1 -right-1 bg-white dark:bg-slate-800 rounded-full" />
+                                                    </div>
+                                                ) : (
+                                                    <Phone size={20} />
+                                                )}
+                                            </div>
+                                            <div>
+                                                <h4 className="font-semibold text-slate-900 dark:text-white">
+                                                    {/* MASKED NAME as per request */}
+                                                    Voice Call
+                                                </h4>
+                                                <p className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
+                                                    <span>{new Date(startTime).toLocaleDateString()}</span>
+                                                    <span>•</span>
+                                                    <span>{new Date(startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                    {status && (
+                                                        <>
+                                                            <span>•</span>
+                                                            <span className={
+                                                                status === 'Missed' ? 'text-red-500 font-medium' :
+                                                                    status === 'Completed' ? 'text-green-600 font-medium' : ''
+                                                            }>{status}</span>
+                                                        </>
+                                                    )}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="font-medium text-slate-900 dark:text-white">Call with {call.partner?.fullName || 'User'}</p>
-                                            <p className="text-xs text-slate-500">{new Date(call.startTime).toLocaleString()}</p>
+                                        <div className="flex flex-col items-end gap-1">
+                                            <div className="flex items-center gap-1.5 text-sm font-mono text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
+                                                <Clock size={14} />
+                                                <span>
+                                                    {Math.floor(duration / 60)}:{String(duration % 60).padStart(2, '0')}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2 text-sm text-slate-500">
-                                        <Clock size={14} />
-                                        <span>{Math.floor(call.duration / 60)}m {call.duration % 60}s</span>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     ) : (
-                        <div className="text-center py-12 text-slate-500">
-                            No recent calls found.
+                        <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
+                            <div className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
+                                <History size={24} />
+                            </div>
+                            <p className="text-slate-500">No call history found.</p>
                         </div>
                     )}
                 </div>
-
             )}
         </div>
     );

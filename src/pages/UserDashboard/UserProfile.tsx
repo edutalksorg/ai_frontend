@@ -257,17 +257,17 @@ const UserProfile: React.FC = () => {
                                 {currentSubscription?.plan?.name || currentSubscription?.planName || 'No Active Plan'}
                             </p>
                             <div className="flex items-center gap-2">
-                                <div className={`px-3 py-1 rounded-full text-xs font-bold ${currentSubscription?.status === 'active' || currentSubscription?.status === 'Trialing'
-                                    ? 'bg-green-400/30 text-green-100'
-                                    : 'bg-red-400/30 text-red-100'
-                                    }`}>
-                                    {currentSubscription?.status === 'active' || currentSubscription?.status === 'Trialing'
-                                        ? 'ACTIVE'
-                                        : 'NO ACTIVE PLAN'}
-                                </div>
+                                {['active', 'trialing', 'succeeded', 'year'].includes(currentSubscription?.status?.toLowerCase() || '')
+                                    ? 'ACTIVE'
+                                    : 'NO ACTIVE PLAN'}
+                            </div>
+                            <div className={`px-3 py-1 rounded-full text-xs font-bold ${['active', 'trialing', 'succeeded', 'year'].includes(currentSubscription?.status?.toLowerCase() || '')
+                                ? 'bg-green-400/30 text-green-100'
+                                : 'bg-red-400/30 text-red-100'
+                                }`}>
                                 {currentSubscription && (
                                     <span className="text-sm text-white/80">
-                                        {currentSubscription.status === 'active' ? 'Renews' : 'Expired'} on {new Date(currentSubscription.renewalDate || currentSubscription.endDate || Date.now()).toLocaleDateString()}
+                                        {['active', 'trialing', 'succeeded', 'year'].includes(currentSubscription?.status?.toLowerCase() || '') ? 'Renews' : 'Expired'} on {new Date(currentSubscription.renewalDate || currentSubscription.endDate || Date.now()).toLocaleDateString()}
                                     </span>
                                 )}
                             </div>
