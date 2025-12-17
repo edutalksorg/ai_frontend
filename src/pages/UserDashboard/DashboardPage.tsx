@@ -115,13 +115,13 @@ const DashboardPage: React.FC = () => {
 
     return (
         <UserLayout>
-            <div className="max-w-7xl mx-auto relative">
+            <div className="max-w-7xl mx-auto relative px-4 sm:px-0">
                 {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-2">
+                <div className="mb-6 md:mb-8">
+                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mb-2">
                         Learning Dashboard
                     </h1>
-                    <p className="text-lg text-slate-600 dark:text-slate-400">
+                    <p className="text-sm md:text-base lg:text-lg text-slate-600 dark:text-slate-400">
                         Your personalized learning hub
                     </p>
                 </div>
@@ -130,8 +130,8 @@ const DashboardPage: React.FC = () => {
                 <DashboardCarousel slides={carouselSlides} autoPlayInterval={5000} />
 
                 {/* Navigation Tabs */}
-                <div className="mb-8 sticky top-20 z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm py-2">
-                    <div className="flex justify-between w-full p-1 bg-slate-100 dark:bg-slate-800/50 rounded-xl">
+                <div className="mb-6 md:mb-8 sticky top-20 z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm py-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+                    <div className="flex overflow-x-auto scrollbar-hide gap-2 sm:gap-0 sm:justify-between w-full p-1 bg-slate-100 dark:bg-slate-800/50 rounded-xl">
                         {tabs.map((tab) => {
                             const Icon = tab.icon;
                             const isActive = activeTab === tab.id;
@@ -139,13 +139,13 @@ const DashboardPage: React.FC = () => {
                                 <button
                                     key={tab.id}
                                     onClick={() => handleTabChange(tab.id)}
-                                    className={`flex items-center gap-3 px-6 py-2.5 rounded-lg font-medium transition-all flex-1 justify-center ${isActive
+                                    className={`flex flex-col sm:flex-row items-center gap-1 sm:gap-3 px-3 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium transition-all flex-shrink-0 sm:flex-1 justify-center text-xs sm:text-base min-w-[70px] sm:min-w-0 ${isActive
                                         ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
                                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50'
                                         }`}
                                 >
-                                    <Icon className="w-4 h-4" />
-                                    {tab.label}
+                                    <Icon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                                    <span className="text-[10px] sm:text-base leading-tight">{tab.label}</span>
                                 </button>
                             );
                         })}

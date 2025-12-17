@@ -90,9 +90,9 @@ const UserPronunciation: React.FC = () => {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6 px-4 sm:px-0">
             <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-slate-900 dark:text-white">AI Pronunciation Practice</h3>
+                <h3 className="text-lg md:text-xl font-semibold text-slate-900 dark:text-white">AI Pronunciation Practice</h3>
                 <div className="text-sm text-slate-500">
                     Progress: {paragraphs.length > 0 ? `${currentParaIndex + 1} / ${paragraphs.length}` : '0 / 0'}
                 </div>
@@ -104,7 +104,7 @@ const UserPronunciation: React.FC = () => {
                 </div>
             ) : paragraphs.length > 0 ? (
                 <div>
-                    <div className="mb-6 flex justify-between items-center">
+                    <div className="mb-4 md:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                         <Button variant="outline" size="sm" onClick={handlePrevParagraph} disabled={currentParaIndex === 0}>
                             Previous
                         </Button>

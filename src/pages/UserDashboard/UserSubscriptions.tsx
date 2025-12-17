@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, Star, Shield, Zap, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Check, Star, Shield, Zap, AlertCircle, ArrowLeft, Tag, X } from 'lucide-react';
 import Button from '../../components/Button';
 import { subscriptionsService } from '../../services/subscriptions';
 import { paymentsService } from '../../services/payments';
+import { couponsService } from '../../services/coupons';
 import { updateUserSubscription, setUser } from '../../store/authSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
@@ -25,6 +26,12 @@ const UserSubscriptions: React.FC = () => {
     const [searchParams] = useSearchParams();
     const [processingSwitch, setProcessingSwitch] = useState(false);
     const { isExplicitlyCancelled } = useUsageLimits();
+
+    // Coupon state
+    const [couponCode, setCouponCode] = useState('');
+    const [appliedCoupons, setAppliedCoupons] = useState<Record<string, any>>({});
+    const [validatingCoupon, setValidatingCoupon] = useState<Record<string, boolean>>({});
+    const [showCouponInput, setShowCouponInput] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
         fetchData();
@@ -361,6 +368,113 @@ const UserSubscriptions: React.FC = () => {
         }
     };
 
+    // Coupon validation function
+    const validateAndApplyCoupon = async (plan: any, code: string) => {
+        if (!code.trim()) {
+            dispatch(showToast({ message: 'Please enter a coupon code', type: 'warning' }));
+            return;
+        }
+
+        const planId = plan.id || plan._id;
+
+        try {
+            setValidatingCoupon(prev => ({ ...prev, [planId]: true }));
+
+            console.log('🎟️ Validating coupon:', {
+                code: code.toUpperCase(),
+                planId,
+                planPrice: plan.price,
+                planName: plan.name
+            });
+
+            const response = await couponsService.validate({
+                couponCode: code.toUpperCase(),
+                amount: plan.price, // Pass actual plan price
+                itemType: 'Subscription', // Changed from 'Plan' to match API
+                itemId: planId,
+            });
+
+            console.log('✅ Coupon validation response:', response);
+
+            const couponData = (response as any)?.data || response;
+
+            console.log('📦 Coupon data:', couponData);
+
+            // API returns discountAmount, finalPrice, discountPercentage on success
+            if (couponData && (couponData.discountAmount !== undefined || couponData.finalPrice !== undefined)) {
+                // Store coupon data with code for later use
+                const couponInfo = {
+                    code: code.toUpperCase(),
+                    discountAmount: couponData.discountAmount,
+                    finalPrice: couponData.finalPrice,
+                    discountPercentage: couponData.discountPercentage,
+                    discountValue: couponData.discountAmount,
+                    discountType: 'FixedAmount', // Based on API response
+                };
+
+                setAppliedCoupons(prev => ({ ...prev, [planId]: couponInfo }));
+                dispatch(showToast({
+                    message: `Coupon "${code.toUpperCase()}" applied! You save ₹${couponData.discountAmount}`,
+                    type: 'success'
+                }));
+                setCouponCode('');
+            } else {
+                console.warn('❌ Invalid coupon response:', couponData);
+                // Extract error message from API response
+                const errorMessage = couponData?.errors?.[0] || couponData?.messages?.[0] || couponData?.message || 'Invalid or expired coupon code';
+                console.log('Error message:', errorMessage);
+                dispatch(showToast({
+                    message: errorMessage,
+                    type: 'error'
+                }));
+            }
+        } catch (error: any) {
+            console.error('❌ Coupon validation failed:', error);
+            console.error('Error response:', error.response);
+            // Extract error from response
+            const errorData = error.response?.data;
+            const errorMsg = errorData?.errors?.[0] || errorData?.messages?.[0] || errorData?.message || error.response?.data?.errors?.[0] || 'Invalid or expired coupon code';
+            dispatch(showToast({ message: errorMsg, type: 'error' }));
+        } finally {
+            setValidatingCoupon(prev => ({ ...prev, [planId]: false }));
+        }
+    };
+
+    const removeCoupon = (planId: string) => {
+        setAppliedCoupons(prev => {
+            const updated = { ...prev };
+            delete updated[planId];
+            return updated;
+        });
+        dispatch(showToast({ message: 'Coupon removed', type: 'info' }));
+    };
+
+    const toggleCouponInput = (planId: string) => {
+        setShowCouponInput(prev => ({ ...prev, [planId]: !prev[planId] }));
+    };
+
+    const calculateFinalPrice = (plan: any, coupon: any) => {
+        if (!coupon) return plan.price;
+
+        // If API provided finalPrice, use it directly
+        if (coupon.finalPrice !== undefined) {
+            return coupon.finalPrice;
+        }
+
+        // Otherwise calculate from discount
+        let discount = 0;
+        if (coupon.discountType === 'Percentage' || coupon.discountType === 1) {
+            discount = (plan.price * coupon.discountValue) / 100;
+            if (coupon.maxDiscountAmount && discount > coupon.maxDiscountAmount) {
+                discount = coupon.maxDiscountAmount;
+            }
+        } else {
+            discount = coupon.discountValue || coupon.discountAmount || 0;
+        }
+
+        return Math.max(0, plan.price - discount);
+    };
+
     const processSubscription = async (plan: any) => {
         try {
             console.log('🚀 ========== PAYMENT FLOW STARTED ==========');
@@ -373,9 +487,13 @@ const UserSubscriptions: React.FC = () => {
 
             dispatch(showToast({ message: 'Initiating subscription...', type: 'info' }));
 
+            const planId = plan.id || plan._id;
+            const appliedCoupon = appliedCoupons[planId];
+
             const response = await subscriptionsService.subscribe({
-                planId: plan.id || plan._id,
+                planId: planId,
                 userPhone: user?.phoneNumber,
+                couponCode: appliedCoupon?.code || undefined,
             });
 
             console.log('📨 Raw Subscribe API Response:', response);
@@ -453,36 +571,36 @@ const UserSubscriptions: React.FC = () => {
     if (loading) return <div className="text-center py-12 text-slate-500">Loading plans...</div>;
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-4 md:space-y-6 lg:space-y-8 px-4 sm:px-0">
             {/* Header */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 md:gap-4">
                 <button
                     onClick={() => navigate(-1)}
                     className="p-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 rounded-full transition-colors text-blue-600 dark:text-blue-400"
                 >
                     <ArrowLeft size={24} />
                 </button>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">My Subscriptions</h1>
+                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white">My Subscriptions</h1>
             </div>
             {/* Current Plan Status */}
             {currentSub && (
-                <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-6 flex justify-between items-center">
+                <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg md:rounded-xl p-4 md:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
                     <div>
-                        <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                        <h3 className="text-sm md:text-base font-semibold text-slate-900 dark:text-white flex flex-wrap items-center gap-2">
                             Current Plan: <span className="text-primary-600">{currentSub.planName || currentSub.plan?.name || 'Free Trial'}</span>
                         </h3>
                         <p className="text-sm text-slate-500">
                             {['active', 'trialing', 'succeeded', 'year'].includes(currentSub.status?.toLowerCase()) ? 'Active' : 'Expired'} • Renews on {new Date(currentSub.endDate || currentSub.renewalDate).toLocaleDateString()}
                         </p>
                     </div>
-                    <Button variant="outline" size="sm">Manage Subscription</Button>
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto">Manage Subscription</Button>
                 </div>
             )}
 
             {/* Plans Grid */}
             <div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Available Plans</h3>
-                <div className="grid md:grid-cols-3 gap-6">
+                <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-slate-900 dark:text-white mb-4 md:mb-6">Available Plans</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     {plans.length > 0 ? plans.map((plan) => {
                         // Check if this is the Yearly Plan
                         const isYearlyPlan = plan.name?.toLowerCase().includes('yearly') || plan.interval?.toLowerCase() === 'year';
@@ -513,41 +631,41 @@ const UserSubscriptions: React.FC = () => {
                         const isLocked = isCurrentPlan && isSubActive;
 
                         return (
-                            <div key={plan.id || plan._id} className={`relative rounded-2xl p-6 transition-all duration-300 flex flex-col h-full ${isYearlyPlan
+                            <div key={plan.id || plan._id} className={`relative rounded-xl md:rounded-2xl p-4 md:p-6 transition-all duration-300 flex flex-col h-full ${isYearlyPlan
                                 ? 'border-2 border-blue-500 bg-gradient-to-br from-blue-50 via-blue-50/50 to-white dark:from-blue-950/40 dark:via-blue-900/20 dark:to-slate-800 shadow-[0_10px_40px_rgba(59,130,246,0.2)]'
                                 : isLocked
                                     // Current Plan Style: Green/Primary border, glowing effect, slightly raised
-                                    ? 'border-2 border-green-500 ring-4 ring-green-500/10 dark:ring-green-500/20 bg-green-50/30 dark:bg-green-900/10 shadow-xl scale-[1.02] z-10'
+                                    ? 'border-2 border-green-500 ring-4 ring-green-500/10 dark:ring-green-500/20 bg-green-50/30 dark:bg-green-900/10 shadow-xl md:scale-[1.02] z-10'
                                     // Default Style
-                                    : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-xl hover:-translate-y-1'
+                                    : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-xl md:hover:-translate-y-1'
                                 }`}>
 
                                 {/* Badge for Current Active Plan */}
                                 {isLocked && (
-                                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-sm font-bold px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2 z-20 whitespace-nowrap">
-                                        <Check size={14} className="stroke-[3]" />
+                                    <div className="absolute -top-3 md:-top-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-xs md:text-sm font-bold px-3 md:px-4 py-1 md:py-1.5 rounded-full shadow-lg flex items-center gap-1 md:gap-2 z-20 whitespace-nowrap">
+                                        <Check size={12} className="md:w-3.5 md:h-3.5 stroke-[3]" />
                                         <span>Active Plan</span>
                                     </div>
                                 )}
 
                                 {/* Popular Badge for Yearly Plan (Hide if it's also the current plan to avoid badge overlap, or offset it) */}
                                 {isYearlyPlan && !isLocked && (
-                                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-sm font-bold px-5 py-2 rounded-full shadow-xl flex items-center gap-2 z-10">
-                                        <Star size={16} className="fill-white" />
+                                    <div className="absolute -top-3 md:-top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-xs md:text-sm font-bold px-3 md:px-5 py-1 md:py-2 rounded-full shadow-xl flex items-center gap-1 md:gap-2 z-10">
+                                        <Star size={14} className="md:w-4 md:h-4 fill-white" />
                                         <span>Popular Plan</span>
                                     </div>
                                 )}
 
                                 <div className="mt-2"> {/* Spacer for badges */}
-                                    <h4 className={`text-lg font-bold mb-2 ${isYearlyPlan ? 'text-blue-900 dark:text-blue-100' : isLocked ? 'text-green-900 dark:text-green-100' : 'text-slate-900 dark:text-white'}`}>
+                                    <h4 className={`text-base md:text-lg font-bold mb-2 ${isYearlyPlan ? 'text-blue-900 dark:text-blue-100' : isLocked ? 'text-green-900 dark:text-green-100' : 'text-slate-900 dark:text-white'}`}>
                                         {plan.name}
                                     </h4>
                                 </div>
-                                <div className="flex items-baseline mb-4">
-                                    <span className={`text-3xl font-bold ${isYearlyPlan ? 'text-blue-900 dark:text-blue-100' : 'text-slate-900 dark:text-white'}`}>
+                                <div className="flex items-baseline mb-3 md:mb-4">
+                                    <span className={`text-2xl md:text-3xl font-bold ${isYearlyPlan ? 'text-blue-900 dark:text-blue-100' : 'text-slate-900 dark:text-white'}`}>
                                         ₹{plan.price}
                                     </span>
-                                    <span className={`text-sm ${isYearlyPlan ? 'text-blue-700 dark:text-blue-300' : 'text-slate-500'}`}>
+                                    <span className={`text-xs md:text-sm ${isYearlyPlan ? 'text-blue-700 dark:text-blue-300' : 'text-slate-500'}`}>
                                         /{plan.interval || 'month'}
                                     </span>
                                 </div>
@@ -591,6 +709,103 @@ const UserSubscriptions: React.FC = () => {
                                     )}
                                 </ul>
 
+                                {/* Coupon Section */}
+                                {(() => {
+                                    const planId = plan.id || plan._id;
+                                    const appliedCoupon = appliedCoupons[planId];
+                                    const isValidating = validatingCoupon[planId];
+                                    const showInput = showCouponInput[planId];
+
+                                    return (
+                                        <div className="mb-4 md:mb-6 border-t border-slate-200 dark:border-slate-700 pt-3 md:pt-4">
+                                            {!appliedCoupon ? (
+                                                <>
+                                                    <button
+                                                        onClick={() => toggleCouponInput(planId)}
+                                                        className="text-xs md:text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 md:gap-1.5 mb-2 min-h-[44px] md:min-h-0"
+                                                    >
+                                                        <Tag size={14} className="md:w-3.5 md:h-3.5" />
+                                                        {showInput ? 'Hide coupon' : 'Have a coupon code?'}
+                                                    </button>
+
+                                                    {showInput && (
+                                                        <div className="flex flex-col sm:flex-row gap-2 animate-in slide-in-from-top-2">
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Enter code"
+                                                                value={couponCode}
+                                                                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                                                onKeyPress={(e) => {
+                                                                    if (e.key === 'Enter') {
+                                                                        validateAndApplyCoupon(plan, couponCode);
+                                                                    }
+                                                                }}
+                                                                className="flex-1 px-3 py-2.5 md:py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] md:min-h-0"
+                                                            />
+                                                            <Button
+                                                                size="sm"
+                                                                onClick={() => validateAndApplyCoupon(plan, couponCode)}
+                                                                isLoading={isValidating}
+                                                                disabled={!couponCode.trim() || isValidating}
+                                                            >
+                                                                Apply
+                                                            </Button>
+                                                        </div>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <div className="space-y-3">
+                                                    {/* Applied Coupon Badge */}
+                                                    <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="p-1.5 bg-green-100 dark:bg-green-900/40 rounded-full">
+                                                                <Tag size={14} className="text-green-600 dark:text-green-400" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-sm font-semibold text-green-700 dark:text-green-300">
+                                                                    {appliedCoupon.code}
+                                                                </p>
+                                                                <p className="text-xs text-green-600 dark:text-green-400">
+                                                                    Coupon applied!
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => removeCoupon(planId)}
+                                                            className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-full transition-colors"
+                                                            title="Remove coupon"
+                                                        >
+                                                            <X size={16} className="text-red-500" />
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Price Breakdown */}
+                                                    <div className="space-y-2 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                                                        <div className="flex justify-between items-center text-sm">
+                                                            <span className="text-slate-600 dark:text-slate-400">Original Price:</span>
+                                                            <span className="text-slate-900 dark:text-white line-through">₹{plan.price}</span>
+                                                        </div>
+                                                        <div className="flex justify-between items-center text-sm">
+                                                            <span className="text-green-600 dark:text-green-400">Discount:</span>
+                                                            <span className="text-green-600 dark:text-green-400 font-semibold">
+                                                                -{appliedCoupon.discountType === 'Percentage' || appliedCoupon.discountType === 1
+                                                                    ? `${appliedCoupon.discountValue}%`
+                                                                    : `₹${appliedCoupon.discountValue}`}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex justify-between items-center pt-2 border-t border-slate-300 dark:border-slate-600">
+                                                            <span className="font-bold text-slate-900 dark:text-white">Final Price:</span>
+                                                            <span className="text-xl font-bold text-green-600 dark:text-green-400">
+                                                                ₹{calculateFinalPrice(plan, appliedCoupon).toFixed(2)}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })()}
+
                                 {(() => {
                                     // Determine Button Text & State
                                     let buttonText = isLocked ? 'Current Plan' : isCurrentPlan ? 'Renew Plan' : 'Choose Plan';
@@ -600,9 +815,21 @@ const UserSubscriptions: React.FC = () => {
                                     // If name matches "Free", and user is strictly locked out (cancelled/expired), mark as used/expired
                                     const isFreePlanCard = plan.name?.toLowerCase().includes('free');
 
-                                    // Robust check: Use isExplicitlyCancelled from hook OR direct status check
+                                    // Check if trial has expired by time (24-hour period passed)
+                                    const isTrialExpiredByTime = user?.trialEndDate && new Date() > new Date(user.trialEndDate);
+
+                                    // Check if user has an active PAID subscription (not free trial)
+                                    const hasActivePaidSubscription = isSubActive && !isFreeTrial;
+
+                                    // Comprehensive check: Plan is used if:
+                                    // 1. User has an active paid subscription (can't go back to free trial)
+                                    // 2. User explicitly cancelled
+                                    // 3. Trial period expired (24 hours)
+                                    // 4. Subscription status is cancelled/expired
                                     const isPlanUsed = isFreePlanCard && (
+                                        hasActivePaidSubscription ||
                                         isExplicitlyCancelled ||
+                                        isTrialExpiredByTime ||
                                         (!isSubActive && (user?.subscriptionStatus === 'cancelled' || user?.subscriptionStatus === 'expired'))
                                     );
 
@@ -620,7 +847,7 @@ const UserSubscriptions: React.FC = () => {
                                             onClick={() => {
                                                 if (isPlanUsed) {
                                                     dispatch(showToast({
-                                                        message: "You have already used your Free Trial. Please choose a premium plan to continue.",
+                                                        message: "Plan used. You have already used your Free Trial. Please choose a premium plan to continue.",
                                                         type: "warning"
                                                     }));
                                                     return;

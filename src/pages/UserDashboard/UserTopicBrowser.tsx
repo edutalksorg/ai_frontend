@@ -119,9 +119,9 @@ const UserTopicBrowser: React.FC = () => {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6 px-4 sm:px-0">
             <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
+                <h3 className="text-lg md:text-xl font-semibold text-slate-900 dark:text-white">
                     Topics Path
                 </h3>
             </div>
@@ -196,7 +196,7 @@ const UserTopicBrowser: React.FC = () => {
 
                         return (
                             <div
-                                className={`w-full bg-white dark:bg-slate-800 rounded-xl p-8 border transition-all ${isLocked
+                                className={`w-full bg-white dark:bg-slate-800 rounded-xl p-6 md:p-8 border transition-all ${isLocked
                                     ? 'border-slate-200 dark:border-slate-700 opacity-75'
                                     : isCompleted
                                         ? 'border-green-200 dark:border-green-900/50 bg-green-50/10'
@@ -235,7 +235,7 @@ const UserTopicBrowser: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <h4 className={`text-2xl font-bold mb-3 ${isLocked ? 'text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white'
+                                <h4 className={`text-xl md:text-2xl font-bold mb-3 ${isLocked ? 'text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white'
                                     }`}>
                                     {topic.title}
                                 </h4>

@@ -75,6 +75,18 @@ const AdminCouponsPage: React.FC = () => {
             setLoading(true);
             const res = await couponsService.list();
             const data = (res as any)?.data || (Array.isArray(res) ? res : []);
+
+            // Debug: Log coupon data to check currentUsageCount
+            console.log('📊 Fetched Coupons:', data);
+            if (data.length > 0) {
+                console.log('📊 Sample Coupon Data:', {
+                    code: data[0].code,
+                    currentUsageCount: data[0].currentUsageCount,
+                    maxTotalUsage: data[0].maxTotalUsage,
+                    status: data[0].status
+                });
+            }
+
             setCoupons(data);
         } catch (error) {
             console.error('Failed to fetch coupons:', error);
@@ -98,7 +110,7 @@ const AdminCouponsPage: React.FC = () => {
 
         // Status filter
         if (statusFilter !== 'all') {
-            filtered = filtered.filter(c => c.status === statusFilter);
+            filtered = filtered.filter(c => getActualStatus(c) === statusFilter);
         }
 
         // ApplicableTo filter
@@ -272,6 +284,25 @@ const AdminCouponsPage: React.FC = () => {
         return new Date(dateString).toISOString().split('T')[0];
     };
 
+    // Helper to get actual coupon status (check expiry date and usage limits)
+    const getActualStatus = (coupon: Coupon): 'Active' | 'Inactive' | 'Expired' => {
+        // Check if coupon has expired by date
+        const now = new Date();
+        const expiryDate = new Date(coupon.expiryDate);
+
+        if (now > expiryDate) {
+            return 'Expired';
+        }
+
+        // Check if coupon has reached its usage limit
+        if (coupon.currentUsageCount >= coupon.maxTotalUsage) {
+            return 'Expired';
+        }
+
+        // Otherwise return the backend status
+        return coupon.status as 'Active' | 'Inactive' | 'Expired';
+    };
+
     return (
         <AdminLayout>
             <div className="max-w-7xl mx-auto">
@@ -316,7 +347,7 @@ const AdminCouponsPage: React.FC = () => {
                             <div>
                                 <p className="text-sm text-slate-600 dark:text-slate-400">Active</p>
                                 <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
-                                    {coupons.filter(c => c.status === 'Active').length}
+                                    {coupons.filter(c => getActualStatus(c) === 'Active').length}
                                 </p>
                             </div>
                             <TrendingUp className="text-green-500" size={32} />
@@ -327,7 +358,7 @@ const AdminCouponsPage: React.FC = () => {
                             <div>
                                 <p className="text-sm text-slate-600 dark:text-slate-400">Inactive</p>
                                 <p className="text-2xl font-bold text-gray-600 dark:text-gray-400 mt-1">
-                                    {coupons.filter(c => c.status === 'Inactive').length}
+                                    {coupons.filter(c => getActualStatus(c) === 'Inactive').length}
                                 </p>
                             </div>
                             <Filter className="text-gray-500" size={32} />
@@ -338,7 +369,7 @@ const AdminCouponsPage: React.FC = () => {
                             <div>
                                 <p className="text-sm text-slate-600 dark:text-slate-400">Expired</p>
                                 <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">
-                                    {coupons.filter(c => c.status === 'Expired').length}
+                                    {coupons.filter(c => getActualStatus(c) === 'Expired').length}
                                 </p>
                             </div>
                             <Calendar className="text-red-500" size={32} />
@@ -460,8 +491,8 @@ const AdminCouponsPage: React.FC = () => {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${getStatusBadge(coupon.status)}`}>
-                                                    {coupon.status}
+                                                <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${getStatusBadge(getActualStatus(coupon))}`}>
+                                                    {getActualStatus(coupon)}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-right">

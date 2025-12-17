@@ -167,9 +167,9 @@ const UserQuizInterface: React.FC = () => {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6 px-4 sm:px-0">
             <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-slate-900 dark:text-white">Quiz Path</h3>
+                <h3 className="text-lg md:text-xl font-semibold text-slate-900 dark:text-white">Quiz Path</h3>
             </div>
 
             {quizzes.length > 0 ? (
@@ -246,7 +246,7 @@ const UserQuizInterface: React.FC = () => {
                                     ? 'border-green-200 dark:border-green-900/50 bg-green-50/10'
                                     : 'border-pink-200 dark:border-pink-900 ring-1 ring-pink-100 dark:ring-pink-900/30 shadow-md'
                                 }`}>
-                                <div className="p-8">
+                                <div className="p-6 md:p-8">
                                     <div className="flex justify-between items-start mb-6">
                                         <div className={`p-3 rounded-xl ${isLocked
                                             ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500'
@@ -266,7 +266,7 @@ const UserQuizInterface: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    <h4 className={`text-2xl font-bold mb-3 ${isLocked ? 'text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white'}`}>
+                                    <h4 className={`text-xl md:text-2xl font-bold mb-3 ${isLocked ? 'text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white'}`}>
                                         {quiz.title}
                                     </h4>
 

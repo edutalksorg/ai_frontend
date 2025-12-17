@@ -59,22 +59,22 @@ const UserReferrals: React.FC = () => {
     if (loading) return <div className="text-center py-12 text-slate-500">Loading referral program...</div>;
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6 md:space-y-8 px-4 sm:px-0">
             {/* Header */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 md:gap-4">
                 <button
                     onClick={() => navigate(-1)}
                     className="p-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 rounded-full transition-colors text-blue-600 dark:text-blue-400"
                 >
                     <ArrowLeft size={24} />
                 </button>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">My Referrals</h1>
+                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white">My Referrals</h1>
             </div>
 
             {/* Hero Section */}
-            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-8 text-white text-center shadow-lg">
-                <h2 className="text-3xl font-bold mb-2">Invite Friends & Earn Rewards</h2>
-                <p className="mb-8 opacity-90">Get a month of Premium for every friend who joins!</p>
+            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl md:rounded-2xl p-6 md:p-8 text-white text-center shadow-lg">
+                <h2 className="text-2xl md:text-3xl font-bold mb-2">Invite Friends & Earn Rewards</h2>
+                <p className="text-sm md:text-base mb-6 md:mb-8 opacity-90">Get a month of Premium for every friend who joins!</p>
 
                 <div className="max-w-3xl mx-auto flex flex-col gap-6 pt-4">
                     {/* Link Section */}
@@ -106,8 +106,8 @@ const UserReferrals: React.FC = () => {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="card text-center p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                <div className="card text-center p-4 md:p-6">
                     <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Users size={24} />
                     </div>
@@ -132,9 +132,9 @@ const UserReferrals: React.FC = () => {
 
             {/* History */}
             <div className="card">
-                <h3 className="font-bold text-lg mb-4 text-slate-900 dark:text-white">Referral History</h3>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+                <h3 className="text-base md:text-lg font-bold mb-4 text-slate-900 dark:text-white">Referral History</h3>
+                <div className="overflow-x-auto -mx-4 sm:mx-0">
+                    <table className="w-full min-w-[640px] text-left">
                         <thead>
                             <tr className="border-b border-slate-200 dark:border-slate-700 text-sm text-slate-500">
                                 <th className="pb-3 px-4">User</th>

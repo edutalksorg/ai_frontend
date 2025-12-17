@@ -260,13 +260,13 @@ const UserVoiceCall: React.FC = () => {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6 px-4 sm:px-0">
             {/* Header with Session Timer */}
-            <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 md:gap-4">
+                <h3 className="text-lg md:text-xl font-semibold text-slate-900 dark:text-white">
                     {activeTab === 'available' ? 'Available Users' : 'Call History'}
                 </h3>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 md:gap-4 w-full sm:w-auto">
                     {/* Session Timer/Status */}
                     {activeTab === 'available' && (
                         hasActiveSubscription ? ( // Paid subscribers see unlimited
@@ -309,7 +309,7 @@ const UserVoiceCall: React.FC = () => {
             {activeTab === 'available' && (
                 <div className="space-y-4">
                     {/* Status and Refresh */}
-                    <div className="flex justify-between items-center">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 md:gap-4">
                         <div className="flex items-center gap-3">
                             <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Your Status:</span>
                             <div className="relative">
@@ -351,16 +351,16 @@ const UserVoiceCall: React.FC = () => {
                     </div>
 
                     {/* Random Call Interface */}
-                    <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm text-center">
+                    <div className="flex flex-col items-center justify-center py-12 md:py-16 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm text-center">
                         <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-6 ring-8 ring-blue-50/50 dark:ring-blue-900/10">
                             <Phone className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                         </div>
 
-                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
+                        <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mb-3">
                             Review with a Random Partner
                         </h2>
 
-                        <p className="text-slate-600 dark:text-slate-400 max-w-md mb-8">
+                        <p className="text-sm md:text-base text-slate-600 dark:text-slate-400 max-w-md mb-6 md:mb-8 px-4">
                             Practice your pronunciation and speaking skills with other learners available online right now.
                         </p>
 

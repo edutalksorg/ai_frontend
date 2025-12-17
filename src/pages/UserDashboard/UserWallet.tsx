@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Wallet, TrendingUp, TrendingDown, Clock, ArrowLeft, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { Wallet, TrendingUp, TrendingDown, Clock, ArrowLeft, AlertCircle, CheckCircle, XCircle, Gift } from 'lucide-react';
 import Button from '../../components/Button';
 import { walletService } from '../../services/wallet';
+import { referralsService } from '../../services/referrals';
 import { useDispatch } from 'react-redux';
 import { showToast } from '../../store/uiSlice';
 
@@ -44,6 +45,7 @@ const UserWallet: React.FC = () => {
     });
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
+    const [referralEarnings, setReferralEarnings] = useState(0);
 
     useEffect(() => {
         fetchWalletData();
@@ -52,9 +54,10 @@ const UserWallet: React.FC = () => {
     const fetchWalletData = async () => {
         try {
             setLoading(true);
-            const [balanceRes, transactionsRes] = await Promise.all([
+            const [balanceRes, transactionsRes, referralStatsRes] = await Promise.all([
                 walletService.getBalance(),
-                walletService.getTransactions()
+                walletService.getTransactions(),
+                referralsService.getStats().catch(() => ({ data: { totalEarnings: 0 } }))
             ]);
 
             const balanceData = (balanceRes as any)?.data || balanceRes;
@@ -74,6 +77,10 @@ const UserWallet: React.FC = () => {
                 return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
             });
             setTransactions(sortedTransactions);
+
+            // Fetch referral earnings
+            const referralData = (referralStatsRes as any)?.data || referralStatsRes;
+            setReferralEarnings(referralData?.totalEarnings || 0);
         } catch (error) {
             console.error('Failed to load wallet:', error);
             dispatch(showToast({ message: 'Failed to load wallet info', type: 'error' }));
@@ -181,20 +188,20 @@ const UserWallet: React.FC = () => {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6 px-4 sm:px-0">
             {/* Header */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 md:gap-4">
                 <button
                     onClick={() => navigate(-1)}
                     className="p-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 rounded-full transition-colors text-blue-600 dark:text-blue-400"
                 >
                     <ArrowLeft size={24} />
                 </button>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">My Wallet</h1>
+                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white">My Wallet</h1>
             </div>
 
             {/* Balance Card */}
-            <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-8 text-white shadow-lg relative overflow-hidden">
+            <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl md:rounded-2xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
 
                 <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -202,9 +209,9 @@ const UserWallet: React.FC = () => {
                         <p className="text-indigo-100 font-medium mb-1 flex items-center gap-2">
                             <Wallet size={18} /> Available Balance
                         </p>
-                        <h2 className="text-4xl md:text-5xl font-bold mb-4">₹{walletData.availableBalance.toFixed(2)}</h2>
+                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4">₹{walletData.availableBalance.toFixed(2)}</h2>
 
-                        <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 text-xs md:text-sm">
                             <div>
                                 <p className="text-indigo-200">Total Balance</p>
                                 <p className="font-semibold">₹{walletData.balance.toFixed(2)}</p>
@@ -223,9 +230,9 @@ const UserWallet: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex flex-col sm:flex-row gap-2 md:gap-3 w-full sm:w-auto">
                         <Button
-                            className="bg-white/20 hover:bg-white/30 text-white border-white/40 border shadow-md"
+                            className="bg-white/20 hover:bg-white/30 text-white border-white/40 border shadow-md w-full sm:w-auto min-h-[44px] md:min-h-0"
                             onClick={() => setShowWithdraw(!showWithdraw)}
                         >
                             Withdraw
@@ -234,6 +241,44 @@ const UserWallet: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Referral Earnings Card */}
+            {referralEarnings > 0 && (
+                <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl md:rounded-2xl p-4 md:p-6 text-white shadow-lg relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+
+                    <div className="relative z-10">
+                        <div className="flex items-start justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                                <div className="p-3 bg-white/20 rounded-xl">
+                                    <Gift size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-amber-100 font-medium text-sm">Referral Earnings</p>
+                                    <h3 className="text-3xl font-bold">₹{referralEarnings.toFixed(2)}</h3>
+                                </div>
+                            </div>
+                            <Button
+                                onClick={() => navigate('/referrals')}
+                                className="bg-white/20 hover:bg-white/30 text-white border-white/40 border shadow-md text-sm"
+                            >
+                                View Referrals
+                            </Button>
+                        </div>
+
+                        <div className="bg-white/10 rounded-lg p-3 border border-white/20">
+                            <div className="flex items-start gap-2">
+                                <AlertCircle size={16} className="mt-0.5 flex-shrink-0" />
+                                <p className="text-xs text-amber-50">
+                                    <strong>Pending Wallet Credit:</strong> Your referral earnings are being processed.
+                                    Once your referred friends complete their requirements, these rewards will be automatically
+                                    credited to your wallet balance.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Withdrawal Form */}
             {showWithdraw && (

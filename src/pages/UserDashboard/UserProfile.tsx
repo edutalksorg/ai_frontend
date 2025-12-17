@@ -252,9 +252,9 @@ const UserProfile: React.FC = () => {
         if (!profile) return null;
 
         return (
-            <div className="max-w-4xl mx-auto space-y-8">
+            <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
                 {/* Profile Header */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col md:flex-row items-center gap-8">
+                <div className="bg-white dark:bg-slate-800 rounded-xl p-6 md:p-8 shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col md:flex-row items-center gap-6 md:gap-8">
                     <div className="relative">
                         <div className="w-32 h-32 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
                             {profile.avatarUrl ? (
@@ -280,7 +280,7 @@ const UserProfile: React.FC = () => {
                     </div>
 
                     <div className="flex-1 text-center md:text-left">
-                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{profile.fullName}</h2>
+                        <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mb-2">{profile.fullName}</h2>
                         <p className="text-slate-500 dark:text-slate-400 mb-4">{profile.email}</p>
                         <div className="flex flex-wrap gap-2 justify-center md:justify-start">
                             <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-full text-sm font-medium">
@@ -296,13 +296,13 @@ const UserProfile: React.FC = () => {
                 </div>
 
                 {/* Subscription Card */}
-                <div className={`rounded-xl p-8 shadow-lg text-white mb-8 transition-all ${currentSubscription
+                <div className={`rounded-xl p-6 md:p-8 shadow-lg text-white mb-6 md:mb-8 transition-all ${currentSubscription
                     ? 'bg-gradient-to-r from-indigo-500 to-purple-600'
                     : 'bg-gradient-to-r from-slate-600 to-slate-700 dark:from-slate-800 dark:to-slate-900 border border-slate-500/30'
                     }`}>
-                    <div className="flex justify-between items-start">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
-                            <h3 className="text-xl font-bold mb-2">Current Subscription</h3>
+                            <h3 className="text-lg md:text-xl font-bold mb-2">Current Subscription</h3>
                             <p className="text-white/90 mb-4 text-xs font-semibold uppercase tracking-wider">
                                 {currentSubscription?.plan?.name || currentSubscription?.planName || 'No Active Plan'}
                             </p>
@@ -331,7 +331,7 @@ const UserProfile: React.FC = () => {
                 </div>
 
                 {/* Profile Information */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm border border-slate-200 dark:border-slate-700">
+                <div className="bg-white dark:bg-slate-800 rounded-xl p-6 md:p-8 shadow-sm border border-slate-200 dark:border-slate-700">
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                             <User size={20} /> Personal Information
@@ -393,7 +393,7 @@ const UserProfile: React.FC = () => {
                     </div>
 
                     {isEditing && (
-                        <div className="flex gap-3 mt-6">
+                        <div className="flex flex-col sm:flex-row gap-3 mt-6">
                             <Button onClick={handleUpdateProfile} leftIcon={<Save size={16} />}>
                                 Save Changes
                             </Button>
@@ -415,9 +415,9 @@ const UserProfile: React.FC = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-0">
             {/* Header */}
-            <div className="mb-8 flex items-center gap-4">
+            <div className="mb-6 md:mb-8 flex items-center gap-3 md:gap-4">
                 <button
                     onClick={() => navigate(-1)}
                     className="p-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 rounded-full transition-colors text-blue-600 dark:text-blue-400"
@@ -425,10 +425,10 @@ const UserProfile: React.FC = () => {
                     <ArrowLeft size={24} />
                 </button>
                 <div>
-                    <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-2">
+                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mb-1 md:mb-2">
                         My Account
                     </h1>
-                    <p className="text-lg text-slate-600 dark:text-slate-400">
+                    <p className="text-sm md:text-base lg:text-lg text-slate-600 dark:text-slate-400">
                         Manage your profile and account settings
                     </p>
                 </div>
@@ -444,7 +444,7 @@ const UserProfile: React.FC = () => {
                             <button
                                 key={tab.id}
                                 onClick={() => handleTabChange(tab.id)}
-                                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all ${isActive
+                                className={`flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-lg font-medium transition-all text-sm md:text-base ${isActive
                                     ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
                                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50'
                                     }`}
