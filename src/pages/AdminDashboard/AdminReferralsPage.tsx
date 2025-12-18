@@ -4,12 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../../components/Button';
 import AdminLayout from '../../components/AdminLayout';
 import { referralsService } from '../../services/referrals';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { showToast } from '../../store/uiSlice';
+import { RootState } from '../../store';
 
 const AdminReferralsPage: React.FC = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const { user } = useSelector((state: RootState) => state.auth);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [settings, setSettings] = useState<any>({
@@ -44,15 +46,47 @@ const AdminReferralsPage: React.FC = () => {
     const fetchSettings = async () => {
         try {
             setLoading(true);
+
+            // Diagnostic logging
+            console.log('=== REFERRAL SETTINGS DEBUG ===');
+            console.log('Current User:', user);
+            console.log('User Role:', user?.role);
+
+            // Check token
+            const token = localStorage.getItem('edutalks_token');
+            if (token) {
+                try {
+                    const base64Url = token.split('.')[1];
+                    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                    const jsonPayload = decodeURIComponent(atob(base64).split('').map((c: string) =>
+                        '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+                    ).join(''));
+                    const payload = JSON.parse(jsonPayload);
+                    console.log('Token Payload:', payload);
+                    console.log('Permissions in token:', payload.permissions || payload.permission || 'No permissions found');
+                } catch (e) {
+                    console.error('Failed to decode token:', e);
+                }
+            }
+
+            console.log('Attempting to fetch referral settings...');
             const res = await referralsService.getSettings();
             const data = (res as any)?.data || res;
+            console.log('Referral settings loaded successfully:', data);
+
             if (data) {
                 setSettings(data);
             }
         } catch (error: any) {
-            console.error('Failed to load referral settings:', error);
+            console.error('=== REFERRAL SETTINGS ERROR ===');
+            console.error('Full error object:', error);
+            console.error('Error response:', error.response);
+            console.error('Error status:', error.response?.status);
+            console.error('Error data:', error.response?.data);
+            console.error('Error message:', error.response?.data?.message || error.message);
+
             dispatch(showToast({
-                message: error.response?.data?.message || 'Failed to load settings',
+                message: error.response?.data?.message || error.response?.data?.title || 'Failed to load settings. Check console for details.',
                 type: 'error'
             }));
         } finally {
@@ -63,12 +97,20 @@ const AdminReferralsPage: React.FC = () => {
     const handleSave = async () => {
         try {
             setSaving(true);
+            console.log('Attempting to save referral settings:', settings);
             await referralsService.updateSettings(settings);
+            console.log('Referral settings saved successfully');
             dispatch(showToast({ message: 'Settings updated successfully', type: 'success' }));
             fetchSettings();
         } catch (error: any) {
+            console.error('=== SAVE REFERRAL SETTINGS ERROR ===');
+            console.error('Full error:', error);
+            console.error('Error response:', error.response);
+            console.error('Error status:', error.response?.status);
+            console.error('Error data:', error.response?.data);
+
             dispatch(showToast({
-                message: error.response?.data?.message || 'Failed to update settings',
+                message: error.response?.data?.message || error.response?.data?.title || 'Failed to update settings. Check console for details.',
                 type: 'error'
             }));
         } finally {

@@ -46,23 +46,42 @@ const AdminProfilePage: React.FC = () => {
         const fetchProfile = async () => {
             try {
                 setLoading(true);
-                const [profileData, statsData] = await Promise.all([
+
+                // Fetch profile and all users in parallel
+                const [profileData, usersData] = await Promise.all([
                     usersService.getProfile(),
-                    import('../../services/admin').then(m => m.adminService.getDashboardStats().catch(() => null))
+                    import('../../services/admin').then(m => m.adminService.getAllUsers(1000, 1).catch(() => null))
                 ]);
 
-                // Fallback / Mock checks for stats if API returns generic response that needs parsing
-                const finalStats = (statsData as any)?.data || statsData || {
+                // Calculate stats from users data
+                let calculatedStats = {
                     totalUsers: 0,
                     totalInstructors: 0,
                     totalRevenue: 0,
                     pendingApprovals: 0
                 };
 
-                console.log('Admin Profile fetched:', profileData, finalStats);
+                if (usersData) {
+                    const responseData = (usersData as any)?.data || usersData;
+                    const allUsers = Array.isArray(responseData) ? responseData : responseData?.items || [];
+
+                    calculatedStats.totalUsers = allUsers.length;
+                    calculatedStats.totalInstructors = allUsers.filter((u: any) =>
+                        String(u.role || '').toLowerCase().includes('instructor')
+                    ).length;
+                    calculatedStats.pendingApprovals = allUsers.filter((u: any) => {
+                        const isInstructor = String(u.role || '').toLowerCase().includes('instructor');
+                        const requiresApproval = !!(u.requiresApproval || u.requiresApproval === true);
+                        const notApproved = !(u.isApproved === true || u.isApproved === 'true' || u.isApproved === 1);
+                        return isInstructor && requiresApproval && notApproved;
+                    }).length;
+                    // Note: totalRevenue would require payment data, keeping at 0 for now
+                }
+
+                console.log('Admin Profile fetched:', profileData, calculatedStats);
                 setProfile(profileData);
                 setEditForm(profileData);
-                setStats(finalStats);
+                setStats(calculatedStats);
             } catch (error: any) {
                 console.error('Failed to fetch profile:', error);
                 dispatch(

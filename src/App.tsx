@@ -254,6 +254,11 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
 
         {/* Admin Routes - Restricted to admin role */}
+        {/* Redirect /admin to /admindashboard for consistency */}
+        <Route
+          path="/admin"
+          element={<Navigate to="/admindashboard" replace />}
+        />
         <Route
           path="/admindashboard"
           element={
