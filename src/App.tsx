@@ -20,7 +20,7 @@ import AdminReferralsPage from './pages/AdminDashboard/AdminReferralsPage';
 import AdminSettingsPage from './pages/AdminDashboard/AdminSettingsPage';
 import AdminCouponsPage from './pages/AdminDashboard/AdminCouponsPage';
 import AdminSubscriptionsPage from './pages/AdminDashboard/AdminSubscriptionsPage';
-import SuperAdminPage from './pages/AdminDashboard/SuperAdminPage';
+
 import SuperAdminDashboardPage from './pages/SuperAdminDashboard/SuperAdminDashboardPage';
 import PermissionManagementPage from './pages/SuperAdminDashboard/PermissionManagementPage';
 import RoleManagementPage from './pages/SuperAdminDashboard/RoleManagementPage';
