@@ -110,6 +110,12 @@ export const pronunciationService = {
   exportParagraphs: async (paragraphIds: string[]) =>
     apiService.post('/pronunciation/export', { paragraphIds }),
 
+  // AI Voice-Over
+  convertToSpeech: async (paragraphId: string) =>
+    apiService.post(`/pronunciation/paragraphs/${paragraphId}/convert-paragraph-to-speech`, {
+      paragraphId
+    }),
+
   // Categories
   getCategories: async () =>
     apiService.get('/pronunciation/categories'),

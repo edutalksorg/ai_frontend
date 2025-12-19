@@ -870,13 +870,18 @@ const UserSubscriptions: React.FC = () => {
                                     // Check if user has an active PAID subscription (not free trial)
                                     const hasActivePaidSubscription = isSubActive && !isFreeTrial;
 
+                                    // Check if this Free Trial card and user currently has Free Trial active
+                                    const hasActiveFreeTrialSubscription = isSubActive && isFreeTrial;
+
                                     // Comprehensive check: Plan is used if:
                                     // 1. User has an active paid subscription (can't go back to free trial)
-                                    // 2. User explicitly cancelled
-                                    // 3. Trial period expired (24 hours)
-                                    // 4. Subscription status is cancelled/expired
+                                    // 2. User already has active free trial (can't use it again)
+                                    // 3. User explicitly cancelled
+                                    // 4. Trial period expired (24 hours)
+                                    // 5. Subscription status is cancelled/expired
                                     const isPlanUsed = isFreePlanCard && (
                                         hasActivePaidSubscription ||
+                                        hasActiveFreeTrialSubscription ||
                                         isExplicitlyCancelled ||
                                         isTrialExpiredByTime ||
                                         (!isSubActive && (user?.subscriptionStatus === 'cancelled' || user?.subscriptionStatus === 'expired'))

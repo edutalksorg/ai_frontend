@@ -30,8 +30,11 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
   const [assessmentResult, setAssessmentResult] = useState<any>(null);
   const [showResult, setShowResult] = useState(false);
 
-  // Dummy TTS State
+  // AI Voice-Over State
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  const [referenceAudioUrl, setReferenceAudioUrl] = useState<string | null>(null);
+  const referenceAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -79,6 +82,7 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
   useEffect(() => {
     handleReset();
     setIsSpeaking(false);
+    setReferenceAudioUrl(null); // Clear cached audio when paragraph changes
   }, [paragraphId, paragraphText]);
 
   // Recording timer
@@ -99,7 +103,13 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
   // Start recording
   const handleStartRecording = () => {
     // Stop speaking if recording starts
-    if (isSpeaking) setIsSpeaking(false);
+    if (isSpeaking) {
+      setIsSpeaking(false);
+      if (referenceAudioRef.current) {
+        referenceAudioRef.current.pause();
+        referenceAudioRef.current.currentTime = 0;
+      }
+    }
 
     try {
       setError(null);
@@ -147,14 +157,90 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
     }
   };
 
-  // Toggle Speaker
-  const handleSpeakerToggle = () => {
-    setIsSpeaking(!isSpeaking);
-    // In future, connect to TTS logic here
-    if (!isSpeaking) {
-      // Simulate speaking duration for demo UI
-      setTimeout(() => setIsSpeaking(false), 3000);
+  // AI Voice-Over: Convert paragraph to speech and play
+  const handleSpeakerToggle = async () => {
+    // If already playing, stop it
+    if (isSpeaking) {
+      setIsSpeaking(false);
+      if (referenceAudioRef.current) {
+        referenceAudioRef.current.pause();
+        referenceAudioRef.current.currentTime = 0;
+      }
+      return;
     }
+
+    // If we have cached audio, just play it
+    if (referenceAudioUrl) {
+      playReferenceAudio(referenceAudioUrl);
+      return;
+    }
+
+    // Otherwise, generate new audio
+    try {
+      setIsLoadingAudio(true);
+      setError(null);
+
+      console.log('🎤 Converting paragraph to speech...', paragraphId);
+      const response = await pronunciationService.convertToSpeech(paragraphId);
+      const data = (response as any).data || response;
+
+      console.log('✅ Speech synthesis response:', data);
+
+      if (data.synthesisCompleted && data.audioUrl) {
+        setReferenceAudioUrl(data.audioUrl);
+        playReferenceAudio(data.audioUrl);
+      } else {
+        setError('Failed to generate audio. Please try again.');
+      }
+    } catch (err: any) {
+      console.error('❌ Speech synthesis error:', err);
+      setError('Failed to generate reference audio. Please try again.');
+    } finally {
+      setIsLoadingAudio(false);
+    }
+  };
+
+  // Play reference audio
+  const playReferenceAudio = (audioUrl: string) => {
+    console.log('🔊 Playing reference audio:', audioUrl);
+
+    if (!referenceAudioRef.current) {
+      console.log('📱 Creating new Audio element');
+      referenceAudioRef.current = new Audio(audioUrl);
+
+      referenceAudioRef.current.onended = () => {
+        console.log('✅ Audio playback ended');
+        setIsSpeaking(false);
+      };
+
+      referenceAudioRef.current.onerror = (e) => {
+        console.error('❌ Audio error:', e);
+        console.error('Audio URL:', audioUrl);
+        setError('Failed to play reference audio. The audio file may be inaccessible.');
+        setIsSpeaking(false);
+      };
+
+      referenceAudioRef.current.onloadeddata = () => {
+        console.log('✅ Audio loaded successfully');
+      };
+    } else {
+      console.log('♻️ Reusing existing Audio element');
+      referenceAudioRef.current.src = audioUrl;
+    }
+
+    console.log('▶️ Attempting to play audio...');
+    referenceAudioRef.current.play()
+      .then(() => {
+        console.log('✅ Audio playback started');
+        setIsSpeaking(true);
+      })
+      .catch((err) => {
+        console.error('❌ Audio playback error:', err);
+        console.error('Error name:', err.name);
+        console.error('Error message:', err.message);
+        setError(`Failed to play audio: ${err.message}`);
+        setIsSpeaking(false);
+      });
   };
 
   // Submit for assessment
@@ -397,7 +483,8 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
             <SpeakerPlayButton
               isPlaying={isSpeaking}
               onToggle={handleSpeakerToggle}
-              disabled={isRecording}
+              disabled={isRecording || isLoadingAudio}
+              isLoading={isLoadingAudio}
             />
           </div>
           <div className={`bg-slate-700 rounded-lg p-6 transition-colors duration-300 ${isSpeaking ? 'ring-2 ring-blue-500/50 bg-slate-700/80' : ''}`}>

@@ -11,6 +11,10 @@ interface SpeakerPlayButtonProps {
      */
     disabled?: boolean;
     /**
+     * Show loading state while generating audio
+     */
+    isLoading?: boolean;
+    /**
      * Callback when button is toggled
      */
     onToggle?: () => void;
@@ -19,6 +23,7 @@ interface SpeakerPlayButtonProps {
 export const SpeakerPlayButton: React.FC<SpeakerPlayButtonProps> = ({
     isPlaying: externalIsPlaying,
     disabled = false,
+    isLoading = false,
     onToggle
 }) => {
     // Internal state for uncontrolled usage or fallback
@@ -28,7 +33,7 @@ export const SpeakerPlayButton: React.FC<SpeakerPlayButtonProps> = ({
     const isPlaying = externalIsPlaying !== undefined ? externalIsPlaying : internalIsPlaying;
 
     const handleClick = () => {
-        if (disabled) return;
+        if (disabled || isLoading) return;
 
         // If not controlled, toggle internal state
         if (externalIsPlaying === undefined) {
@@ -68,7 +73,9 @@ export const SpeakerPlayButton: React.FC<SpeakerPlayButtonProps> = ({
 
             {/* Icon Switching Logic */}
             <div className={`relative z-10 transition-transform duration-300 ${isPlaying ? 'scale-90' : 'scale-100'}`}>
-                {disabled ? (
+                {isLoading ? (
+                    <div className="animate-spin">⟳</div>
+                ) : disabled ? (
                     <VolumeX size={18} strokeWidth={2} />
                 ) : isPlaying ? (
                     <Pause size={18} fill="currentColor" />
@@ -81,7 +88,7 @@ export const SpeakerPlayButton: React.FC<SpeakerPlayButtonProps> = ({
             </div>
 
             <span className="relative z-10 text-xs font-bold uppercase tracking-wider">
-                AI Voiceover
+                {isLoading ? 'Loading...' : 'AI Voiceover'}
             </span>
         </button>
     );
