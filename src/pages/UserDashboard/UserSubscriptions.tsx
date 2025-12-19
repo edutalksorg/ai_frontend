@@ -326,27 +326,89 @@ const UserSubscriptions: React.FC = () => {
     };
 
     const handleSubscribe = async (plan: any) => {
-        // If user has an active subscription, confirm switch
-        const isSubActive = ['active', 'trialing', 'succeeded', 'year'].includes(currentSub?.status?.toLowerCase());
-
-        if (currentSub && isSubActive) {
-            setPendingPlan(plan);
-            setSwitchModalOpen(true);
-            return;
-        }
-
-        // Otherwise proceed directly
+        // Directly process subscription - backend will handle existing subscriptions
         await processSubscription(plan);
     };
 
     const handleConfirmSwitch = async () => {
         if (!pendingPlan) return;
 
-        // Close the modal
-        setSwitchModalOpen(false);
+        try {
+            setProcessingSwitch(true);
+            setSwitchModalOpen(false);
 
-        // Redirect to subscriptions page
-        navigate('/subscriptions');
+            console.log('🔄 ========== SWITCHING PLAN ==========');
+            console.log('📋 Current Plan:', currentSub?.planName || currentSub?.plan?.name);
+            console.log('📋 New Plan:', pendingPlan.name);
+
+            // Step 1: Cancel current subscription
+            dispatch(showToast({ message: 'Canceling current plan...', type: 'info' }));
+
+            try {
+                console.log('❌ Canceling current subscription...');
+                await subscriptionsService.cancel({
+                    reason: 'Upgrading to ' + pendingPlan.name
+                });
+                console.log('✅ Cancel API returned success');
+
+                // Wait a moment for backend to process
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Verify cancellation
+                console.log('🔍 Verifying cancellation...');
+                const checkSub = await subscriptionsService.current().catch(() => null);
+                const subData = (checkSub as any)?.data || checkSub;
+                console.log('📊 Current subscription status:', subData?.status);
+
+                if (subData && subData.status?.toLowerCase() === 'active') {
+                    console.error('⚠️ BACKEND BUG: Subscription still active after cancel!');
+                    throw new Error('Backend failed to cancel subscription. Please contact support or wait for trial to expire.');
+                }
+
+                console.log('✅ Subscription successfully canceled');
+            } catch (cancelError: any) {
+                console.error('⚠️ Cancel error:', cancelError);
+                const cancelMsg = cancelError.message || cancelError.response?.data?.messages?.[0];
+                console.log('Cancel error message:', cancelMsg);
+
+                // If it's our custom error about backend bug, throw it
+                if (cancelError.message?.includes('Backend failed')) {
+                    throw cancelError;
+                }
+
+                // If error is NOT about "no subscription", throw it
+                if (cancelMsg && !cancelMsg.toLowerCase().includes('no') && !cancelMsg.toLowerCase().includes('not found')) {
+                    throw cancelError;
+                }
+                console.log('⚠️ Continuing despite cancel error...');
+            }
+
+            // Step 2: Subscribe to new plan
+            dispatch(showToast({ message: 'Subscribing to new plan...', type: 'info' }));
+
+            console.log('💳 Subscribing to new plan...');
+            await processSubscription(pendingPlan);
+
+        } catch (error: any) {
+            console.error('❌ Failed to switch plan:', error);
+            console.error('Response data:', error.response?.data);
+            console.error('Backend messages:', error.response?.data?.messages);
+            console.error('Backend errors:', error.response?.data?.errors);
+
+            const errorMsg = error.response?.data?.messages?.[0]
+                || error.response?.data?.errors?.[0]
+                || error.response?.data?.message
+                || error.message
+                || 'Failed to switch plan. Please try again.';
+
+            dispatch(showToast({
+                message: errorMsg,
+                type: 'error'
+            }));
+        } finally {
+            setProcessingSwitch(false);
+            setPendingPlan(null);
+        }
     };
 
     // Coupon validation function
@@ -543,10 +605,21 @@ const UserSubscriptions: React.FC = () => {
                 subscriptionPlan: plan.name || 'Pro',
             }));
 
-        } catch (e) {
+        } catch (e: any) {
             console.error('❌ ========== SUBSCRIPTION ERROR ==========');
             console.error('Error details:', e);
-            dispatch(showToast({ message: 'Failed to activate subscription. Please try again.', type: 'error' }));
+            console.error('Response data:', e.response?.data);
+            console.error('Backend messages:', e.response?.data?.messages);
+            console.error('Backend errors:', e.response?.data?.errors);
+
+            // Extract meaningful error message
+            const errorMsg = e.response?.data?.messages?.[0]
+                || e.response?.data?.errors?.[0]
+                || e.response?.data?.message
+                || e.message
+                || 'Failed to activate subscription. Please try again.';
+
+            dispatch(showToast({ message: errorMsg, type: 'error' }));
         }
     };
     if (loading) return <div className="text-center py-12 text-slate-500">Loading plans...</div>;
