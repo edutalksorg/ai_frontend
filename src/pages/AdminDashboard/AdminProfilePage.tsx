@@ -47,41 +47,14 @@ const AdminProfilePage: React.FC = () => {
             try {
                 setLoading(true);
 
-                // Fetch profile and all users in parallel
-                const [profileData, usersData] = await Promise.all([
-                    usersService.getProfile(),
-                    import('../../services/admin').then(m => m.adminService.getAllUsers(1000, 1).catch(() => null))
-                ]);
+                // Only fetch the admin's own profile
+                const profileData = await usersService.getProfile();
 
-                // Calculate stats from users data
-                let calculatedStats = {
-                    totalUsers: 0,
-                    totalInstructors: 0,
-                    totalRevenue: 0,
-                    pendingApprovals: 0
-                };
-
-                if (usersData) {
-                    const responseData = (usersData as any)?.data || usersData;
-                    const allUsers = Array.isArray(responseData) ? responseData : responseData?.items || [];
-
-                    calculatedStats.totalUsers = allUsers.length;
-                    calculatedStats.totalInstructors = allUsers.filter((u: any) =>
-                        String(u.role || '').toLowerCase().includes('instructor')
-                    ).length;
-                    calculatedStats.pendingApprovals = allUsers.filter((u: any) => {
-                        const isInstructor = String(u.role || '').toLowerCase().includes('instructor');
-                        const requiresApproval = !!(u.requiresApproval || u.requiresApproval === true);
-                        const notApproved = !(u.isApproved === true || u.isApproved === 'true' || u.isApproved === 1);
-                        return isInstructor && requiresApproval && notApproved;
-                    }).length;
-                    // Note: totalRevenue would require payment data, keeping at 0 for now
-                }
-
-                console.log('Admin Profile fetched:', profileData, calculatedStats);
+                console.log('Admin Profile fetched:', profileData);
                 setProfile(profileData);
                 setEditForm(profileData);
-                setStats(calculatedStats);
+                // Stats removed - requires UserManagement permissions
+                setStats(null);
             } catch (error: any) {
                 console.error('Failed to fetch profile:', error);
                 dispatch(

@@ -18,6 +18,7 @@ import type { RootState, AppDispatch } from '../store';
 import { logout } from '../store/authSlice';
 import { toggleTheme } from '../store/uiSlice';
 import { Logo } from './common/Logo';
+import { useAdminModules } from '../hooks/useAdminModules';
 
 interface AdminLayoutProps {
     children: React.ReactNode;
@@ -30,6 +31,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     const { theme } = useSelector((state: RootState) => state.ui);
     const [profileOpen, setProfileOpen] = useState(false);
     const profileRef = useRef<HTMLDivElement | null>(null);
+
+    // Fetch admin modules for navigation filtering
+    const { hasModule } = useAdminModules();
 
     const handleLogout = () => {
         dispatch(logout());
@@ -48,15 +52,22 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [profileOpen]);
 
-    const menuItems = [
-        { icon: <Home size={18} />, label: 'Dashboard', path: '/admin' },
-        { icon: <Users size={18} />, label: 'Referrals', path: '/admin/referrals' },
-        { icon: <DollarSign size={18} />, label: 'Payments', path: '/admin/payments' },
-        { icon: <Tag size={18} />, label: 'Coupons', path: '/admin/coupons' },
-        { icon: <CreditCard size={18} />, label: 'Subscriptions', path: '/admin/subscriptions' },
-        { icon: <User size={18} />, label: 'Profile', path: '/admin/profile' },
-        { icon: <Settings size={18} />, label: 'Settings', path: '/admin/settings' },
+    // All menu items with their required modules
+    const allMenuItems = [
+        { icon: <Home size={18} />, label: 'Dashboard', path: '/admin', module: null }, // Always visible
+        { icon: <Shield size={18} />, label: 'User Management', path: '/admin', module: 'users' },
+        { icon: <Users size={18} />, label: 'Referrals', path: '/admin/referrals', module: 'referrals' },
+        { icon: <DollarSign size={18} />, label: 'Payments', path: '/admin/payments', module: 'payments' },
+        { icon: <Tag size={18} />, label: 'Coupons', path: '/admin/coupons', module: 'coupons' },
+        { icon: <CreditCard size={18} />, label: 'Subscriptions', path: '/admin/subscriptions', module: 'subscriptions' },
+        { icon: <User size={18} />, label: 'Profile', path: '/admin/profile', module: null }, // Always visible
+        { icon: <Settings size={18} />, label: 'Settings', path: '/admin/settings', module: null }, // Always visible
     ];
+
+    // Filter menu items based on assigned modules
+    const menuItems = allMenuItems.filter(item =>
+        !item.module || hasModule(item.module)
+    );
 
     return (
         <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col">

@@ -12,6 +12,7 @@ import ResendConfirmationPage from './pages/auth/ResendConfirmationPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import ChangePasswordPage from './pages/auth/ChangePasswordPage';
 import AdminDashboardPage from './pages/AdminDashboard/AdminDashboardPage';
+import AdminUsersPage from './pages/AdminDashboard/AdminUsersPage';
 import AdminInstructorsPage from './pages/AdminDashboard/AdminInstructorsPage';
 import AdminPaymentsPage from './pages/AdminDashboard/AdminPaymentsPage';
 import AdminAnalyticsPage from './pages/AdminDashboard/AdminAnalyticsPage';
@@ -20,6 +21,8 @@ import AdminReferralsPage from './pages/AdminDashboard/AdminReferralsPage';
 import AdminSettingsPage from './pages/AdminDashboard/AdminSettingsPage';
 import AdminCouponsPage from './pages/AdminDashboard/AdminCouponsPage';
 import AdminSubscriptionsPage from './pages/AdminDashboard/AdminSubscriptionsPage';
+import UnauthorizedPage from './pages/AdminDashboard/UnauthorizedPage';
+import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 
 import SuperAdminDashboardPage from './pages/SuperAdminDashboard/SuperAdminDashboardPage';
 import PermissionManagementPage from './pages/SuperAdminDashboard/PermissionManagementPage';
@@ -270,6 +273,16 @@ function App() {
           }
         />
         <Route
+          path="/admin/unauthorized"
+          element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={['admin']}>
+                <UnauthorizedPage />
+              </RoleBasedRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/admin/profile"
           element={
             <ProtectedRoute>
@@ -280,11 +293,25 @@ function App() {
           }
         />
         <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={['admin']}>
+                <ProtectedAdminRoute requiredModule="users">
+                  <AdminUsersPage />
+                </ProtectedAdminRoute>
+              </RoleBasedRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/admin/instructors"
           element={
             <ProtectedRoute>
               <RoleBasedRoute allowedRoles={['admin']}>
-                <AdminInstructorsPage />
+                <ProtectedAdminRoute requiredModule="users">
+                  <AdminInstructorsPage />
+                </ProtectedAdminRoute>
               </RoleBasedRoute>
             </ProtectedRoute>
           }
@@ -294,7 +321,9 @@ function App() {
           element={
             <ProtectedRoute>
               <RoleBasedRoute allowedRoles={['admin']}>
-                <AdminPaymentsPage />
+                <ProtectedAdminRoute requiredModule="payments">
+                  <AdminPaymentsPage />
+                </ProtectedAdminRoute>
               </RoleBasedRoute>
             </ProtectedRoute>
           }
@@ -304,7 +333,9 @@ function App() {
           element={
             <ProtectedRoute>
               <RoleBasedRoute allowedRoles={['admin']}>
-                <AdminAnalyticsPage />
+                <ProtectedAdminRoute requiredModule="analytics">
+                  <AdminAnalyticsPage />
+                </ProtectedAdminRoute>
               </RoleBasedRoute>
             </ProtectedRoute>
           }
@@ -315,7 +346,9 @@ function App() {
           element={
             <ProtectedRoute>
               <RoleBasedRoute allowedRoles={['admin']}>
-                <AdminReferralsPage />
+                <ProtectedAdminRoute requiredModule="referrals">
+                  <AdminReferralsPage />
+                </ProtectedAdminRoute>
               </RoleBasedRoute>
             </ProtectedRoute>
           }
@@ -335,7 +368,9 @@ function App() {
           element={
             <ProtectedRoute>
               <RoleBasedRoute allowedRoles={['admin']}>
-                <AdminCouponsPage />
+                <ProtectedAdminRoute requiredModule="coupons">
+                  <AdminCouponsPage />
+                </ProtectedAdminRoute>
               </RoleBasedRoute>
             </ProtectedRoute>
           }
@@ -345,7 +380,9 @@ function App() {
           element={
             <ProtectedRoute>
               <RoleBasedRoute allowedRoles={['admin']}>
-                <AdminSubscriptionsPage />
+                <ProtectedAdminRoute requiredModule="subscriptions">
+                  <AdminSubscriptionsPage />
+                </ProtectedAdminRoute>
               </RoleBasedRoute>
             </ProtectedRoute>
           }

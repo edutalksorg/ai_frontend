@@ -40,7 +40,7 @@ const AdminInstructorsPage: React.FC = () => {
   const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
 
   // Check if user is admin
-  if (!user || user.role !== 'admin') {
+  if (!user || String(user.role).toLowerCase() !== 'admin') {
     return (
       <AdminLayout>
         <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-950">
@@ -133,20 +133,21 @@ const AdminInstructorsPage: React.FC = () => {
   };
 
   const handleReview = async (id: string, approve: boolean) => {
-    const notes = window.prompt(
-      approve ? 'Enter approval notes (optional):' : 'Enter rejection reason (optional):',
-      ''
-    );
-
     try {
       setActionLoading(id);
-      await adminService.reviewInstructor(id, { approve, notes: notes || '' });
+      await adminService.reviewInstructor(id, { approve, notes: '' });
 
-      // Update local state
-      setAllInstructors(prev => prev.map(i =>
+      // Update local state immediately
+      const updatedInstructors = allInstructors.map(i =>
         i.id === id ? { ...i, isApproved: approve } : i
-      ));
-      filterInstructors(allInstructors, filterStatus, searchTerm);
+      );
+      setAllInstructors(updatedInstructors);
+
+      // Recalculate stats
+      calculateStats(updatedInstructors);
+
+      // Reapply filters with updated data
+      filterInstructors(updatedInstructors, filterStatus, searchTerm);
 
       alert(approve ? '✓ Instructor approved successfully!' : '✗ Instructor rejected.');
       setShowDetails(false);
@@ -229,8 +230,8 @@ const AdminInstructorsPage: React.FC = () => {
                 <button
                   onClick={() => handleFilterChange('all')}
                   className={`px-4 py-2 rounded-lg font-medium transition ${filterStatus === 'all'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
                     }`}
                 >
                   All ({allInstructors.length})
@@ -238,8 +239,8 @@ const AdminInstructorsPage: React.FC = () => {
                 <button
                   onClick={() => handleFilterChange('pending')}
                   className={`px-4 py-2 rounded-lg font-medium transition ${filterStatus === 'pending'
-                      ? 'bg-yellow-500 text-white'
-                      : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
+                    ? 'bg-yellow-500 text-white'
+                    : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
                     }`}
                 >
                   Pending ({stats.pending})
@@ -247,8 +248,8 @@ const AdminInstructorsPage: React.FC = () => {
                 <button
                   onClick={() => handleFilterChange('approved')}
                   className={`px-4 py-2 rounded-lg font-medium transition ${filterStatus === 'approved'
-                      ? 'bg-green-500 text-white'
-                      : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
+                    ? 'bg-green-500 text-white'
+                    : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
                     }`}
                 >
                   Approved ({stats.approved})
