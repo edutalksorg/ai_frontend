@@ -224,9 +224,7 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
                             <h2 className="text-3xl font-bold mb-2">
                                 {score >= passingScore ? 'Quiz Passed!' : 'Keep Practicing'}
                             </h2>
-                            <p className="text-slate-600 dark:text-slate-400">
-                                You scored <span className="font-bold text-slate-900 dark:text-white">{score}%</span>
-                            </p>
+
                         </div>
 
                         <div className="grid grid-cols-3 gap-4 mb-8 text-center">
@@ -239,8 +237,8 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
                                 <div className="text-xl font-bold">{totalQuestions}</div>
                             </div>
                             <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-                                <div className="text-sm text-slate-500 mb-1">Points</div>
-                                <div className="text-xl font-bold text-indigo-600">{totalPoints}</div>
+                                <div className="text-sm text-slate-500 mb-1">Score</div>
+                                <div className="text-xl font-bold text-indigo-600">{score}%</div>
                             </div>
                         </div>
 
@@ -365,3 +363,4 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
 };
 
 export default UserQuizTakingPage;
+
