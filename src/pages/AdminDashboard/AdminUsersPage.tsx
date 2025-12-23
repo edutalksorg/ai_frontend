@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { Users, Loader, AlertCircle, CheckCircle, X, Eye, ArrowLeft, Calendar, Clock } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Users, Loader, AlertCircle, CheckCircle, X, Eye, ArrowLeft, Calendar, Clock, Plus, EyeOff } from 'lucide-react';
 import { RootState } from '../../store';
 import { adminService } from '../../services/admin';
 import { subscriptionsService } from '../../services/subscriptions';
+import { authService } from '../../services/auth';
+import { showToast } from '../../store/uiSlice';
 import AdminLayout from '../../components/AdminLayout';
 import Button from '../../components/Button';
-import Toast from '../../components/Toast';
 
 interface UserData {
     id: string;
@@ -23,6 +24,7 @@ interface UserData {
 
 const AdminUsersPage: React.FC = () => {
     const { user } = useSelector((state: RootState) => state.auth);
+    const dispatch = useDispatch();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [users, setUsers] = useState<UserData[]>([]);
@@ -34,6 +36,17 @@ const AdminUsersPage: React.FC = () => {
     const [showDetails, setShowDetails] = useState(false);
     const [userSubscription, setUserSubscription] = useState<any>(null);
     const [loadingSubscription, setLoadingSubscription] = useState(false);
+
+    // Create Instructor State
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [createLoading, setCreateLoading] = useState(false);
+    const [createFormData, setCreateFormData] = useState({
+        fullName: '',
+        email: '',
+        phoneNumber: '',
+        password: '',
+    });
+    const [showPassword, setShowPassword] = useState(false);
 
     // Only allow admin role
     if (!user || String(user.role).toLowerCase() !== 'admin') {
@@ -69,7 +82,7 @@ const AdminUsersPage: React.FC = () => {
             });
         } catch (error) {
             console.error('Failed to load users:', error);
-            Toast({ type: 'error', message: 'Failed to load users' });
+            dispatch(showToast({ type: 'error', message: 'Failed to load users' }));
         } finally {
             setLoading(false);
         }
@@ -98,11 +111,69 @@ const AdminUsersPage: React.FC = () => {
     const handleStatusChange = async (userId: string, newStatus: 'active' | 'inactive' | 'banned') => {
         try {
             await adminService.changeUserStatus(userId, newStatus);
-            Toast({ type: 'success', message: 'User status updated successfully' });
+            dispatch(showToast({ type: 'success', message: 'User status updated successfully' }));
             loadUsers();
         } catch (error) {
             console.error('Failed to update user status:', error);
-            Toast({ type: 'error', message: 'Failed to update user status' });
+            dispatch(showToast({ type: 'error', message: 'Failed to update user status' }));
+        }
+    };
+
+    // Handle Create Instructor
+    const handleCreateInstructor = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setCreateLoading(true);
+
+        try {
+            // Validation
+            if (!createFormData.fullName || !createFormData.email || !createFormData.password) {
+                dispatch(showToast({ type: 'error', message: 'Please fill in all required fields' }));
+                setCreateLoading(false);
+                return;
+            }
+
+            // Call Register API with role='instructor'
+            await authService.register({
+                fullName: createFormData.fullName,
+                email: createFormData.email,
+                password: createFormData.password,
+                phoneNumber: createFormData.phoneNumber,
+                confirmPassword: createFormData.password,
+                role: 'instructor'
+            });
+
+            dispatch(showToast({ type: 'success', message: 'Instructor created successfully' }));
+            setShowCreateModal(false);
+            setCreateFormData({
+                fullName: '',
+                email: '',
+                phoneNumber: '',
+                password: '',
+            });
+
+            // Refresh list and show instructors
+            setFilterRole('instructor');
+            loadUsers();
+
+        } catch (error: any) {
+            console.error('Failed to create instructor:', error);
+
+            const serverData = error?.response?.data || error || {};
+            const errorsArr: any[] = serverData.errors || serverData.validationErrors || [];
+
+            // Check for duplicate email
+            const emailExists = Array.isArray(errorsArr)
+                ? errorsArr.includes('EMAIL_EXISTS') || errorsArr.some((e: string) => typeof e === 'string' && e.toLowerCase().includes('email exists'))
+                : (serverData.messages && serverData.messages.includes('User with this email already exists'));
+
+            if (emailExists) {
+                dispatch(showToast({ type: 'error', message: 'Instructor with this email already exists' }));
+            } else {
+                const msg = serverData.message || error.message || 'Failed to create instructor';
+                dispatch(showToast({ type: 'error', message: msg }));
+            }
+        } finally {
+            setCreateLoading(false);
         }
     };
 
@@ -157,12 +228,22 @@ const AdminUsersPage: React.FC = () => {
                             </p>
                         </div>
                     </div>
-                    <Button
-                        variant="primary"
-                        onClick={() => navigate('/admin/instructors')}
-                    >
-                        Manage Instructors
-                    </Button>
+                    <div className="flex gap-4">
+                        <Button
+                            variant="primary"
+                            onClick={() => setShowCreateModal(true)}
+                            className="flex items-center gap-2"
+                        >
+                            <Plus size={20} />
+                            Create Instructor
+                        </Button>
+                        <Button
+                            variant="primary"
+                            onClick={() => navigate('/admin/instructors')}
+                        >
+                            Manage Instructors
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Stats Cards */}
@@ -373,8 +454,8 @@ const AdminUsersPage: React.FC = () => {
                                                     <label className="text-xs font-medium text-slate-500 dark:text-slate-400">Status</label>
                                                     <p className="text-sm">
                                                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${['active', 'trialing', 'succeeded'].includes(userSubscription.status?.toLowerCase())
-                                                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                                                : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                                                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
                                                             }`}>
                                                             {userSubscription.status || 'N/A'}
                                                         </span>
@@ -470,8 +551,8 @@ const AdminUsersPage: React.FC = () => {
                                                     <div className="border-t border-slate-200 dark:border-slate-700 pt-3">
                                                         <label className="text-xs font-medium text-slate-500 dark:text-slate-400">Time Remaining</label>
                                                         <p className={`text-sm font-semibold ${diffMs > 0
-                                                                ? 'text-green-600 dark:text-green-400'
-                                                                : 'text-red-600 dark:text-red-400'
+                                                            ? 'text-green-600 dark:text-green-400'
+                                                            : 'text-red-600 dark:text-red-400'
                                                             }`}>
                                                             {diffMs > 0
                                                                 ? `${diffDays} days, ${diffHours} hours remaining`
@@ -488,6 +569,108 @@ const AdminUsersPage: React.FC = () => {
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            )}
+            {/* Create Instructor Modal */}
+            {showCreateModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-lg max-w-md w-full p-6">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Create Instructor</h2>
+                            <button
+                                onClick={() => setShowCreateModal(false)}
+                                className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+                        <form onSubmit={handleCreateInstructor} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                    Full Name <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={createFormData.fullName}
+                                    onChange={(e) => setCreateFormData({ ...createFormData, fullName: e.target.value })}
+                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                    placeholder="Enter full name"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                    Email Address <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="email"
+                                    required
+                                    value={createFormData.email}
+                                    onChange={(e) => setCreateFormData({ ...createFormData, email: e.target.value })}
+                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                    placeholder="Enter email"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                    Phone Number
+                                </label>
+                                <input
+                                    type="tel"
+                                    value={createFormData.phoneNumber}
+                                    onChange={(e) => setCreateFormData({ ...createFormData, phoneNumber: e.target.value })}
+                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                    placeholder="Enter phone number (optional)"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                    Password <span className="text-red-500">*</span>
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        required
+                                        value={createFormData.password}
+                                        onChange={(e) => setCreateFormData({ ...createFormData, password: e.target.value })}
+                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all pr-10"
+                                        placeholder="Enter password"
+                                        minLength={6}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+                                    >
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="pt-4 flex gap-3">
+                                <Button
+                                    variant="secondary"
+                                    type="button"
+                                    onClick={() => setShowCreateModal(false)}
+                                    className="flex-1"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    variant="primary"
+                                    type="submit"
+                                    disabled={createLoading}
+                                    className="flex-1"
+                                >
+                                    {createLoading ? (
+                                        <Loader className="w-5 h-5 animate-spin mx-auto" />
+                                    ) : (
+                                        'Create Instructor'
+                                    )}
+                                </Button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

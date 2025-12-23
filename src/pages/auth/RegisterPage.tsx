@@ -12,46 +12,7 @@ import { AppDispatch } from '../../store';
 import { Logo } from '../../components/common/Logo';
 
 // Helper component
-const InstructorExtraFields: React.FC<any> = ({ register, errors }) => {
-  // Determine role from select value in DOM (simple but effective here)
-  const role = (document.querySelector('select[name="role"]') as HTMLSelectElement)?.value || 'user';
 
-  if (role !== 'instructor') return null;
-
-  return (
-    <>
-      <div>
-        <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-          Instructor Bio
-        </label>
-        <textarea
-          {...register('instructorBio')}
-          placeholder="Tell us about your teaching experience"
-          className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          rows={4}
-        />
-        {errors.instructorBio && (
-          <p className="text-red-600 text-sm mt-1">{errors.instructorBio.message}</p>
-        )}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-          Instructor Expertise (comma separated)
-        </label>
-        <input
-          {...register('instructorExpertise')}
-          type="text"
-          placeholder="Vocabulary, Pronunciation, Conversation"
-          className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        {errors.instructorExpertise && (
-          <p className="text-red-600 text-sm mt-1">{errors.instructorExpertise.message}</p>
-        )}
-      </div>
-    </>
-  );
-};
 
 const registerSchema = z
   .object({
@@ -67,11 +28,10 @@ const registerSchema = z
       .regex(/[0-9]/, 'Password must contain at least one number')
       .regex(/[!@#$%^&*]/, 'Password must contain at least one special character (!@#$%^&*)'),
     confirmPassword: z.string(),
-    role: z.enum(['user', 'instructor']).default('user'),
+    // Role is fixed to 'user' for public registration
+    role: z.literal('user').default('user'),
     referralCode: z.string().optional(),
     referralSource: z.string().optional(),
-    instructorBio: z.string().optional(),
-    instructorExpertise: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -128,13 +88,7 @@ const RegisterPage: React.FC = () => {
         referralSource: data.referralSource,
       };
 
-      if (data.role === 'instructor') {
-        payload.instructorBio = data.instructorBio || '';
-        // instructorExpertise is a comma-separated string in the form; convert to array
-        payload.instructorExpertise = data.instructorExpertise
-          ? data.instructorExpertise.split(',').map((s) => s.trim()).filter(Boolean)
-          : [];
-      }
+
 
       const response = await authService.register(payload);
 
@@ -166,6 +120,19 @@ const RegisterPage: React.FC = () => {
         dispatch(showToast({ message: 'A user with this phone number already exists', type: 'error' }));
       }
 
+      // Map email error
+      const emailExists = Array.isArray(errorsArr)
+        ? errorsArr.includes('EMAIL_EXISTS') || errorsArr.some((e: string) => typeof e === 'string' && e.toLowerCase().includes('email exists'))
+        : (serverData.messages && serverData.messages.includes('User with this email already exists'));
+
+      if (emailExists) {
+        setFormError('email', {
+          type: 'server',
+          message: 'User with this email already exists',
+        });
+        dispatch(showToast({ message: 'User with this email already exists', type: 'error' }));
+      }
+
       // Map password-specific backend errors
       const passwordRequiresDigit = Array.isArray(errorsArr) && errorsArr.includes('PasswordRequiresDigit');
       const passwordRequiresSpecial = Array.isArray(errorsArr) && errorsArr.includes('PasswordRequiresNonAlphanumeric');
@@ -190,7 +157,7 @@ const RegisterPage: React.FC = () => {
       }
 
       // If no mapped field errors, show generic message
-      if (!phoneExists && !passwordRequiresDigit && !passwordRequiresSpecial) {
+      if (!phoneExists && !emailExists && !passwordRequiresDigit && !passwordRequiresSpecial) {
         const errorMessage = serverData.message || error?.message || 'Registration failed';
         dispatch(setError(errorMessage));
         dispatch(showToast({ message: errorMessage, type: 'error' }));
@@ -281,25 +248,7 @@ const RegisterPage: React.FC = () => {
               )}
             </div>
 
-            {/* Role */}
-            <div>
-              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-                Role
-              </label>
-              <select
-                {...register('role')}
-                className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              >
-                <option value="user">User (Learner)</option>
-                <option value="instructor">Instructor</option>
-              </select>
-            </div>
 
-            {/* Instructor fields (shown when role === 'instructor') */}
-            {/** Simple approach: instructorExpertise is entered as comma-separated list */}
-            {/** Use watch or re-render by reading the form value */}
-            {/** We'll use a small inline watcher */}
-            <InstructorExtraFields register={register} errors={errors} />
 
             {/* Referral Code */}
             <div>
