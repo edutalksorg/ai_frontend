@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, HelpCircle, Clock, CheckSquare, ArrowLeft } from 'lucide-react';
+import { Plus, Edit, Trash2, HelpCircle, Clock, CheckSquare, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import InstructorLayout from './InstructorLayout';
 import Button from '../../components/Button';
 import { quizzesService } from '../../services/quizzes';
@@ -12,18 +12,38 @@ const InstructorQuizzesPage: React.FC = () => {
     const dispatch = useDispatch();
     const [quizzes, setQuizzes] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
     useEffect(() => {
         fetchQuizzes();
     }, []);
 
-    const fetchQuizzes = async () => {
+    const fetchQuizzes = async (pageNumber = 1) => {
         try {
             setLoading(true);
-            const res = await quizzesService.getInstructorQuizzes();
-            const data = (res as any)?.data || (Array.isArray(res) ? res : []) || [];
+            setPage(pageNumber);
 
-            // Filter out deleted quizzes (instructors should still see drafts/unpublished)
+            // Use correct backend pagination parameters: Page and PageSize
+            const res = await quizzesService.getInstructorQuizzes({
+                Page: pageNumber,
+                PageSize: 10
+            });
+
+            console.log('Quiz API Response:', res);
+
+            // Handle response data
+            let data: any[] = [];
+            if (Array.isArray(res)) {
+                data = res;
+                // Get pagination metadata from array properties
+                if ((res as any).totalPages) setTotalPages((res as any).totalPages);
+            } else {
+                data = (res as any)?.data || [];
+                if ((res as any)?.totalPages) setTotalPages((res as any).totalPages);
+            }
+
+            // Filter out deleted quizzes
             const hiddenQuizzes = JSON.parse(localStorage.getItem('hidden_quizzes') || '[]');
             const activeQuizzes = data.filter((q: any) => {
                 const id = q.id || q._id;
@@ -31,18 +51,32 @@ const InstructorQuizzesPage: React.FC = () => {
             });
 
             setQuizzes(activeQuizzes);
+
+            console.log(`Pagination - Page: ${pageNumber}, Total Pages: ${(res as any)?.totalPages}, Showing ${activeQuizzes.length} quizzes`);
         } catch (error) {
             console.error('Failed to fetch quizzes:', error);
-            // Fallback to regular list if instructor endpoint fails or isn't implemented strictly
+            // Fallback to regular list
             try {
-                const res = await quizzesService.list();
-                const data = (res as any)?.data || (Array.isArray(res) ? res : []) || [];
+                const res = await quizzesService.list({
+                    Page: pageNumber,
+                    PageSize: 10
+                });
+                let data: any[] = [];
+                if (Array.isArray(res)) {
+                    data = res;
+                    if ((res as any).totalPages) setTotalPages((res as any).totalPages);
+                } else {
+                    data = (res as any)?.data || [];
+                    if ((res as any)?.totalPages) setTotalPages((res as any).totalPages);
+                }
+
                 // Filter out deleted quizzes
                 const hiddenQuizzes = JSON.parse(localStorage.getItem('hidden_quizzes') || '[]');
                 const activeQuizzes = data.filter((q: any) => {
                     const id = q.id || q._id;
                     return !q.deleted && !q.isDeleted && !hiddenQuizzes.includes(id);
                 });
+
                 setQuizzes(activeQuizzes);
             } catch (e) {
                 dispatch(showToast({ message: 'Failed to load quizzes', type: 'error' }));
@@ -238,6 +272,35 @@ const InstructorQuizzesPage: React.FC = () => {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                )}
+
+                {/* Pagination Controls */}
+                {quizzes.length > 0 && (
+                    <div className="flex items-center justify-between py-4 mt-6">
+                        <div className="text-sm text-slate-500 dark:text-slate-400">
+                            Page {page} of {totalPages}
+                        </div>
+                        <div className="flex gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => fetchQuizzes(page - 1)}
+                                disabled={page <= 1 || loading}
+                                leftIcon={<ChevronLeft size={16} />}
+                            >
+                                Previous
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => fetchQuizzes(page + 1)}
+                                disabled={page >= totalPages || loading}
+                                rightIcon={<ChevronRight size={16} />}
+                            >
+                                Next
+                            </Button>
+                        </div>
                     </div>
                 )}
             </div>
