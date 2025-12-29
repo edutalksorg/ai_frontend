@@ -26,6 +26,7 @@ import { useUsageLimits } from '../hooks/useUsageLimits';
 import { LanguageSelector } from './common/LanguageSelector';
 import { Logo } from './common/Logo';
 import callsService from '../services/calls';
+import { useTranslation } from 'react-i18next';
 
 interface UserLayoutProps {
     children: React.ReactNode;
@@ -38,6 +39,7 @@ const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
     const { user } = useSelector((state: RootState) => state.auth);
     const { theme } = useSelector((state: RootState) => state.ui);
     const { showRatingModal, lastCompletedCall } = useSelector((state: RootState) => state.call);
+    const { t } = useTranslation();
 
     const [profileOpen, setProfileOpen] = useState(false);
     const profileRef = useRef<HTMLDivElement | null>(null);
@@ -82,12 +84,12 @@ const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
     }, [profileOpen]);
 
     const menuItems = [
-        { icon: <Home size={18} />, label: 'Dashboard', path: '/dashboard' },
-        { icon: <Wallet size={18} />, label: 'Wallet', path: '/wallet' },
-        { icon: <Ticket size={18} />, label: 'Subscriptions', path: '/subscriptions' },
-        { icon: <Users size={18} />, label: 'Referrals', path: '/referrals' },
-        { icon: <User size={18} />, label: 'Profile', path: '/profile' },
-        { icon: <Settings size={18} />, label: 'Settings', path: '/settings' },
+        { icon: <Home size={18} />, label: t('nav.dashboard'), path: '/dashboard' },
+        { icon: <Wallet size={18} />, label: t('nav.wallet'), path: '/wallet' },
+        { icon: <Ticket size={18} />, label: t('nav.subscriptions'), path: '/subscriptions' },
+        { icon: <Users size={18} />, label: t('nav.referrals'), path: '/referrals' },
+        { icon: <User size={18} />, label: t('nav.profile'), path: '/profile' },
+        { icon: <Settings size={18} />, label: t('nav.settings'), path: '/settings' },
     ];
 
     return (
@@ -108,14 +110,14 @@ const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                                 <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-full animate-pulse">
                                     <div className="w-2 h-2 rounded-full bg-red-500" />
                                     <span className="text-xs font-semibold text-red-700 dark:text-red-300">
-                                        No Active Plan
+                                        {t('subscription.noActivePlan')}
                                     </span>
                                 </div>
                             ) : isContentLocked && !hasActiveSubscription ? (
                                 <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-full">
                                     <div className="w-2 h-2 rounded-full bg-orange-500" />
                                     <span className="text-xs font-semibold text-orange-700 dark:text-orange-300">
-                                        Plan Expired
+                                        {t('subscription.planExpired')}
                                     </span>
                                 </div>
                             ) : (
@@ -189,7 +191,7 @@ const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                                                 className="w-full text-left flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors min-h-[44px]"
                                             >
                                                 <LogOut size={18} />
-                                                Sign Out
+                                                {t('nav.signOut')}
                                             </button>
                                         </div>
                                     </div>

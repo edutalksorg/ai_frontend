@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, Star, CheckCircle, Lock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import Button from '../../components/Button';
 import { topicsService } from '../../services/topics';
 import { useDispatch } from 'react-redux';
@@ -8,6 +9,7 @@ import { showToast } from '../../store/uiSlice';
 import UserTopicDetailsPage from './UserTopicDetailsPage';
 
 const UserTopicBrowser: React.FC = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [topics, setTopics] = useState<any[]>([]);
@@ -122,19 +124,19 @@ const UserTopicBrowser: React.FC = () => {
         <div className="space-y-4 md:space-y-6">
             <div className="flex items-center justify-between px-2 sm:px-0">
                 <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-slate-900 dark:text-white">
-                    Topics Path
+                    {t('topicBrowser.title')}
                 </h3>
             </div>
 
             {loading ? (
-                <div className="py-12 text-center text-slate-500">Loading topics...</div>
+                <div className="py-12 text-center text-slate-500">{t('topicBrowser.loading')}</div>
             ) : topics.length > 0 ? (
                 <div className="flex flex-col items-center max-w-2xl mx-auto px-2 sm:px-4">
                     {/* Progress Indicator */}
                     <div className="w-full mb-4 sm:mb-6">
                         <div className="flex justify-between text-xs sm:text-sm text-slate-500 mb-2">
-                            <span>Topic {currentTopicIndex + 1} of {topics.length}</span>
-                            <span className="hidden xs:inline">{Math.round(((currentTopicIndex + 1) / topics.length) * 100)}% Progress</span>
+                            <span>{t('topicBrowser.topic')} {currentTopicIndex + 1} {t('topicBrowser.of')} {topics.length}</span>
+                            <span className="hidden xs:inline">{Math.round(((currentTopicIndex + 1) / topics.length) * 100)}% {t('topicBrowser.progress')}</span>
                             <span className="xs:hidden">{Math.round(((currentTopicIndex + 1) / topics.length) * 100)}%</span>
                         </div>
                         <div className="w-full h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -155,24 +157,24 @@ const UserTopicBrowser: React.FC = () => {
                                 : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
                                 }`}
                         >
-                            <span className="hidden sm:inline">← Previous</span>
+                            <span className="hidden sm:inline">← {t('common.previous')}</span>
                             <span className="sm:hidden">←</span>
                         </button>
 
                         <div className="flex gap-2">
                             {currentTopicIndex < unlockedIndex ? (
                                 <span className="text-green-600 text-xs sm:text-sm font-medium flex items-center px-2 sm:px-3 py-1 bg-green-50 dark:bg-green-900/20 rounded-full">
-                                    <span className="hidden xs:inline">Completed</span>
+                                    <span className="hidden xs:inline">{t('topicBrowser.completed')}</span>
                                     <span className="xs:hidden">✓</span>
                                 </span>
                             ) : currentTopicIndex === unlockedIndex ? (
                                 <span className="text-indigo-600 text-xs sm:text-sm font-medium flex items-center px-2 sm:px-3 py-1 bg-indigo-50 dark:bg-indigo-900/20 rounded-full animate-pulse">
-                                    <span className="hidden xs:inline">Current</span>
+                                    <span className="hidden xs:inline">{t('topicBrowser.current')}</span>
                                     <span className="xs:hidden">●</span>
                                 </span>
                             ) : (
                                 <span className="text-slate-400 text-xs sm:text-sm font-medium flex items-center px-2 sm:px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full">
-                                    <span className="hidden xs:inline">Locked</span>
+                                    <span className="hidden xs:inline">{t('topicBrowser.locked')}</span>
                                     <span className="xs:hidden">🔒</span>
                                 </span>
                             )}
@@ -186,7 +188,7 @@ const UserTopicBrowser: React.FC = () => {
                                 : 'text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/20'
                                 }`}
                         >
-                            <span className="hidden sm:inline">Next →</span>
+                            <span className="hidden sm:inline">{t('common.next')} →</span>
                             <span className="sm:hidden">→</span>
                         </button>
                     </div>
@@ -255,14 +257,14 @@ const UserTopicBrowser: React.FC = () => {
                                     {isLocked ? (
                                         <div className="flex items-center text-slate-400 text-xs sm:text-sm font-medium">
                                             <Lock size={16} className="mr-2 flex-shrink-0" />
-                                            <span className="hidden sm:inline">Locked • Complete previous topic</span>
-                                            <span className="sm:hidden">Locked</span>
+                                            <span className="hidden sm:inline">{t('topicBrowser.lockedDesc')}</span>
+                                            <span className="sm:hidden">{t('topicBrowser.locked')}</span>
                                         </div>
                                     ) : (
                                         <div className={`flex items-center text-sm sm:text-base font-semibold group cursor-pointer ${isCompleted ? 'text-green-600 dark:text-green-400' : 'text-indigo-600 dark:text-indigo-400'
                                             }`}>
-                                            <span className="hidden sm:inline">{isCompleted ? 'Review Topic' : 'Start Learning'}</span>
-                                            <span className="sm:hidden">{isCompleted ? 'Review' : 'Start'}</span>
+                                            <span className="hidden sm:inline">{isCompleted ? t('topicBrowser.reviewTopic') : t('topicBrowser.startLearning')}</span>
+                                            <span className="sm:hidden">{isCompleted ? t('topicBrowser.review') : t('topicBrowser.start')}</span>
                                             <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
                                         </div>
                                     )}
@@ -275,7 +277,7 @@ const UserTopicBrowser: React.FC = () => {
                 <div className="text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
                     <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
                     <p className="text-slate-500">
-                        No topics available.
+                        {t('topicBrowser.noTopics')}
                     </p>
                 </div>
             )}

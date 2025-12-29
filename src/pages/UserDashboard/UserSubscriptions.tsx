@@ -13,6 +13,7 @@ import SwitchPlanModal from '../../components/SwitchPlanModal';
 import { useSearchParams } from 'react-router-dom';
 import { authService } from '../../services/auth';
 import { useUsageLimits } from '../../hooks/useUsageLimits';
+import { useTranslation } from 'react-i18next';
 
 const UserSubscriptions: React.FC = () => {
     const navigate = useNavigate();
@@ -26,6 +27,7 @@ const UserSubscriptions: React.FC = () => {
     const [searchParams] = useSearchParams();
     const [processingSwitch, setProcessingSwitch] = useState(false);
     const { isExplicitlyCancelled } = useUsageLimits();
+    const { t } = useTranslation();
 
     // Coupon state
     const [couponCode, setCouponCode] = useState('');
@@ -325,6 +327,26 @@ const UserSubscriptions: React.FC = () => {
         }
     };
 
+    const getPlanTranslationKey = (planName: string) => {
+        if (!planName) return null;
+        const normalized = planName.toLowerCase().trim();
+        if (normalized.includes('free trial')) return 'freeTrial';
+        if (normalized.includes('monthly')) return 'monthlyPlan';
+        if (normalized.includes('quarterly')) return 'quarterlyPlan';
+        if (normalized.includes('yearly') || normalized.includes('annual')) return 'yearlyPlan';
+        return null;
+    };
+
+    const getTranslatedPlanName = (originalName: string) => {
+        const key = getPlanTranslationKey(originalName);
+        return key ? t(`subscriptionsPageView.plans.${key}.name`) : originalName;
+    };
+
+    const getTranslatedPlanDescription = (originalName: string, originalDesc: string) => {
+        const key = getPlanTranslationKey(originalName);
+        return key ? t(`subscriptionsPageView.plans.${key}.description`) : originalDesc;
+    };
+
     const handleSubscribe = async (plan: any) => {
         // Check if user has an active subscription
         const isSubActive = ['active', 'trialing', 'succeeded', 'year'].includes(currentSub?.status?.toLowerCase());
@@ -612,7 +634,7 @@ const UserSubscriptions: React.FC = () => {
             dispatch(showToast({ message: errorMsg, type: 'error' }));
         }
     };
-    if (loading) return <div className="text-center py-12 text-slate-500">Loading plans...</div>;
+    if (loading) return <div className="text-center py-12 text-slate-500">{t('subscriptionsPageView.loading')}</div>;
 
     return (
         <div className="space-y-4 md:space-y-6 lg:space-y-8">
@@ -624,26 +646,26 @@ const UserSubscriptions: React.FC = () => {
                 >
                     <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
-                <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white">My Subscriptions</h1>
+                <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white">{t('subscriptionsPageView.title')}</h1>
             </div>
             {/* Current Plan Status */}
             {currentSub && (
                 <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg md:rounded-xl p-4 md:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
                     <div>
                         <h3 className="text-sm md:text-base font-semibold text-slate-900 dark:text-white flex flex-wrap items-center gap-2">
-                            Current Plan: <span className="text-primary-600">{currentSub.planName || currentSub.plan?.name || 'Free Trial'}</span>
+                            {t('subscriptionsPageView.currentPlan')}: <span className="text-primary-600">{getTranslatedPlanName(currentSub.planName || currentSub.plan?.name) || t('subscriptionsPageView.freeTrial')}</span>
                         </h3>
                         <p className="text-xs sm:text-sm text-slate-500">
-                            {['active', 'trialing', 'succeeded', 'year'].includes(currentSub.status?.toLowerCase()) ? 'Active' : 'Expired'} • Renews on {new Date(currentSub.endDate || currentSub.renewalDate).toLocaleDateString()}
+                            {['active', 'trialing', 'succeeded', 'year'].includes(currentSub.status?.toLowerCase()) ? t('subscriptionsPageView.active') : t('subscriptionsPageView.expired')} • {t('subscriptionsPageView.renewsOn')} {new Date(currentSub.endDate || currentSub.renewalDate).toLocaleDateString()}
                         </p>
                     </div>
-                    <Button variant="outline" size="sm" className="w-full sm:w-auto">Manage Subscription</Button>
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto">{t('subscriptionsPageView.manageSubscription')}</Button>
                 </div>
             )}
 
             {/* Plans Grid */}
             <div className="px-2 sm:px-0">
-                <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-slate-900 dark:text-white mb-4 md:mb-6">Available Plans</h3>
+                <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-slate-900 dark:text-white mb-4 md:mb-6">{t('subscriptionsPageView.availablePlans')}</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     {plans.length > 0 ? plans.map((plan) => {
                         // Check if this is the Yearly Plan
@@ -688,7 +710,7 @@ const UserSubscriptions: React.FC = () => {
                                 {isLocked && (
                                     <div className="absolute -top-3 md:-top-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-xs md:text-sm font-bold px-3 md:px-4 py-1 md:py-1.5 rounded-full shadow-lg flex items-center gap-1 md:gap-2 z-20 whitespace-nowrap">
                                         <Check size={12} className="md:w-3.5 md:h-3.5 stroke-[3]" />
-                                        <span>Active Plan</span>
+                                        <span>{t('subscriptionsPageView.activePlan')}</span>
                                     </div>
                                 )}
 
@@ -696,13 +718,13 @@ const UserSubscriptions: React.FC = () => {
                                 {isYearlyPlan && !isLocked && (
                                     <div className="absolute -top-3 md:-top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-xs md:text-sm font-bold px-3 md:px-5 py-1 md:py-2 rounded-full shadow-xl flex items-center gap-1 md:gap-2 z-10">
                                         <Star size={14} className="md:w-4 md:h-4 fill-white" />
-                                        <span>Popular Plan</span>
+                                        <span>{t('subscriptionsPageView.popularPlan')}</span>
                                     </div>
                                 )}
 
                                 <div className="mt-2"> {/* Spacer for badges */}
                                     <h4 className={`text-base md:text-lg font-bold mb-2 ${isYearlyPlan ? 'text-blue-900 dark:text-blue-100' : isLocked ? 'text-green-900 dark:text-green-100' : 'text-slate-900 dark:text-white'}`}>
-                                        {plan.name}
+                                        {getTranslatedPlanName(plan.name)}
                                     </h4>
                                 </div>
                                 <div className="flex items-baseline mb-3 md:mb-4">
@@ -710,12 +732,12 @@ const UserSubscriptions: React.FC = () => {
                                         ₹{plan.price}
                                     </span>
                                     <span className={`text-xs md:text-sm ${isYearlyPlan ? 'text-blue-700 dark:text-blue-300' : 'text-slate-500'}`}>
-                                        /{plan.interval || 'month'}
+                                        /{plan.interval === 'year' ? t('subscriptionsPageView.year') : t('subscriptionsPageView.month')}
                                     </span>
                                 </div>
 
                                 <p className={`text-sm mb-6 min-h-[40px] ${isYearlyPlan ? 'text-blue-800 dark:text-blue-200' : 'text-slate-600 dark:text-slate-400'}`}>
-                                    {plan.description}
+                                    {getTranslatedPlanDescription(plan.name, plan.description)}
                                 </p>
 
                                 <ul className="space-y-3 mb-8 flex-1">
@@ -749,7 +771,7 @@ const UserSubscriptions: React.FC = () => {
                                                 );
                                             })
                                     ) : (
-                                        <li className="text-sm text-slate-500 italic">No features listed</li>
+                                        <li className="text-sm text-slate-500 italic">{t('subscriptionsPageView.noFeatures')}</li>
                                     )}
                                 </ul>
 
@@ -772,14 +794,14 @@ const UserSubscriptions: React.FC = () => {
                                                                 className="text-xs md:text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 md:gap-1.5 mb-2 min-h-[44px] md:min-h-0"
                                                             >
                                                                 <Tag size={14} className="md:w-3.5 md:h-3.5" />
-                                                                {showInput ? 'Hide coupon' : 'Have a coupon code?'}
+                                                                {showInput ? t('subscriptionsPageView.hideCoupon') : t('subscriptionsPageView.haveCoupon')}
                                                             </button>
 
                                                             {showInput && (
                                                                 <div className="flex flex-col sm:flex-row gap-2 animate-in slide-in-from-top-2">
                                                                     <input
                                                                         type="text"
-                                                                        placeholder="Enter code"
+                                                                        placeholder={t('subscriptionsPageView.enterCode')}
                                                                         value={couponCode}
                                                                         onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                                                                         onKeyPress={(e) => {
@@ -795,7 +817,7 @@ const UserSubscriptions: React.FC = () => {
                                                                         isLoading={isValidating}
                                                                         disabled={!couponCode.trim() || isValidating}
                                                                     >
-                                                                        Apply
+                                                                        {t('subscriptionsPageView.apply')}
                                                                     </Button>
                                                                 </div>
                                                             )}
@@ -813,7 +835,7 @@ const UserSubscriptions: React.FC = () => {
                                                                             {appliedCoupon.code}
                                                                         </p>
                                                                         <p className="text-xs text-green-600 dark:text-green-400">
-                                                                            Coupon applied!
+                                                                            {t('subscriptionsPageView.couponApplied')}
                                                                         </p>
                                                                     </div>
                                                                 </div>
@@ -841,7 +863,7 @@ const UserSubscriptions: React.FC = () => {
                                                                     </span>
                                                                 </div>
                                                                 <div className="flex justify-between items-center pt-2 border-t border-slate-300 dark:border-slate-600">
-                                                                    <span className="font-bold text-slate-900 dark:text-white">Final Price:</span>
+                                                                    <span className="font-bold text-slate-900 dark:text-white">{t('subscriptionsPageView.finalPrice')}:</span>
                                                                     <span className="text-xl font-bold text-green-600 dark:text-green-400">
                                                                         ₹{calculateFinalPrice(plan, appliedCoupon).toFixed(2)}
                                                                     </span>
@@ -857,7 +879,7 @@ const UserSubscriptions: React.FC = () => {
 
                                 {(() => {
                                     // Determine Button Text & State
-                                    let buttonText = isLocked ? 'Current Plan' : isCurrentPlan ? 'Renew Plan' : 'Choose Plan';
+                                    let buttonText = isLocked ? t('subscriptionsPageView.currentPlan') : isCurrentPlan ? t('subscriptionsPageView.renewPlan') : t('subscriptionsPageView.choosePlan');
                                     let isDisabled = isLocked;
 
                                     // Special Handling for Free Trial Plan
@@ -888,7 +910,7 @@ const UserSubscriptions: React.FC = () => {
                                     );
 
                                     if (isPlanUsed) {
-                                        buttonText = 'Plan Used';
+                                        buttonText = t('subscriptionsPageView.planUsed');
                                         // User requested it to be clickable and show a popup
                                         isDisabled = false;
                                     }
@@ -917,7 +939,7 @@ const UserSubscriptions: React.FC = () => {
                         )
                     }) : (
                         <div className="col-span-full py-12 text-center bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
-                            <p className="text-slate-500">No subscription plans available right now.</p>
+                            <p className="text-slate-500">{t('subscriptionsPageView.noPlans')}</p>
                         </div>
                     )}
                 </div>

@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check, Globe } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { LANGUAGES, Language } from '../../constants/languages';
 
 const STORAGE_KEY = 'edutalks_language_preference';
-const DEFAULT_LANG_CODE = 'English';
+const DEFAULT_LANG_CODE = 'en';
 
 export const LanguageSelector: React.FC = () => {
+    const { i18n } = useTranslation();
     // Initialize state from localStorage or default to English
     const [selectedLanguage, setSelectedLanguage] = useState<Language>(() => {
         const saved = localStorage.getItem(STORAGE_KEY);
@@ -20,14 +22,16 @@ export const LanguageSelector: React.FC = () => {
     const [showAllLanguages, setShowAllLanguages] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    // Persist to localStorage whenever selection changes
+    // Persist to localStorage and change i18n language whenever selection changes
     useEffect(() => {
         if (selectedLanguage) {
-            localStorage.setItem(STORAGE_KEY, selectedLanguage.name);
-            // Dispatch custom event if other components need to know (optional but good for decoupled apps)
+            localStorage.setItem(STORAGE_KEY, selectedLanguage.code);
+            // Change i18n language
+            i18n.changeLanguage(selectedLanguage.code);
+            // Dispatch custom event if other components need to know
             window.dispatchEvent(new Event('languageChanged'));
         }
-    }, [selectedLanguage]);
+    }, [selectedLanguage, i18n]);
 
     // Close on click outside & Reset list view
     useEffect(() => {
@@ -51,24 +55,22 @@ export const LanguageSelector: React.FC = () => {
     // Filter languages for the "Clean" view
     // Always show English + Selected Language (if different)
     const priorityLanguages = LANGUAGES.filter(l =>
-        l.code === 'English' || l.code === selectedLanguage.code
+        l.code === 'en' || l.code === selectedLanguage.code
     );
 
     // Determine which list to show
     const displayedLanguages = showAllLanguages ? LANGUAGES : priorityLanguages;
     const hasMoreLanguages = !showAllLanguages && LANGUAGES.length > priorityLanguages.length;
 
-    // Button Label Text
-    const buttonLabel = selectedLanguage.code === 'English'
-        ? 'English'
-        : `English / ${selectedLanguage.name}`;
+    // Button Label Text - Show only selected language
+    const buttonLabel = selectedLanguage.name;
 
     return (
         <div className="relative" ref={dropdownRef}>
             {/* Dropdown Trigger */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                className="flex items-center gap-1 sm:gap-2 px-1.5 py-1.5 sm:px-3 sm:py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                 aria-haspopup="listbox"
                 aria-expanded={isOpen}
                 aria-label="Select Language"
@@ -76,12 +78,6 @@ export const LanguageSelector: React.FC = () => {
                 {/* Mobile: Globe icon, Desktop: Flags */}
                 <Globe size={20} className="sm:hidden text-slate-600 dark:text-slate-400" />
                 <span className="hidden sm:flex items-center text-xl leading-none">
-                    {selectedLanguage.code !== 'English' && (
-                        <>
-                            <span>🇬🇧</span>
-                            <span className="mx-1 text-slate-300">/</span>
-                        </>
-                    )}
                     <span>{selectedLanguage.flag}</span>
                 </span>
 
@@ -98,7 +94,7 @@ export const LanguageSelector: React.FC = () => {
             {/* Dropdown Menu */}
             {isOpen && (
                 <div
-                    className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg shadow-slate-200/50 dark:shadow-black/50 py-2 z-50 animate-in fade-in zoom-in-95 duration-100 origin-top-right"
+                    className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg shadow-slate-200/50 dark:shadow-black/50 py-2 z-50 animate-in fade-in zoom-in-95 duration-100 origin-top-left sm:origin-top-right"
                     role="listbox"
                 >
                     <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 mb-1">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { User, Mail, Phone, Save, Camera, Wallet, CreditCard, Users, Ticket, ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import Button from '../../components/Button';
 import { usersService } from '../../services/users';
 import { useDispatch, useSelector } from 'react-redux';
@@ -17,6 +18,7 @@ import { subscriptionsService } from '../../services/subscriptions';
 type ProfileTabType = 'profile' | 'wallet' | 'subscriptions' | 'referrals' | 'coupons';
 
 const UserProfile: React.FC = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
     const dispatch = useDispatch();
@@ -33,6 +35,21 @@ const UserProfile: React.FC = () => {
 
     // Form States
     const [formData, setFormData] = useState({ fullName: '', email: '', phone: '' });
+
+    const getPlanTranslationKey = (planName: string) => {
+        if (!planName) return null;
+        const normalized = planName.toLowerCase().trim();
+        if (normalized.includes('free trial')) return 'freeTrial';
+        if (normalized.includes('monthly')) return 'monthlyPlan';
+        if (normalized.includes('quarterly')) return 'quarterlyPlan';
+        if (normalized.includes('yearly') || normalized.includes('annual')) return 'yearlyPlan';
+        return null;
+    };
+
+    const getTranslatedPlanName = (originalName: string) => {
+        const key = getPlanTranslationKey(originalName);
+        return key ? t(`subscriptionsPageView.plans.${key}.name`) : originalName;
+    };
 
     useEffect(() => {
         fetchProfile();
@@ -213,7 +230,7 @@ const UserProfile: React.FC = () => {
                 }));
             }
 
-            dispatch(showToast({ message: 'Profile updated successfully', type: 'success' }));
+            dispatch(showToast({ message: t('profilePage.updateSuccess'), type: 'success' }));
             setIsEditing(false);
 
             // Optional: Re-fetch silently if needed, but we trust the update
@@ -240,11 +257,11 @@ const UserProfile: React.FC = () => {
     };
 
     const tabs = [
-        { id: 'profile' as ProfileTabType, label: 'Profile', icon: User },
-        { id: 'wallet' as ProfileTabType, label: 'Wallet', icon: Wallet },
-        { id: 'subscriptions' as ProfileTabType, label: 'Subscriptions', icon: CreditCard },
-        { id: 'referrals' as ProfileTabType, label: 'Referrals', icon: Users },
-        { id: 'coupons' as ProfileTabType, label: 'Coupons', icon: Ticket },
+        { id: 'profile' as ProfileTabType, label: t('nav.profile'), icon: User },
+        { id: 'wallet' as ProfileTabType, label: t('nav.wallet'), icon: Wallet },
+        { id: 'subscriptions' as ProfileTabType, label: t('nav.subscriptions'), icon: CreditCard },
+        { id: 'referrals' as ProfileTabType, label: t('nav.referrals'), icon: Users },
+        { id: 'coupons' as ProfileTabType, label: t('profilePage.coupons'), icon: Ticket },
     ];
 
     const renderContent = () => {
@@ -264,7 +281,7 @@ const UserProfile: React.FC = () => {
     };
 
     const renderProfileContent = () => {
-        if (loading) return <div className="text-center py-12 text-slate-500">Loading profile...</div>;
+        if (loading) return <div className="text-center py-12 text-slate-500">{t('common.loading')}</div>;
         if (!profile) return null;
 
         return (
@@ -284,6 +301,7 @@ const UserProfile: React.FC = () => {
                         <button
                             onClick={() => fileInputRef.current?.click()}
                             className="absolute bottom-0 right-0 p-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-colors"
+                            aria-label={t('profilePage.editProfile')}
                         >
                             <Camera size={16} />
                         </button>
@@ -304,7 +322,7 @@ const UserProfile: React.FC = () => {
                             </span>
                             {profile.isVerified && (
                                 <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-sm font-medium">
-                                    Verified
+                                    {t('profilePage.verified')}
                                 </span>
                             )}
                         </div>
@@ -318,21 +336,21 @@ const UserProfile: React.FC = () => {
                     }`}>
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
-                            <h3 className="text-lg md:text-xl font-bold mb-2">Current Subscription</h3>
+                            <h3 className="text-lg md:text-xl font-bold mb-2">{t('profilePage.currentSubscription')}</h3>
                             <p className="text-white/90 mb-4 text-xs font-semibold uppercase tracking-wider">
-                                {currentSubscription?.plan?.name || currentSubscription?.planName || 'No Active Plan'}
+                                {getTranslatedPlanName(currentSubscription?.plan?.name || currentSubscription?.planName) || t('profilePage.noActivePlan')}
                             </p>
                             <div className={`inline-block px-4 py-2 rounded-full text-sm font-bold ${['active', 'trialing', 'succeeded', 'year'].includes(currentSubscription?.status?.toLowerCase() || '')
                                 ? 'bg-green-400/30 text-green-100'
                                 : 'bg-red-400/30 text-red-100'
                                 }`}>
                                 {['active', 'trialing', 'succeeded', 'year'].includes(currentSubscription?.status?.toLowerCase() || '')
-                                    ? 'ACTIVE'
-                                    : 'NO ACTIVE PLAN'}
+                                    ? t('profilePage.active')
+                                    : t('profilePage.noActivePlan')}
                             </div>
                             {currentSubscription && (
                                 <p className="text-sm text-white/80 mt-2">
-                                    {['active', 'trialing', 'succeeded', 'year'].includes(currentSubscription?.status?.toLowerCase() || '') ? 'Renews' : 'Expired'} on {new Date(currentSubscription.renewalDate || currentSubscription.endDate || Date.now()).toLocaleDateString()}
+                                    {['active', 'trialing', 'succeeded', 'year'].includes(currentSubscription?.status?.toLowerCase() || '') ? t('profilePage.renewsOn') : t('profilePage.expiredOn')} {new Date(currentSubscription.renewalDate || currentSubscription.endDate || Date.now()).toLocaleDateString()}
                                 </p>
                             )}
                         </div>
@@ -341,7 +359,7 @@ const UserProfile: React.FC = () => {
                             className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
                             onClick={() => handleTabChange('subscriptions')}
                         >
-                            {currentSubscription ? 'Manage Plan' : 'Upgrade to Pro'}
+                            {currentSubscription ? t('profilePage.managePlan') : t('profilePage.upgradeToPro')}
                         </Button>
                     </div>
                 </div>
@@ -350,11 +368,11 @@ const UserProfile: React.FC = () => {
                 <div className="bg-white dark:bg-slate-800 rounded-xl p-6 md:p-8 shadow-sm border border-slate-200 dark:border-slate-700">
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            <User size={20} /> Personal Information
+                            <User size={20} /> {t('profilePage.personalInfo')}
                         </h3>
                         {!isEditing && (
                             <Button variant="outline" onClick={() => setIsEditing(true)}>
-                                Edit Profile
+                                {t('profilePage.editProfile')}
                             </Button>
                         )}
                     </div>
@@ -362,7 +380,7 @@ const UserProfile: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Full Name
+                                {t('profilePage.fullName')}
                             </label>
                             <div className="relative">
                                 <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -378,7 +396,7 @@ const UserProfile: React.FC = () => {
 
                         <div>
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Email
+                                {t('profilePage.email')}
                             </label>
                             <div className="relative">
                                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -393,7 +411,7 @@ const UserProfile: React.FC = () => {
 
                         <div>
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Phone Number
+                                {t('profilePage.phone')}
                             </label>
                             <div className="relative">
                                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -411,7 +429,7 @@ const UserProfile: React.FC = () => {
                     {isEditing && (
                         <div className="flex flex-col sm:flex-row gap-3 mt-6">
                             <Button onClick={handleUpdateProfile} leftIcon={<Save size={16} />}>
-                                Save Changes
+                                {t('profilePage.saveChanges')}
                             </Button>
                             <Button variant="outline" onClick={() => {
                                 setIsEditing(false);
@@ -421,7 +439,7 @@ const UserProfile: React.FC = () => {
                                     phone: profile.phoneNumber || ''
                                 });
                             }}>
-                                Cancel
+                                {t('profilePage.cancel')}
                             </Button>
                         </div>
                     )}
@@ -442,10 +460,10 @@ const UserProfile: React.FC = () => {
                 </button>
                 <div>
                     <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mb-1 md:mb-2">
-                        My Account
+                        {t('profilePage.myAccount')}
                     </h1>
                     <p className="text-sm md:text-base lg:text-lg text-slate-600 dark:text-slate-400">
-                        Manage your profile and account settings
+                        {t('profilePage.manageAccount')}
                     </p>
                 </div>
             </div>

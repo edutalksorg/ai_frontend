@@ -343,13 +343,8 @@ export const useVoiceCall = () => {
      * Automatically manage user availability status based on call state
      */
     useEffect(() => {
-        // Set to 'InCall' when call becomes active
-        if (callState === 'active') {
-            callLogger.info('Setting availability to InCall');
-            callsService.updateAvailability('InCall').catch(err => {
-                callLogger.warning('Failed to set InCall status', err);
-            });
-        }
+        // Note: 'InCall' status is managed automatically by the backend when users join/leave calls
+        // We don't need to manually update it here as it causes 400 errors
 
         // Revert to 'Online' when call ends (becomes idle)
         if (callState === 'idle' && user) {

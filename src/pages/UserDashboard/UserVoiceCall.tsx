@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Phone, User, Clock, History, RefreshCw, ArrowLeft, ChevronDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import callsService from '../../services/calls';
 import Button from '../../components/Button';
 import { useDispatch, useSelector } from 'react-redux';
@@ -14,6 +15,7 @@ import { RootState } from '../../store';
 import { callLogger } from '../../utils/callLogger';
 
 const UserVoiceCall: React.FC = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { user: currentUser } = useSelector((state: RootState) => state.auth);
@@ -52,7 +54,7 @@ const UserVoiceCall: React.FC = () => {
         if (!hasActiveSubscription && !isTrialActive) {
             callLogger.warning('Call blocked: No active subscription or trial');
             triggerUpgradeModal();
-            dispatch(showToast({ message: 'Trial expired. Upgrade to Pro for unlimited calls!', type: 'warning' }));
+            dispatch(showToast({ message: t('voiceCall.trialExpired'), type: 'warning' }));
             return;
         }
 
@@ -70,7 +72,7 @@ const UserVoiceCall: React.FC = () => {
         }
 
         if (availableUsers.length === 0) {
-            dispatch(showToast({ message: 'No online users found. Please try again.', type: 'warning' }));
+            dispatch(showToast({ message: t('voiceCall.userOffline'), type: 'warning' }));
             setFindingPartner(false);
             return;
         }
@@ -226,7 +228,7 @@ const UserVoiceCall: React.FC = () => {
         if (!hasActiveSubscription && !isTrialActive) {
             callLogger.warning('Call blocked: No active subscription or trial');
             triggerUpgradeModal();
-            dispatch(showToast({ message: 'Your free trial has expired. Upgrade to continue calling!', type: 'error' }));
+            dispatch(showToast({ message: t('voiceCall.trialExpired'), type: 'error' }));
             return;
         }
 
@@ -241,7 +243,7 @@ const UserVoiceCall: React.FC = () => {
         const targetUser = availableUsers.find(u => (u.userId || u.id) === userId);
         if (!targetUser) {
             callLogger.warning('Call blocked: Target user is offline or not available');
-            dispatch(showToast({ message: 'This user is currently offline. Please try again later.', type: 'error' }));
+            dispatch(showToast({ message: t('voiceCall.userOffline'), type: 'error' }));
             return;
         }
 
@@ -259,7 +261,7 @@ const UserVoiceCall: React.FC = () => {
             callLogger.info('✅ Call initiated successfully from UserVoiceCall', {
                 callId: result.callId
             });
-            dispatch(showToast({ message: 'Calling...', type: 'info' }));
+            dispatch(showToast({ message: t('voiceCall.calling'), type: 'info' }));
         } else {
             // Extract detailed error message
             const apiError = result.error as any;
@@ -295,7 +297,7 @@ const UserVoiceCall: React.FC = () => {
     };
 
     const formatLastActive = (lastActiveTime?: string) => {
-        if (!lastActiveTime) return 'Just now';
+        if (!lastActiveTime) return t('voiceCall.justNow');
 
         const now = new Date();
         // Ensure the date is treated as UTC if no timezone offset is provided
@@ -304,14 +306,14 @@ const UserVoiceCall: React.FC = () => {
         const diffMs = now.getTime() - lastActive.getTime();
         const diffMins = Math.floor(diffMs / 60000);
 
-        if (diffMins < 1) return 'Just now';
-        if (diffMins < 60) return `${diffMins}m ago`;
+        if (diffMins < 1) return t('voiceCall.justNow');
+        if (diffMins < 60) return `${diffMins}m ${t('voiceCall.ago')}`;
 
         const diffHours = Math.floor(diffMins / 60);
-        if (diffHours < 24) return `${diffHours}h ago`;
+        if (diffHours < 24) return `${diffHours}h ${t('voiceCall.ago')}`;
 
         const diffDays = Math.floor(diffHours / 24);
-        return `${diffDays}d ago`;
+        return `${diffDays}d ${t('voiceCall.ago')}`;
     };
 
     return (
@@ -319,7 +321,7 @@ const UserVoiceCall: React.FC = () => {
             {/* Header with Session Timer */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 md:gap-4">
                 <h3 className="text-lg md:text-xl font-semibold text-slate-900 dark:text-white">
-                    {activeTab === 'available' ? 'Available Users' : 'Call History'}
+                    {activeTab === 'available' ? t('voiceCall.availableUsers') : t('voiceCall.callHistory')}
                 </h3>
                 <div className="flex items-center gap-2 md:gap-4 w-full sm:w-auto">
                     {/* Session Timer/Status */}
@@ -328,18 +330,18 @@ const UserVoiceCall: React.FC = () => {
                             <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                                 <Clock className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
                                 <span className="text-xs text-green-900 dark:text-green-200 whitespace-nowrap font-medium">
-                                    Unlimited calls
+                                    {t('voiceCall.unlimited')}
                                 </span>
                             </div>
                         ) : ( // Free trial users see usage
                             <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                                 <Clock className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                                 <span className="text-xs text-slate-600 dark:text-slate-400 font-mono">
-                                    {Math.floor((voiceCallLimitSeconds - voiceCallRemainingSeconds) / 60)}:{String((voiceCallLimitSeconds - voiceCallRemainingSeconds) % 60).padStart(2, '0')} used
+                                    {Math.floor((voiceCallLimitSeconds - voiceCallRemainingSeconds) / 60)}:{String((voiceCallLimitSeconds - voiceCallRemainingSeconds) % 60).padStart(2, '0')} {t('voiceCall.used')}
                                 </span>
                                 <span className="text-xs text-slate-400 dark:text-slate-600">/</span>
                                 <span className={`text-sm font-mono font-bold ${!hasVoiceCallTimeRemaining ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>
-                                    {Math.floor(voiceCallRemainingSeconds / 60)}:{String(voiceCallRemainingSeconds % 60).padStart(2, '0')} left
+                                    {Math.floor(voiceCallRemainingSeconds / 60)}:{String(voiceCallRemainingSeconds % 60).padStart(2, '0')} {t('voiceCall.left')}
                                 </span>
                             </div>
                         )
@@ -349,13 +351,13 @@ const UserVoiceCall: React.FC = () => {
                             className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${activeTab === 'available' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}
                             onClick={() => setActiveTab('available')}
                         >
-                            Available
+                            {t('voiceCall.available')}
                         </button>
                         <button
                             className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${activeTab === 'history' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}
                             onClick={() => setActiveTab('history')}
                         >
-                            History
+                            {t('voiceCall.history')}
                         </button>
                     </div>
                 </div>
@@ -366,7 +368,7 @@ const UserVoiceCall: React.FC = () => {
                     {/* Status and Refresh */}
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 md:gap-4">
                         <div className="flex items-center gap-3">
-                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Your Status:</span>
+                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('voiceCall.status')}:</span>
                             <div className="relative">
                                 {/* Status Dot Indicator */}
                                 <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full ${userStatus === 'online' ? 'bg-green-500' :
@@ -386,9 +388,9 @@ const UserVoiceCall: React.FC = () => {
                                         }
                                     }}
                                 >
-                                    <option value="online">Online</option>
-                                    <option value="offline">Offline</option>
-                                    <option value="busy">Busy</option>
+                                    <option value="online">{t('voiceCall.online')}</option>
+                                    <option value="offline">{t('voiceCall.offline')}</option>
+                                    <option value="busy">{t('voiceCall.busy')}</option>
                                 </select>
                                 <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-slate-500">
                                     <ChevronDown size={14} />
@@ -397,10 +399,10 @@ const UserVoiceCall: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-3">
                             <span className="text-xs text-slate-500">
-                                {availableUsers.length} Online Users
+                                {availableUsers.length} {t('voiceCall.onlineUsers')}
                             </span>
                             <Button variant="ghost" size="sm" onClick={() => fetchAvailableUsers()} leftIcon={<RefreshCw size={14} className={loading ? "animate-spin" : ""} />}>
-                                Refresh
+                                {t('voiceCall.refresh')}
                             </Button>
                         </div>
                     </div>
@@ -412,11 +414,11 @@ const UserVoiceCall: React.FC = () => {
                         </div>
 
                         <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mb-3">
-                            Review with a Random Partner
+                            {t('voiceCall.randomCallTitle')}
                         </h2>
 
                         <p className="text-sm md:text-base text-slate-600 dark:text-slate-400 max-w-md mb-6 md:mb-8 px-4">
-                            Practice your pronunciation and speaking skills with other learners available online right now.
+                            {t('voiceCall.randomCallDesc')}
                         </p>
 
                         <div className="flex flex-col items-center gap-4 w-full max-w-xs">
@@ -436,12 +438,12 @@ const UserVoiceCall: React.FC = () => {
                                 disabled={findingPartner || loading || availableUsers.length === 0}
                                 leftIcon={findingPartner ? <RefreshCw className="animate-spin" /> : <Phone />}
                             >
-                                {findingPartner ? 'Finding Partner...' : 'Call Random Partner'}
+                                {findingPartner ? t('voiceCall.finding') : t('voiceCall.callRandom')}
                             </Button>
 
                             {availableUsers.length === 0 && !loading && (
                                 <p className="text-sm text-amber-500 bg-amber-50 dark:bg-amber-900/20 px-4 py-2 rounded-lg border border-amber-100 dark:border-amber-800">
-                                    No available users right now. All users are either offline or in active calls. Try again in a moment.
+                                    {t('voiceCall.noUsers')}
                                 </p>
                             )}
                         </div>
@@ -455,14 +457,12 @@ const UserVoiceCall: React.FC = () => {
                                     <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600 dark:text-blue-400">
                                         <User size={24} />
                                     </div>
-                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">Privacy Notice</h3>
+                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('voiceCall.privacyTitle')}</h3>
                                 </div>
 
                                 <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl mb-6">
                                     <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
-                                        Voice Calling is designed for communication and learning purposes only.
-                                        EduTalks Company is not responsible for any personal information you choose to share during calls.
-                                        Please avoid sharing sensitive data, financial information, passwords, or any private details while using this feature.
+                                        {t('voiceCall.privacyDesc')}
                                     </p>
                                 </div>
 
@@ -472,7 +472,7 @@ const UserVoiceCall: React.FC = () => {
                                         className="flex-1"
                                         onClick={() => setShowPrivacyModal(false)}
                                     >
-                                        Cancel
+                                        {t('voiceCall.cancel')}
                                     </Button>
                                     <Button
                                         variant="primary"
@@ -482,7 +482,7 @@ const UserVoiceCall: React.FC = () => {
                                             handleRandomCall();
                                         }}
                                     >
-                                        Agree & Connect
+                                        {t('voiceCall.agree')}
                                     </Button>
                                 </div>
                             </div>
@@ -495,7 +495,7 @@ const UserVoiceCall: React.FC = () => {
             {activeTab === 'history' && (
                 <div className="space-y-4">
                     {loading ? (
-                        <div className="py-12 text-center text-slate-500">Loading history...</div>
+                        <div className="py-12 text-center text-slate-500">{t('voiceCall.loadingHistory')}</div>
                     ) : history.length > 0 ? (
                         <div className="space-y-3">
                             {history.map((call) => {
@@ -547,7 +547,7 @@ const UserVoiceCall: React.FC = () => {
                                                             <span className={
                                                                 status === 'Missed' ? 'text-red-500 font-medium' :
                                                                     status === 'Completed' ? 'text-green-600 font-medium' : ''
-                                                            }>{status}</span>
+                                                            }>{status === 'Missed' ? t('voiceCall.missed') : status === 'Completed' ? t('voiceCall.completed') : status}</span>
                                                         </>
                                                     )}
                                                 </p>
@@ -570,7 +570,7 @@ const UserVoiceCall: React.FC = () => {
                             <div className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
                                 <History size={24} />
                             </div>
-                            <p className="text-slate-500">No call history found.</p>
+                            <p className="text-slate-500">{t('voiceCall.noHistory')}</p>
                         </div>
                     )}
                 </div>
@@ -585,16 +585,16 @@ const UserVoiceCall: React.FC = () => {
                                 <Clock size={32} />
                             </div>
                             <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                                Voice Call Limit Reached
+                                {t('voiceCall.limitReached')}
                             </h3>
                             <p className="text-slate-600 dark:text-slate-400">
-                                You've used your 5 minutes of free voice calls
+                                {t('voiceCall.limitDesc')}
                             </p>
                         </div>
 
                         <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl mb-6">
                             <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed mb-3">
-                                <strong>Good news!</strong> Your 24-hour free trial is still active. You can continue using:
+                                {t('voiceCall.goodNews')}
                             </p>
                             <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-2 ml-4">
                                 <li className="flex items-start gap-2">
@@ -614,10 +614,10 @@ const UserVoiceCall: React.FC = () => {
 
                         <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 p-4 rounded-xl mb-6 border border-indigo-200 dark:border-indigo-800">
                             <p className="text-sm font-medium text-indigo-900 dark:text-indigo-200 mb-2">
-                                Want unlimited voice calls?
+                                {t('voiceCall.wantUnlimited')}
                             </p>
                             <p className="text-xs text-indigo-700 dark:text-indigo-300">
-                                Upgrade to Pro for unlimited voice calls, advanced features, and more!
+                                {t('voiceCall.upgradeText')}
                             </p>
                         </div>
 
@@ -627,7 +627,7 @@ const UserVoiceCall: React.FC = () => {
                                 className="flex-1"
                                 onClick={() => setShowVoiceCallLimitModal(false)}
                             >
-                                Continue Trial
+                                {t('voiceCall.continuingTrial')}
                             </Button>
                             <Button
                                 variant="primary"
@@ -637,7 +637,7 @@ const UserVoiceCall: React.FC = () => {
                                     navigate('/subscriptions');
                                 }}
                             >
-                                Upgrade Now
+                                {t('voiceCall.upgradeNow')}
                             </Button>
                         </div>
                     </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -13,18 +14,22 @@ import { showToast } from '../../store/uiSlice';
 import { AppDispatch } from '../../store';
 import { Logo } from '../../components/common/Logo';
 
-const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
-});
 
-type LoginFormData = z.infer<typeof loginSchema>;
 
 const LoginPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Memoize schema to prevent recreation on every render, but allow it to update when language changes
+  const loginSchema = React.useMemo(() => z.object({
+    email: z.string().email(t('auth.validation.emailInvalid')),
+    password: z.string().min(1, t('auth.validation.passwordRequired')),
+  }), [t]);
+
+  type LoginFormData = z.infer<typeof loginSchema>;
 
   const {
     register,
@@ -163,7 +168,7 @@ const LoginPage: React.FC = () => {
 
         dispatch(
           showToast({
-            message: 'Login successful! Welcome back.',
+            message: t('auth.loginSuccess'),
             type: 'success',
           })
         );
@@ -179,7 +184,7 @@ const LoginPage: React.FC = () => {
         }
       } else {
         console.error('Missing user or token in response');
-        dispatch(showToast({ message: 'Login failed - incomplete response', type: 'error' }));
+        dispatch(showToast({ message: t('auth.loginFailed'), type: 'error' }));
       }
     } catch (error: any) {
       console.error('Login error caught:', error);
@@ -249,22 +254,22 @@ const LoginPage: React.FC = () => {
           </div>
 
           <h1 className="text-3xl font-bold text-center mb-2 text-slate-900 dark:text-white">
-            Welcome Back
+            {t('auth.welcomeBack')}
           </h1>
           <p className="text-center text-slate-600 dark:text-slate-400 mb-8">
-            Login to your EduTalks account
+            {t('auth.subtitle')}
           </p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-                Email Address
+                {t('auth.emailLabel')}
               </label>
               <input
                 {...register('email')}
                 type="email"
-                placeholder="john@example.com"
+                placeholder={t('auth.enterEmail')}
                 className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
               {errors.email && (
@@ -276,14 +281,14 @@ const LoginPage: React.FC = () => {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium text-slate-900 dark:text-white">
-                  Password
+                  {t('auth.password')}
                 </label>
                 <div className="flex items-center space-x-4">
                   <Link
                     to="/forgot-password"
                     className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
                   >
-                    Forgot?
+                    {t('auth.forgot')}
                   </Link>
 
                   {showResend && (
@@ -291,7 +296,7 @@ const LoginPage: React.FC = () => {
                       to={`/resend-confirmation?email=${encodeURIComponent(watchedEmail)}`}
                       className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
                     >
-                      Resend confirmation
+                      {t('auth.resendConfirmation')}
                     </Link>
                   )}
                 </div>
@@ -307,7 +312,7 @@ const LoginPage: React.FC = () => {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                 >
                   {showPassword ? (
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -334,7 +339,7 @@ const LoginPage: React.FC = () => {
                 className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-2 focus:ring-primary-500"
               />
               <label htmlFor="remember" className="ml-2 text-sm text-slate-600 dark:text-slate-400">
-                Remember me
+                {t('auth.rememberMe')}
               </label>
             </div>
 
@@ -346,15 +351,15 @@ const LoginPage: React.FC = () => {
               isLoading={isLoading}
               className="mt-6"
             >
-              Login
+              {t('auth.login')}
             </Button>
           </form>
 
           {/* Register Link */}
           <p className="text-center text-slate-600 dark:text-slate-400 mt-6">
-            Don't have an account?{' '}
+            {t('auth.dontHaveAccount')}{' '}
             <Link to="/register" className="text-primary-600 dark:text-primary-400 font-medium hover:underline">
-              Sign up here
+              {t('auth.signUpLink')}
             </Link>
           </p>
 

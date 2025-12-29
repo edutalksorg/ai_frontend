@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Save, Lock, Bell, Moon, Sun, Globe, ArrowLeft } from 'lucide-react';
 import UserLayout from '../../components/UserLayout';
@@ -8,6 +9,7 @@ import { toggleTheme, showToast } from '../../store/uiSlice';
 import { RootState } from '../../store';
 
 const UserSettingsPage: React.FC = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { theme } = useSelector((state: RootState) => state.ui);
@@ -25,7 +27,7 @@ const UserSettingsPage: React.FC = () => {
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 1000));
         setLoading(false);
-        dispatch(showToast({ message: 'Settings saved successfully', type: 'success' }));
+        dispatch(showToast({ message: t('settingsPage.saveSuccess'), type: 'success' }));
     };
 
     return (
@@ -39,8 +41,8 @@ const UserSettingsPage: React.FC = () => {
                         <ArrowLeft size={24} />
                     </button>
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Settings</h1>
-                        <p className="text-slate-600 dark:text-slate-400">Manage your account preferences</p>
+                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('settingsPage.title')}</h1>
+                        <p className="text-slate-600 dark:text-slate-400">{t('settingsPage.subtitle')}</p>
                     </div>
                 </div>
 
@@ -49,19 +51,19 @@ const UserSettingsPage: React.FC = () => {
                     <div className="card">
                         <div className="flex items-center gap-3 mb-4 text-slate-900 dark:text-white">
                             <Moon className="w-5 h-5" />
-                            <h2 className="text-lg font-semibold">Appearance</h2>
+                            <h2 className="text-lg font-semibold">{t('settingsPage.appearance.title')}</h2>
                         </div>
                         <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
                             <div>
-                                <p className="font-medium text-slate-900 dark:text-white">Theme Preference</p>
-                                <p className="text-sm text-slate-500">Switch between light and dark modes</p>
+                                <p className="font-medium text-slate-900 dark:text-white">{t('settingsPage.appearance.themePref')}</p>
+                                <p className="text-sm text-slate-500">{t('settingsPage.appearance.themeDesc')}</p>
                             </div>
                             <Button
                                 variant="outline"
                                 onClick={() => dispatch(toggleTheme())}
                                 leftIcon={theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
                             >
-                                {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                                {theme === 'dark' ? t('settingsPage.appearance.lightMode') : t('settingsPage.appearance.darkMode')}
                             </Button>
                         </div>
                     </div>
@@ -70,13 +72,13 @@ const UserSettingsPage: React.FC = () => {
                     <div className="card">
                         <div className="flex items-center gap-3 mb-4 text-slate-900 dark:text-white">
                             <Bell className="w-5 h-5" />
-                            <h2 className="text-lg font-semibold">Notifications</h2>
+                            <h2 className="text-lg font-semibold">{t('settingsPage.notifications.title')}</h2>
                         </div>
                         <div className="space-y-4">
                             <div className="flex items-center justify-between p-2">
                                 <div>
-                                    <p className="font-medium text-slate-900 dark:text-white">Email Notifications</p>
-                                    <p className="text-sm text-slate-500">Receive daily summaries and alerts</p>
+                                    <p className="font-medium text-slate-900 dark:text-white">{t('settingsPage.notifications.email')}</p>
+                                    <p className="text-sm text-slate-500">{t('settingsPage.notifications.emailDesc')}</p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input
@@ -90,8 +92,8 @@ const UserSettingsPage: React.FC = () => {
                             </div>
                             <div className="flex items-center justify-between p-2">
                                 <div>
-                                    <p className="font-medium text-slate-900 dark:text-white">Browser Push</p>
-                                    <p className="text-sm text-slate-500">Get real-time updates on your dashboard</p>
+                                    <p className="font-medium text-slate-900 dark:text-white">{t('settingsPage.notifications.browser')}</p>
+                                    <p className="text-sm text-slate-500">{t('settingsPage.notifications.browserDesc')}</p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input
@@ -110,19 +112,19 @@ const UserSettingsPage: React.FC = () => {
                     <div className="card">
                         <div className="flex items-center gap-3 mb-4 text-slate-900 dark:text-white">
                             <Lock className="w-5 h-5" />
-                            <h2 className="text-lg font-semibold">Security</h2>
+                            <h2 className="text-lg font-semibold">{t('settingsPage.security.title')}</h2>
                         </div>
                         <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
                             <div className="flex justify-between items-center">
                                 <div>
-                                    <p className="font-medium text-slate-900 dark:text-white">Change Password</p>
-                                    <p className="text-sm text-slate-500">Update your account password</p>
+                                    <p className="font-medium text-slate-900 dark:text-white">{t('settingsPage.security.changePassword')}</p>
+                                    <p className="text-sm text-slate-500">{t('settingsPage.security.changePasswordDesc')}</p>
                                 </div>
                                 <Button
                                     variant="outline"
                                     onClick={() => navigate('/change-password')}
                                 >
-                                    Update
+                                    {t('settingsPage.security.update')}
                                 </Button>
                             </div>
                         </div>
@@ -130,7 +132,7 @@ const UserSettingsPage: React.FC = () => {
 
                     <div className="flex justify-end">
                         <Button onClick={handleSave} isLoading={loading} leftIcon={<Save size={18} />}>
-                            Save Changes
+                            {t('settingsPage.saveChanges')}
                         </Button>
                     </div>
                 </div>

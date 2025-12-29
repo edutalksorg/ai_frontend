@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Tag, Check, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import Button from '../../components/Button';
 import { couponsService } from '../../services/coupons';
 import { useDispatch } from 'react-redux';
@@ -7,6 +8,7 @@ import { showToast } from '../../store/uiSlice';
 import type { ValidateCouponResponse } from '../../types';
 
 const UserCoupons: React.FC = () => {
+    const { t } = useTranslation();
     const dispatch = useDispatch();
     const [validateCode, setValidateCode] = useState('');
     const [validating, setValidating] = useState(false);
@@ -15,7 +17,7 @@ const UserCoupons: React.FC = () => {
 
     const handleValidate = async () => {
         if (!validateCode.trim()) {
-            dispatch(showToast({ message: 'Please enter a coupon code', type: 'error' }));
+            dispatch(showToast({ message: t('couponsPage.enterCode'), type: 'error' }));
             return;
         }
 
@@ -38,12 +40,12 @@ const UserCoupons: React.FC = () => {
                 setValidationResult(couponData);
                 setValidationError('');
                 dispatch(showToast({
-                    message: `Coupon "${validateCode.toUpperCase()}" is valid!`,
+                    message: t('couponsPage.validMessage', { code: validateCode.toUpperCase() }),
                     type: 'success'
                 }));
             } else {
                 setValidationResult(null);
-                const errorMsg = couponData?.message || 'Invalid or expired coupon code';
+                const errorMsg = couponData?.message || t('couponsPage.invalidMessage');
                 setValidationError(errorMsg);
                 dispatch(showToast({ message: errorMsg, type: 'error' }));
             }
@@ -69,12 +71,12 @@ const UserCoupons: React.FC = () => {
                 <div className="flex items-start gap-4">
                     <Tag size={32} className="text-pink-500 flex-shrink-0" />
                     <div>
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">How to Use Coupons</h3>
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t('couponsPage.howToUse')}</h3>
                         <ul className="space-y-2 text-slate-600 dark:text-slate-400">
-                            <li>• Enter your coupon code in the field above to validate it</li>
-                            <li>• Apply valid coupons during checkout to get discounts on quizzes and plans</li>
-                            <li>• Each coupon has specific terms and conditions</li>
-                            <li>• Contact support if you have any questions about coupons</li>
+                            <li>• {t('couponsPage.step1')}</li>
+                            <li>• {t('couponsPage.step2')}</li>
+                            <li>• {t('couponsPage.step3')}</li>
+                            <li>• {t('couponsPage.step4')}</li>
                         </ul>
                     </div>
                 </div>

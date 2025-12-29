@@ -10,6 +10,7 @@ import {
     Users,
     User
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import UserLayout from '../../components/UserLayout';
 import UserTopicBrowser from './UserTopicBrowser';
 import UserQuizInterface from './UserQuizInterface';
@@ -27,6 +28,7 @@ import { useUsageLimits } from '../../hooks/useUsageLimits';
 type TabType = 'voice' | 'topics' | 'quizzes' | 'pronunciation' | 'wallet' | 'subscriptions' | 'referrals' | 'profile';
 
 const DashboardPage: React.FC = () => {
+    const { t } = useTranslation();
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
     const tabParam = searchParams.get('tab') as TabType;
@@ -41,37 +43,38 @@ const DashboardPage: React.FC = () => {
     } = useUsageLimits();
 
     // Carousel slides
+    // Carousel slides
     const carouselSlides = [
         {
             id: '1',
             image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200&h=400&fit=crop',
-            title: 'Master English with Voice Calls',
-            description: 'Practice real conversations with native speakers and improve your fluency',
-            ctaText: 'Start Calling',
+            title: t('dashboard.carousel.slide1.title'),
+            description: t('dashboard.carousel.slide1.description'),
+            ctaText: t('dashboard.carousel.slide1.cta'),
             ctaLink: '/voice-calls'
         },
         {
             id: '2',
             image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&h=400&fit=crop',
-            title: 'Interactive Learning Topics',
-            description: 'Explore curated topics designed to enhance your language skills',
-            ctaText: 'Browse Topics',
+            title: t('dashboard.carousel.slide2.title'),
+            description: t('dashboard.carousel.slide2.description'),
+            ctaText: t('dashboard.carousel.slide2.cta'),
             ctaLink: '/topics'
         },
         {
             id: '3',
             image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1200&h=400&fit=crop',
-            title: 'Test Your Knowledge',
-            description: 'Take quizzes and track your progress with detailed analytics',
-            ctaText: 'Take Quiz',
+            title: t('dashboard.carousel.slide3.title'),
+            description: t('dashboard.carousel.slide3.description'),
+            ctaText: t('dashboard.carousel.slide3.cta'),
             ctaLink: '/quizzes'
         },
         {
             id: '4',
             image: 'https://images.unsplash.com/photo-1589903308904-1010c2294adc?w=1200&h=400&fit=crop',
-            title: 'Perfect Your Pronunciation',
-            description: 'Get instant feedback on your pronunciation with AI-powered analysis',
-            ctaText: 'Try Now',
+            title: t('dashboard.carousel.slide4.title'),
+            description: t('dashboard.carousel.slide4.description'),
+            ctaText: t('dashboard.carousel.slide4.cta'),
             ctaLink: '/pronunciation'
         }
     ];
@@ -90,10 +93,10 @@ const DashboardPage: React.FC = () => {
     };
 
     const tabs = [
-        { id: 'voice' as TabType, label: 'Voice Calls', icon: Phone },
-        { id: 'topics' as TabType, label: 'Topics', icon: BookOpen },
-        { id: 'quizzes' as TabType, label: 'Quizzes', icon: CheckSquare },
-        { id: 'pronunciation' as TabType, label: 'Pronunciation', icon: Mic },
+        { id: 'voice' as TabType, label: t('nav.voiceCalls'), icon: Phone },
+        { id: 'topics' as TabType, label: t('nav.topics'), icon: BookOpen },
+        { id: 'quizzes' as TabType, label: t('nav.quizzes'), icon: CheckSquare },
+        { id: 'pronunciation' as TabType, label: t('nav.pronunciation'), icon: Mic },
     ];
 
     const renderContent = () => {
@@ -119,10 +122,10 @@ const DashboardPage: React.FC = () => {
                 {/* Header */}
                 <div className="mb-6 md:mb-8">
                     <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mb-2">
-                        Learning Dashboard
+                        {t('dashboard.title')}
                     </h1>
                     <p className="text-sm md:text-base lg:text-lg text-slate-600 dark:text-slate-400">
-                        Your personalized learning hub
+                        {t('dashboard.subtitle')}
                     </p>
                 </div>
 
