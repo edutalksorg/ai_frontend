@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 400" fill="none">
+  <defs>
+    <filter id="neonGlow">
+      <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <g stroke="#a78bfa" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#neonGlow)">
+    
+    <!-- Hair (Zig-Zag) -->
+    <path d="M80 130 L90 100 L110 120 L130 90 L150 120 L170 90 L190 120 L210 100 L220 130" />
+    
+    <!-- Head -->
+    <rect x="90" y="130" width="120" height="130" rx="30" />
+    
+    <!-- Eyes -->
+    <circle cx="125" cy="180" r="5" fill="#a78bfa" stroke="none"/>
+    <circle cx="175" cy="180" r="5" fill="#a78bfa" stroke="none"/>
+    
+    <!-- Mouth/Goatee -->
+    <rect x="130" y="220" width="40" height="30" />
+    
+    <!-- Torso -->
+    <path d="M50 280 L50 350 Q150 380 250 350 L250 280" />
+    <path d="M50 280 Q150 290 250 280" opacity="0.5"/> <!-- Collar hint -->
+    
+    <!-- Hand holding card -->
+    <circle cx="230" cy="280" r="20" />
+    
+    <!-- Card -->
+    <rect x="210" y="240" width="70" height="50" rx="5" transform="rotate(-20 230 280)" />
+    <rect x="215" y="245" width="60" height="40" rx="2" transform="rotate(-20 230 280)" opacity="0.6"/>
+
+  </g>
+</svg>

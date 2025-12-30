@@ -190,6 +190,7 @@
     },
     "voiceCall": {
         "title": "ध्वनि-आह्वानम्",
+        "usage": "उपयोगः",
         "availableUsers": "उपलब्धाः सदस्याः",
         "callHistory": "आह्वान-इतिहासः",
         "available": "उपलब्धः",

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <filter id="blur">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="20" />
+    </filter>
+  </defs>
+  
+  <rect width="800" height="600" fill="url(#bg)"/>
+  
+  <!-- Glows -->
+  <ellipse cx="600" cy="400" rx="200" ry="150" fill="#3b82f6" fill-opacity="0.1" filter="url(#blur)"/>
+  
+  <!-- Grid of Cards -->
+  <!-- Card 1 -->
+  <rect x="150" y="100" width="220" height="150" rx="20" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)"/>
+  <rect x="170" y="120" width="40" height="40" rx="10" fill="#3b82f6"/>
+  <rect x="170" y="180" width="120" height="10" rx="5" fill="#94a3b8"/>
+  <rect x="170" y="200" width="80" height="10" rx="5" fill="#475569"/>
+  
+  <!-- Card 2 -->
+  <rect x="400" y="100" width="220" height="150" rx="20" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)"/>
+  <rect x="420" y="120" width="40" height="40" rx="10" fill="#ec4899"/>
+  <rect x="420" y="180" width="120" height="10" rx="5" fill="#94a3b8"/>
+  
+  <!-- Card 3 -->
+  <rect x="150" y="280" width="220" height="150" rx="20" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)"/>
+  <rect x="170" y="300" width="40" height="40" rx="10" fill="#10b981"/>
+  
+  <!-- Card 4 (Highlighted) -->
+  <rect x="400" y="280" width="220" height="150" rx="20" fill="rgba(255,255,255,0.08)" stroke="#8b5cf6" stroke-width="2"/>
+  <rect x="420" y="300" width="40" height="40" rx="10" fill="#8b5cf6"/>
+  <rect x="420" y="360" width="120" height="10" rx="5" fill="white"/>
+  <rect x="420" y="380" width="180" height="6" rx="3" fill="#334155"/>
+  <rect x="420" y="380" width="120" height="6" rx="3" fill="#8b5cf6"/>
+</svg>

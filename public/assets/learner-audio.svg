@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
+  <defs>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f8d7da"/>
+      <stop offset="100%" stop-color="#e2b8be"/>
+    </linearGradient>
+    <linearGradient id="hair" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4a3e35"/>
+      <stop offset="100%" stop-color="#2d2420"/>
+    </linearGradient>
+    <linearGradient id="headset" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#818cf8"/>
+    </linearGradient>
+  </defs>
+  
+  <circle cx="200" cy="200" r="190" fill="#1e293b" fill-opacity="0.5"/>
+  
+  <!-- Headset band -->
+  <path d="M140 150 Q200 80 260 150" stroke="url(#headset)" stroke-width="15" fill="none" stroke-linecap="round"/>
+  
+  <!-- Face -->
+  <rect x="150" y="140" width="100" height="120" rx="40" fill="url(#skin)"/>
+  <circle cx="200" cy="270" r="30" fill="url(#skin)"/> <!-- Chin/Neck area blending -->
+  
+  <!-- Hair -->
+  <path d="M140 160 Q200 100 260 160 Q260 200 250 220 Q200 200 150 220 Q140 200 140 160" fill="url(#hair)"/>
+  
+  <!-- Headset muffs -->
+  <rect x="130" y="150" width="20" height="60" rx="10" fill="#4f46e5"/>
+  <rect x="250" y="150" width="20" height="60" rx="10" fill="#4f46e5"/>
+  
+  <!-- Eyes -->
+  <circle cx="180" cy="190" r="5" fill="#1f2937"/>
+  <circle cx="220" cy="190" r="5" fill="#1f2937"/>
+  
+  <!-- Smile -->
+  <path d="M185 220 Q200 230 215 220" stroke="#be8e94" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Mic -->
+  <path d="M260 200 Q300 230 240 240" stroke="#374151" stroke-width="4" fill="none"/>
+  <circle cx="240" cy="240" r="5" fill="#1f2937"/>
+  
+  <!-- Sound waves -->
+  <path d="M300 160 Q320 200 300 240" stroke="#818cf8" stroke-width="3" fill="none" opacity="0.8"/>
+  <path d="M320 140 Q350 200 320 260" stroke="#818cf8" stroke-width="3" fill="none" opacity="0.5"/>
+</svg>

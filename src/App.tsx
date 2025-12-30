@@ -172,19 +172,14 @@ function App() {
   // Debug: Log app initialization
   console.log('[App] Initialized with user:', user?.role);
 
-  // Initialize theme on mount
+  // Initialize theme on mount - Force Dark
   useEffect(() => {
-    const savedTheme = localStorage.getItem('edutalks_theme') as 'light' | 'dark' || 'light';
-    dispatch(setTheme(savedTheme));
+    dispatch(setTheme('dark'));
   }, [dispatch]);
 
-  // Apply theme class to document
+  // Apply theme class to document (Always Dark)
   useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    document.documentElement.classList.add('dark');
   }, [theme]);
 
   // Sync profile data on mount to ensure subscription status is fresh

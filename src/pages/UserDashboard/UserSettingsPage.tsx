@@ -1,19 +1,17 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Save, Lock, Bell, Moon, Sun, Globe, ArrowLeft } from 'lucide-react';
+import { Save, Lock, Bell, ArrowLeft, Shield } from 'lucide-react';
 import UserLayout from '../../components/UserLayout';
 import Button from '../../components/Button';
 import { useDispatch, useSelector } from 'react-redux';
-import { toggleTheme, showToast } from '../../store/uiSlice';
+import { showToast } from '../../store/uiSlice';
 import { RootState } from '../../store';
 
 const UserSettingsPage: React.FC = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { theme } = useSelector((state: RootState) => state.ui);
-    const { user } = useSelector((state: RootState) => state.auth);
 
     const [loading, setLoading] = useState(false);
     const [notifications, setNotifications] = useState({
@@ -33,51 +31,36 @@ const UserSettingsPage: React.FC = () => {
     return (
         <UserLayout>
             <div className="max-w-4xl mx-auto px-6 py-8">
+                {/* Header */}
                 <div className="mb-8 flex items-center gap-4">
                     <button
                         onClick={() => navigate(-1)}
-                        className="p-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 rounded-full transition-colors text-blue-600 dark:text-blue-400"
+                        className="glass-button p-2 rounded-full"
                     >
                         <ArrowLeft size={24} />
                     </button>
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('settingsPage.title')}</h1>
+                        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">{t('settingsPage.title')}</h1>
                         <p className="text-slate-600 dark:text-slate-400">{t('settingsPage.subtitle')}</p>
                     </div>
                 </div>
 
                 <div className="space-y-6">
-                    {/* Appearance */}
-                    <div className="card">
-                        <div className="flex items-center gap-3 mb-4 text-slate-900 dark:text-white">
-                            <Moon className="w-5 h-5" />
-                            <h2 className="text-lg font-semibold">{t('settingsPage.appearance.title')}</h2>
-                        </div>
-                        <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-                            <div>
-                                <p className="font-medium text-slate-900 dark:text-white">{t('settingsPage.appearance.themePref')}</p>
-                                <p className="text-sm text-slate-500">{t('settingsPage.appearance.themeDesc')}</p>
-                            </div>
-                            <Button
-                                variant="outline"
-                                onClick={() => dispatch(toggleTheme())}
-                                leftIcon={theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-                            >
-                                {theme === 'dark' ? t('settingsPage.appearance.lightMode') : t('settingsPage.appearance.darkMode')}
-                            </Button>
-                        </div>
-                    </div>
+
 
                     {/* Notifications */}
-                    <div className="card">
-                        <div className="flex items-center gap-3 mb-4 text-slate-900 dark:text-white">
-                            <Bell className="w-5 h-5" />
-                            <h2 className="text-lg font-semibold">{t('settingsPage.notifications.title')}</h2>
+                    <div className="glass-panel p-6 rounded-3xl">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2 bg-pink-500/10 rounded-xl">
+                                <Bell className="w-6 h-6 text-pink-500" />
+                            </div>
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('settingsPage.notifications.title')}</h2>
                         </div>
+
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between p-2">
+                            <div className="flex items-center justify-between p-4 bg-slate-50/50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 transition-colors hover:border-pink-500/30">
                                 <div>
-                                    <p className="font-medium text-slate-900 dark:text-white">{t('settingsPage.notifications.email')}</p>
+                                    <p className="font-bold text-slate-900 dark:text-white">{t('settingsPage.notifications.email')}</p>
                                     <p className="text-sm text-slate-500">{t('settingsPage.notifications.emailDesc')}</p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
@@ -87,12 +70,13 @@ const UserSettingsPage: React.FC = () => {
                                         onChange={e => setNotifications({ ...notifications, email: e.target.checked })}
                                         className="sr-only peer"
                                     />
-                                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                    <div className="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-gradient-to-r peer-checked:from-pink-500 peer-checked:to-rose-500"></div>
                                 </label>
                             </div>
-                            <div className="flex items-center justify-between p-2">
+
+                            <div className="flex items-center justify-between p-4 bg-slate-50/50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 transition-colors hover:border-pink-500/30">
                                 <div>
-                                    <p className="font-medium text-slate-900 dark:text-white">{t('settingsPage.notifications.browser')}</p>
+                                    <p className="font-bold text-slate-900 dark:text-white">{t('settingsPage.notifications.browser')}</p>
                                     <p className="text-sm text-slate-500">{t('settingsPage.notifications.browserDesc')}</p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
@@ -102,36 +86,46 @@ const UserSettingsPage: React.FC = () => {
                                         onChange={e => setNotifications({ ...notifications, browser: e.target.checked })}
                                         className="sr-only peer"
                                     />
-                                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                    <div className="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-gradient-to-r peer-checked:from-pink-500 peer-checked:to-rose-500"></div>
                                 </label>
                             </div>
                         </div>
                     </div>
 
                     {/* Security */}
-                    <div className="card">
-                        <div className="flex items-center gap-3 mb-4 text-slate-900 dark:text-white">
-                            <Lock className="w-5 h-5" />
-                            <h2 className="text-lg font-semibold">{t('settingsPage.security.title')}</h2>
-                        </div>
-                        <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <p className="font-medium text-slate-900 dark:text-white">{t('settingsPage.security.changePassword')}</p>
-                                    <p className="text-sm text-slate-500">{t('settingsPage.security.changePasswordDesc')}</p>
-                                </div>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => navigate('/change-password')}
-                                >
-                                    {t('settingsPage.security.update')}
-                                </Button>
+                    <div className="glass-panel p-6 rounded-3xl">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2 bg-green-500/10 rounded-xl">
+                                <Shield className="w-6 h-6 text-green-500" />
                             </div>
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('settingsPage.security.title')}</h2>
+                        </div>
+
+                        <div className="p-4 bg-slate-50/50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4">
+                            <div>
+                                <p className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <Lock size={16} className="text-slate-400" />
+                                    {t('settingsPage.security.changePassword')}
+                                </p>
+                                <p className="text-sm text-slate-500 mt-1">{t('settingsPage.security.changePasswordDesc')}</p>
+                            </div>
+                            <Button
+                                variant="outline"
+                                onClick={() => navigate('/change-password')}
+                                className="glass-button w-full sm:w-auto"
+                            >
+                                {t('settingsPage.security.update')}
+                            </Button>
                         </div>
                     </div>
 
-                    <div className="flex justify-end">
-                        <Button onClick={handleSave} isLoading={loading} leftIcon={<Save size={18} />}>
+                    <div className="flex justify-end pt-4">
+                        <Button
+                            onClick={handleSave}
+                            isLoading={loading}
+                            className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-500/30 px-8 py-3 rounded-xl font-bold text-lg"
+                        >
+                            <Save size={20} className="mr-2" />
                             {t('settingsPage.saveChanges')}
                         </Button>
                     </div>

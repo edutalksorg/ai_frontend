@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Phone, User, Clock, History, RefreshCw, ArrowLeft, ChevronDown } from 'lucide-react';
+import { Phone, User, Clock, History, RefreshCw, ArrowLeft, ChevronDown, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import callsService from '../../services/calls';
 import Button from '../../components/Button';
@@ -8,18 +8,21 @@ import { useDispatch, useSelector } from 'react-redux';
 import { showToast } from '../../store/uiSlice';
 import { useUsageLimits } from '../../hooks/useUsageLimits';
 import { useVoiceCall } from '../../hooks/useVoiceCall';
-import VoiceCallTimer from '../../components/VoiceCallTimer';
-import UserStatusIndicator from '../../components/UserStatusIndicator';
 import OnlineStatusIndicator from '../../components/OnlineStatusIndicator';
-import { RootState } from '../../store';
+import {
+    initiateCall as initiateCallAction,
+    setCallStatus,
+    VoiceCall
+} from '../../store/callSlice';
 import { callLogger } from '../../utils/callLogger';
 
 const UserVoiceCall: React.FC = () => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { user: currentUser } = useSelector((state: RootState) => state.auth);
     const { initiateCall } = useVoiceCall();
+
     const [activeTab, setActiveTab] = useState<'available' | 'history'>('available');
     const [availableUsers, setAvailableUsers] = useState<any[]>([]);
     const [userStatus, setUserStatus] = useState('online');
@@ -43,14 +46,12 @@ const UserVoiceCall: React.FC = () => {
     const handleRandomCall = async () => {
         if (findingPartner) return;
 
-        // Check voice call time limit BEFORE showing privacy modal
         if (voiceCallLimitSeconds !== -1 && !hasVoiceCallTimeRemaining) {
             callLogger.warning('Call blocked: No remaining call time');
             setShowVoiceCallLimitModal(true);
             return;
         }
 
-        // Check if user has trial access or subscription
         if (!hasActiveSubscription && !isTrialActive) {
             callLogger.warning('Call blocked: No active subscription or trial');
             triggerUpgradeModal();
@@ -59,113 +60,104 @@ const UserVoiceCall: React.FC = () => {
         }
 
         setFindingPartner(true);
+        try {
+            // Use server-side random matching
+            const result = await callsService.initiateRandomCall({
+                // Sending null for language to match ANY available user, regardless of language
+                // This improves matching success rate when user pool is small
+                preferredLanguage: null,
+                topicId: null
+            });
 
-        // Minimal UX delay to make it feel like "searching"
-        await new Promise(resolve => setTimeout(resolve, 1500));
+            // The API response should contain call details similar to initiate
+            // But we might need to handle the response differently depending on how the backend returns it
+            // Assuming successful 200 OK means call initiated/queued
 
-        let usersToPickFrom = availableUsers;
+            const callData: any = (result as any).data || result;
 
-        // If no users, try one quick refresh
-        if (usersToPickFrom.length === 0) {
-            callLogger.info('No local users, trying forced refresh before random pick');
-            await fetchAvailableUsers({ silent: true });
-        }
+            // Check if we got an immediate match (Call ID present)
+            if (callData && (callData.id || callData.callId)) {
+                callLogger.info('✅ Immediate random match found!', { callId: callData.id || callData.callId });
 
-        if (availableUsers.length === 0) {
-            dispatch(showToast({ message: t('voiceCall.userOffline'), type: 'warning' }));
+                dispatch(initiateCallAction({
+                    callId: callData.id || callData.callId,
+                    callerId: currentUser?.id || '',
+                    callerName: currentUser?.fullName || 'Me',
+                    callerAvatar: currentUser?.avatar,
+                    calleeId: callData.calleeId,
+                    calleeName: callData.calleeName || 'Random User',
+                    calleeAvatar: callData.calleeAvatar,
+                    topicId: callData.topicId,
+                    topicTitle: callData.topicTitle,
+                    status: 'ringing', // Start as ringing, wait for acceptance
+                    initiatedAt: new Date().toISOString(),
+                }));
+
+                // Force status to connecting
+                dispatch(setCallStatus('ringing' as any));
+                dispatch(showToast({ message: t('voiceCall.connecting'), type: 'success' }));
+            } else {
+                dispatch(showToast({ message: t('voiceCall.finding'), type: 'info' }));
+            }
+
+        } catch (error: any) {
+            callLogger.error('Failed to initiate random call', error);
+
+            // Log full error details for debugging
+            console.error('Full Error Object:', error);
+            console.log('Current availableUsers for debugging:', availableUsers);
+            console.log('Sent preferredLanguage:', i18n.language || 'en');
+
+            if (error.response?.data) {
+                console.error('Error Response Data:', error.response.data);
+            }
+
+            dispatch(showToast({
+                // Extract message from various possible backend error formats
+                // The backend seems to return { messages: string[], succeeded: false } for logic failures
+                message: error?.response?.data?.messages?.[0] ||
+                    error?.response?.data?.detail ||
+                    error?.response?.data?.title ||
+                    error?.message ||
+                    t('voiceCall.errorInitiating'),
+                type: 'error'
+            }));
+        } finally {
             setFindingPartner(false);
-            return;
         }
-
-        const randomIndex = Math.floor(Math.random() * availableUsers.length);
-        const randomUser = availableUsers[randomIndex];
-
-        callLogger.info('🎲 Selected random partner', {
-            userId: randomUser.userId || randomUser.id,
-            name: randomUser.fullName
-        });
-
-        await handleInitiateCall(randomUser.userId || randomUser.id);
-        setFindingPartner(false);
     };
 
     const fetchAvailableUsers = async (options?: { silent?: boolean }) => {
         try {
             if (!options?.silent) setLoading(true);
             callLogger.debug('Fetching available users');
-
             const res = await callsService.availableUsers({ limit: 1000 });
-
-            // Log the full response structure to understand what we're getting
             if (!options?.silent) callLogger.debug('Available users API response:', res);
-
-            // Try multiple ways to extract the data
             let items = [];
-
             if (Array.isArray(res)) {
                 items = res;
-                if (!options?.silent) callLogger.debug('Data extracted: Direct array');
             } else if ((res as any)?.data) {
                 items = Array.isArray((res as any).data) ? (res as any).data : [(res as any).data];
-                if (!options?.silent) callLogger.debug('Data extracted: From res.data');
             } else if ((res as any)?.items) {
                 items = (res as any).items;
-                if (!options?.silent) callLogger.debug('Data extracted: From res.items');
             } else {
                 items = [res];
-                if (!options?.silent) callLogger.debug('Data extracted: Wrapped response');
             }
-
-            // Filter to show only online users with active subscriptions/trials and EXCLUDE current user
             const onlineUsers = items.filter((user: any) => {
                 if (!user) return false;
-
-                // Exclude current user from list
                 if (user.userId === currentUser?.id || user.id === currentUser?.id) return false;
-
-                // STRICT STATUS CHECK: Only show users with status exactly 'Online'
-                // This automatically excludes:
-                // - 'Busy' users
-                // - 'InCall' users (already in active calls)
-                // - 'Offline' users
                 const status = user.status || user.availability || '';
                 const statusLower = status.toLowerCase();
-
-                if (statusLower !== 'online') {
-                    // Log why user was excluded for debugging
-                    if (statusLower === 'busy' || statusLower === 'incall') {
-                        callLogger.debug(`Excluding user ${user.userId || user.id} (${user.fullName}): status is ${status}`);
-                    }
-                    return false;
-                }
-
-                // Subscription/trial validation
+                if (statusLower !== 'online') return false;
                 const subStatus = (user.subscriptionStatus || user.subscription?.status || '').toLowerCase();
-
-                // Exclude users with explicitly expired, cancelled, or past_due subscriptions
-                if (subStatus === 'expired' || subStatus === 'cancelled' || subStatus === 'past_due') {
-                    callLogger.debug(`Filtering out user ${user.userId || user.id}: subscription status is ${subStatus}`);
-                    return false;
-                }
-
-                // Check if trial has expired
+                if (subStatus === 'expired' || subStatus === 'cancelled' || subStatus === 'past_due') return false;
                 if (user.trialEndDate) {
                     const trialEnd = new Date(user.trialEndDate);
                     const now = new Date();
-
-                    // If trial expired and no active subscription, exclude
-                    if (now >= trialEnd && subStatus !== 'active' && subStatus !== 'trialing' && subStatus !== 'succeeded') {
-                        callLogger.debug(`Filtering out user ${user.userId || user.id}: trial expired and no active subscription`);
-                        return false;
-                    }
+                    if (now >= trialEnd && subStatus !== 'active' && subStatus !== 'trialing' && subStatus !== 'succeeded') return false;
                 }
-
-                // User is online and has valid subscription/trial
                 return true;
             });
-
-            if (!options?.silent) callLogger.info(`Found ${onlineUsers.length} available users out of ${items.length} total`);
-
             setAvailableUsers(onlineUsers);
             setLastUpdated(new Date());
         } catch (error: any) {
@@ -179,13 +171,8 @@ const UserVoiceCall: React.FC = () => {
         try {
             setLoading(true);
             callLogger.debug('Fetching call history');
-            // FIX: Use pageSize instead of limit as per Swagger
             const res = await callsService.history({ pageSize: 100 });
-
-            // Handle flat array response directly from Swagger example
             const items = (res as any)?.data || (Array.isArray(res) ? res : (res as any)?.items) || [];
-
-            callLogger.info(`Found ${items.length} call history items`);
             setHistory(items);
         } catch (error) {
             callLogger.error('Failed to fetch call history', error);
@@ -194,24 +181,17 @@ const UserVoiceCall: React.FC = () => {
         }
     };
 
-    // Poll for updates and maintain 'Online' status
     useEffect(() => {
         if (activeTab === 'available') {
-            fetchAvailableUsers(); // Initial load (shows loader)
-
+            fetchAvailableUsers();
             let pollCount = 0;
             const interval = setInterval(() => {
                 pollCount++;
-                fetchAvailableUsers({ silent: true }); // Silent poll
-
-                // Every 6 polls (30 seconds), re-assert Online status (Heartbeat)
+                fetchAvailableUsers({ silent: true });
                 if (pollCount % 6 === 0) {
-                    callsService.updateAvailability('Online').catch(err =>
-                        callLogger.warning('Heartbeat failed', err)
-                    );
+                    callsService.updateAvailability('Online').catch(err => callLogger.warning('Heartbeat failed', err));
                 }
             }, 5000);
-
             return () => clearInterval(interval);
         } else {
             fetchHistory();
@@ -219,427 +199,289 @@ const UserVoiceCall: React.FC = () => {
     }, [activeTab]);
 
     const handleInitiateCall = async (userId: string) => {
-        callLogger.info('🎯 User clicked Call button', {
-            targetUserId: userId,
-            currentUserId: currentUser?.id
-        });
-
-        // STRICT: Check if user has trial access or subscription FIRST
         if (!hasActiveSubscription && !isTrialActive) {
-            callLogger.warning('Call blocked: No active subscription or trial');
             triggerUpgradeModal();
             dispatch(showToast({ message: t('voiceCall.trialExpired'), type: 'error' }));
             return;
         }
-
-        // Check session time limit (only if not unlimited)
         if (voiceCallLimitSeconds !== -1 && !hasVoiceCallTimeRemaining) {
-            callLogger.warning('Call blocked: No remaining call time');
             setShowVoiceCallLimitModal(true);
             return;
         }
-
-        // Check if target user is online
         const targetUser = availableUsers.find(u => (u.userId || u.id) === userId);
         if (!targetUser) {
-            callLogger.warning('Call blocked: Target user is offline or not available');
             dispatch(showToast({ message: t('voiceCall.userOffline'), type: 'error' }));
             return;
         }
-
-        callLogger.info('✅ Subscription and time checks passed, initiating call');
-        callLogger.debug('User ID being sent as calleeId:', userId);
-
-        // Debug payload
-        const payload = { calleeId: userId };
-        callLogger.debug('Sending payload to backend:', JSON.stringify(payload));
-
-        // Use the new hook to initiate the call
         const result = await initiateCall(userId);
-
         if (result.success) {
-            callLogger.info('✅ Call initiated successfully from UserVoiceCall', {
-                callId: result.callId
-            });
             dispatch(showToast({ message: t('voiceCall.calling'), type: 'info' }));
         } else {
-            // Extract detailed error message
             const apiError = result.error as any;
-            const errorMessage = apiError?.response?.data?.message ||
-                apiError?.response?.data?.elements?.[0]?.errorMessage || // Common validation error structure
-                apiError?.message ||
-                'Failed to initiate call';
-
-            const validationErrors = apiError?.response?.data?.errors; // standard .NET validation errors
-
-            callLogger.error('❌ Failed to initiate call from UserVoiceCall', {
-                error: apiError,
-                message: errorMessage,
-                validationErrors
-            });
-
-            // Auto-refresh available users if the error was due to user being busy
+            const errorMessage = apiError?.data?.message || apiError?.message || 'Failed to initiate call';
             const errorStr = typeof errorMessage === 'string' ? errorMessage.toLowerCase() : '';
-            if (errorStr.includes('busy') ||
-                errorStr.includes('in call') ||
-                errorStr.includes('incall') ||
-                errorStr.includes('another call') ||
-                errorStr.includes('not joinable')) {
-                callLogger.info('🔄 User was busy, refreshing available users list');
+            if (errorStr.includes('busy') || errorStr.includes('in call') || errorStr.includes('not joinable')) {
                 fetchAvailableUsers({ silent: true });
             }
-
-            dispatch(showToast({
-                message: errorMessage,
-                type: 'error'
-            }));
+            dispatch(showToast({ message: errorMessage, type: 'error' }));
         }
     };
 
-    const formatLastActive = (lastActiveTime?: string) => {
-        if (!lastActiveTime) return t('voiceCall.justNow');
-
-        const now = new Date();
-        // Ensure the date is treated as UTC if no timezone offset is provided
-        const timeStr = lastActiveTime.endsWith('Z') ? lastActiveTime : `${lastActiveTime}Z`;
-        const lastActive = new Date(timeStr);
-        const diffMs = now.getTime() - lastActive.getTime();
-        const diffMins = Math.floor(diffMs / 60000);
-
-        if (diffMins < 1) return t('voiceCall.justNow');
-        if (diffMins < 60) return `${diffMins}m ${t('voiceCall.ago')}`;
-
-        const diffHours = Math.floor(diffMins / 60);
-        if (diffHours < 24) return `${diffHours}h ${t('voiceCall.ago')}`;
-
-        const diffDays = Math.floor(diffHours / 24);
-        return `${diffDays}d ${t('voiceCall.ago')}`;
-    };
-
     return (
-        <div className="space-y-4 md:space-y-6">
-            {/* Header with Session Timer */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 md:gap-4">
-                <h3 className="text-lg md:text-xl font-semibold text-slate-900 dark:text-white">
-                    {activeTab === 'available' ? t('voiceCall.availableUsers') : t('voiceCall.callHistory')}
-                </h3>
-                <div className="flex items-center gap-2 md:gap-4 w-full sm:w-auto">
-                    {/* Session Timer/Status */}
-                    {activeTab === 'available' && (
-                        hasActiveSubscription ? ( // Paid subscribers see unlimited
-                            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                                <Clock className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
-                                <span className="text-xs text-green-900 dark:text-green-200 whitespace-nowrap font-medium">
-                                    {t('voiceCall.unlimited')}
-                                </span>
-                            </div>
-                        ) : ( // Free trial users see usage
-                            <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                                <Clock className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                                <span className="text-xs text-slate-600 dark:text-slate-400 font-mono">
-                                    {Math.floor((voiceCallLimitSeconds - voiceCallRemainingSeconds) / 60)}:{String((voiceCallLimitSeconds - voiceCallRemainingSeconds) % 60).padStart(2, '0')} {t('voiceCall.used')}
-                                </span>
-                                <span className="text-xs text-slate-400 dark:text-slate-600">/</span>
-                                <span className={`text-sm font-mono font-bold ${!hasVoiceCallTimeRemaining ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>
-                                    {Math.floor(voiceCallRemainingSeconds / 60)}:{String(voiceCallRemainingSeconds % 60).padStart(2, '0')} {t('voiceCall.left')}
-                                </span>
-                            </div>
-                        )
-                    )}
-                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-                        <button
-                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${activeTab === 'available' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}
-                            onClick={() => setActiveTab('available')}
+        <div className="space-y-6">
+            {/* Header / Tabs / Stats */}
+            <div className="glass-panel rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex gap-2 p-1 bg-slate-100/50 dark:bg-slate-800/50 rounded-xl backdrop-blur-sm">
+                    <button
+                        className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab === 'available'
+                            ? 'bg-white dark:bg-slate-700 text-violet-600 dark:text-violet-300 shadow-sm'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                            }`}
+                        onClick={() => setActiveTab('available')}
+                    >
+                        {t('voiceCall.available')}
+                    </button>
+                    <button
+                        className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab === 'history'
+                            ? 'bg-white dark:bg-slate-700 text-violet-600 dark:text-violet-300 shadow-sm'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                            }`}
+                        onClick={() => setActiveTab('history')}
+                    >
+                        {t('voiceCall.history')}
+                    </button>
+                </div>
+
+                {/* Status Selector */}
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/10 rounded-xl">
+                        <div className={`w-2.5 h-2.5 rounded-full ${userStatus === 'online' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : userStatus === 'offline' ? 'bg-red-500' : 'bg-orange-500'}`} />
+                        <select
+                            className="bg-transparent border-none text-slate-700 dark:text-slate-200 text-sm font-medium focus:ring-0 cursor-pointer"
+                            value={userStatus}
+                            onChange={(e) => {
+                                setUserStatus(e.target.value);
+                                if (e.target.value === 'online' || e.target.value === 'offline') {
+                                    callsService.updateAvailability(e.target.value === 'online' ? 'Online' : 'Offline').catch(console.error);
+                                }
+                            }}
                         >
-                            {t('voiceCall.available')}
-                        </button>
-                        <button
-                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${activeTab === 'history' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}
-                            onClick={() => setActiveTab('history')}
-                        >
-                            {t('voiceCall.history')}
-                        </button>
+                            <option value="online" className="bg-white dark:bg-slate-800">{t('voiceCall.online')}</option>
+                            <option value="offline" className="bg-white dark:bg-slate-800">{t('voiceCall.offline')}</option>
+                            <option value="busy" className="bg-white dark:bg-slate-800">{t('voiceCall.busy')}</option>
+                        </select>
                     </div>
                 </div>
             </div>
 
+            {/* Main Content Area */}
             {activeTab === 'available' && (
-                <div className="space-y-4">
-                    {/* Status and Refresh */}
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 md:gap-4">
-                        <div className="flex items-center gap-3">
-                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('voiceCall.status')}:</span>
-                            <div className="relative">
-                                {/* Status Dot Indicator */}
-                                <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full ${userStatus === 'online' ? 'bg-green-500' :
-                                    userStatus === 'offline' ? 'bg-red-500' :
-                                        'bg-orange-500'
-                                    }`} />
-                                <select
-                                    className="appearance-none bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white py-1.5 pl-8 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer text-sm font-medium shadow-sm transition-colors hover:border-blue-400"
-                                    value={userStatus}
-                                    onChange={(e) => {
-                                        const newStatus = e.target.value;
-                                        setUserStatus(newStatus);
-                                        // Sync with backend
-                                        if (newStatus === 'online' || newStatus === 'offline') {
-                                            callsService.updateAvailability(newStatus === 'online' ? 'Online' : 'Offline')
-                                                .catch(err => console.error('Failed to update availability', err));
-                                        }
-                                    }}
-                                >
-                                    <option value="online">{t('voiceCall.online')}</option>
-                                    <option value="offline">{t('voiceCall.offline')}</option>
-                                    <option value="busy">{t('voiceCall.busy')}</option>
-                                </select>
-                                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-slate-500">
-                                    <ChevronDown size={14} />
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Left: Random Call CTA */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <div className="relative overflow-hidden glass-panel rounded-3xl p-8 sm:p-12 text-center group">
+                            {/* Decorative Background Blobs inside card */}
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-violet-500/20 transition-all duration-700" />
+                            <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3 group-hover:bg-cyan-500/20 transition-all duration-700" />
+
+                            <div className="relative z-10 flex flex-col items-center">
+                                <div className="w-24 h-24 mb-6 rounded-full bg-gradient-to-tr from-violet-500 to-fuchsia-500 p-[2px] shadow-lg shadow-violet-500/30">
+                                    <div className="w-full h-full rounded-full bg-white dark:bg-slate-900 flex items-center justify-center backdrop-blur-sm">
+                                        <Phone className="w-10 h-10 text-violet-500 animate-pulse" />
+                                    </div>
                                 </div>
+
+                                <h1 className="text-3xl sm:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 mb-4">
+                                    {t('voiceCall.randomCallTitle')}
+                                </h1>
+                                <p className="text-lg text-slate-600 dark:text-slate-400 max-w-lg mb-8 leading-relaxed">
+                                    {t('voiceCall.randomCallDesc')}
+                                </p>
+
+                                <button
+                                    onClick={() => {
+                                        if (voiceCallLimitSeconds !== -1 && !hasVoiceCallTimeRemaining) setShowVoiceCallLimitModal(true);
+                                        else if (!hasActiveSubscription && !isTrialActive) triggerUpgradeModal();
+                                        else setShowPrivacyModal(true);
+                                    }}
+                                    disabled={findingPartner || loading || availableUsers.length === 0}
+                                    className={`relative group px-8 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white rounded-2xl font-bold text-lg shadow-xl shadow-violet-500/30 hover:shadow-violet-500/50 hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden`}
+                                >
+                                    <span className="relative z-10 flex items-center gap-3">
+                                        {findingPartner ? <RefreshCw className="animate-spin" /> : <Sparkles className="animate-pulse" />}
+                                        {findingPartner ? t('voiceCall.finding') : t('voiceCall.callRandom')}
+                                    </span>
+                                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-2xl" />
+                                </button>
+
+                                {availableUsers.length === 0 && !loading && (
+                                    <div className="mt-6 flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-full">
+                                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                                        <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                                            {t('voiceCall.noUsers')}
+                                        </p>
+                                    </div>
+                                )}
                             </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <span className="text-xs text-slate-500">
-                                {availableUsers.length} {t('voiceCall.onlineUsers')}
-                            </span>
-                            <Button variant="ghost" size="sm" onClick={() => fetchAvailableUsers()} leftIcon={<RefreshCw size={14} className={loading ? "animate-spin" : ""} />}>
-                                {t('voiceCall.refresh')}
-                            </Button>
                         </div>
                     </div>
 
-                    {/* Random Call Interface */}
-                    <div className="flex flex-col items-center justify-center py-12 md:py-16 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm text-center">
-                        <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-6 ring-8 ring-blue-50/50 dark:ring-blue-900/10">
-                            <Phone className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                    {/* Right: Stats Table / Info */}
+                    <div className="glass-panel p-6 rounded-3xl space-y-6">
+                        <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-white/10">
+                            <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-violet-500" />
+                                {t('voiceCall.usage')}
+                            </h3>
                         </div>
 
-                        <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mb-3">
-                            {t('voiceCall.randomCallTitle')}
-                        </h2>
-
-                        <p className="text-sm md:text-base text-slate-600 dark:text-slate-400 max-w-md mb-6 md:mb-8 px-4">
-                            {t('voiceCall.randomCallDesc')}
-                        </p>
-
-                        <div className="flex flex-col items-center gap-4 w-full max-w-xs">
-                            <Button
-                                size="lg"
-                                className={`w-full h-14 text-lg shadow-lg shadow-blue-500/20 rounded-full ${findingPartner ? 'animate-pulse cursor-wait' : ''}`}
-                                onClick={() => {
-                                    // Check voice call limit first
-                                    if (voiceCallLimitSeconds !== -1 && !hasVoiceCallTimeRemaining) {
-                                        setShowVoiceCallLimitModal(true);
-                                    } else if (!hasActiveSubscription && !isTrialActive) {
-                                        triggerUpgradeModal();
-                                    } else {
-                                        setShowPrivacyModal(true);
-                                    }
-                                }}
-                                disabled={findingPartner || loading || availableUsers.length === 0}
-                                leftIcon={findingPartner ? <RefreshCw className="animate-spin" /> : <Phone />}
-                            >
-                                {findingPartner ? t('voiceCall.finding') : t('voiceCall.callRandom')}
-                            </Button>
-
-                            {availableUsers.length === 0 && !loading && (
-                                <p className="text-sm text-amber-500 bg-amber-50 dark:bg-amber-900/20 px-4 py-2 rounded-lg border border-amber-100 dark:border-amber-800">
-                                    {t('voiceCall.noUsers')}
-                                </p>
+                        {/* Usage Meter */}
+                        <div className="space-y-4">
+                            {hasActiveSubscription ? (
+                                <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-2xl text-center">
+                                    <span className="text-lg font-bold text-green-600 dark:text-green-400 block mb-1">{t('voiceCall.unlimited')}</span>
+                                    <span className="text-xs text-green-700/70 dark:text-green-300/70">Premium Active</span>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="flex justify-between text-sm font-medium mb-2">
+                                        <span className="text-slate-500 dark:text-slate-400">{t('voiceCall.used')}</span>
+                                        <span className="text-slate-900 dark:text-white">
+                                            {Math.floor((voiceCallLimitSeconds - voiceCallRemainingSeconds) / 60)}m
+                                        </span>
+                                    </div>
+                                    <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full transition-all duration-500"
+                                            style={{ width: `${((voiceCallLimitSeconds - voiceCallRemainingSeconds) / voiceCallLimitSeconds) * 100}%` }}
+                                        />
+                                    </div>
+                                    <div className="flex justify-between text-xs text-slate-400 mt-2">
+                                        <span>0m</span>
+                                        <span>{Math.floor(voiceCallLimitSeconds / 60)}m Limit</span>
+                                    </div>
+                                </>
                             )}
                         </div>
-                    </div>
 
-                    {/* Privacy Notice Modal */}
-                    {showPrivacyModal && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
-                            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6 animate-in zoom-in-95 duration-200">
-                                <div className="text-center mb-6">
-                                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600 dark:text-blue-400">
-                                        <User size={24} />
+                        <div className="pt-6 border-t border-slate-200/50 dark:border-white/10">
+                            <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-4">{t('voiceCall.onlineUsers')} ({availableUsers.length})</h4>
+                            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                                {availableUsers.map((u, i) => (
+                                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/50 dark:hover:bg-white/5 transition-colors">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 p-[2px]">
+                                            <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(u.fullName || 'User')}`} alt="User" className="w-full h-full rounded-full border-2 border-white dark:border-slate-800" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-slate-900 dark:text-white">{u.fullName}</p>
+                                            <p className="text-xs text-green-500 font-medium">Online</p>
+                                        </div>
                                     </div>
-                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('voiceCall.privacyTitle')}</h3>
-                                </div>
-
-                                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl mb-6">
-                                    <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
-                                        {t('voiceCall.privacyDesc')}
-                                    </p>
-                                </div>
-
-                                <div className="flex gap-3">
-                                    <Button
-                                        variant="outline"
-                                        className="flex-1"
-                                        onClick={() => setShowPrivacyModal(false)}
-                                    >
-                                        {t('voiceCall.cancel')}
-                                    </Button>
-                                    <Button
-                                        variant="primary"
-                                        className="flex-1"
-                                        onClick={() => {
-                                            setShowPrivacyModal(false);
-                                            handleRandomCall();
-                                        }}
-                                    >
-                                        {t('voiceCall.agree')}
-                                    </Button>
-                                </div>
+                                ))}
+                                {availableUsers.length === 0 && (
+                                    <p className="text-sm text-slate-400 text-center py-4 italic">No other users online.</p>
+                                )}
                             </div>
                         </div>
-                    )}
+                    </div>
                 </div>
             )}
 
-
             {activeTab === 'history' && (
-                <div className="space-y-4">
+                <div className="glass-panel p-1 rounded-2xl overflow-hidden">
                     {loading ? (
-                        <div className="py-12 text-center text-slate-500">{t('voiceCall.loadingHistory')}</div>
+                        <div className="py-20 text-center text-slate-500 animate-pulse">{t('voiceCall.loadingHistory')}</div>
                     ) : history.length > 0 ? (
-                        <div className="space-y-3">
+                        <div className="divide-y divide-slate-200/50 dark:divide-white/5">
                             {history.map((call) => {
-                                // Map flat API fields
                                 const startTime = call.initiatedAt || call.startTime;
                                 const duration = call.durationSeconds !== undefined ? call.durationSeconds : call.duration;
                                 const isIncoming = call.isIncoming;
                                 const status = call.status || 'Unknown';
-
                                 return (
-                                    <div key={call.callId || call.id} className="p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-between transition-hover hover:border-blue-300 dark:hover:border-blue-700">
+                                    <div key={call.callId} className="p-4 hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors flex items-center justify-between group">
                                         <div className="flex items-center gap-4">
-                                            <div className={`p-2.5 rounded-full ${status === 'Completed' ? 'bg-green-100 text-green-600 dark:bg-green-900/30' :
-                                                status === 'Missed' ? 'bg-red-100 text-red-600 dark:bg-red-900/30' :
-                                                    'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${status === 'Completed' ? 'bg-green-500/10 text-green-500' :
+                                                status === 'Missed' ? 'bg-red-500/10 text-red-500' :
+                                                    'bg-slate-500/10 text-slate-500'
                                                 }`}>
-                                                {/* Direction Icon */}
-                                                {isIncoming ? (
-                                                    <div className="relative">
-                                                        <Phone size={20} />
-                                                        <ArrowLeft size={12} className="absolute -bottom-1 -right-1 bg-white dark:bg-slate-800 rounded-full" />
-                                                    </div>
-                                                ) : (
-                                                    <Phone size={20} />
-                                                )}
+                                                {isIncoming ? <ArrowLeft size={18} className="rotate-45" /> : <Phone size={18} />}
                                             </div>
                                             <div>
-                                                <h4 className="font-semibold text-slate-900 dark:text-white">
-                                                    {/* MASKED NAME as per request */}
+                                                <h4 className="font-semibold text-slate-900 dark:text-white group-hover:text-violet-500 transition-colors">
                                                     Voice Call
                                                 </h4>
-                                                <p className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
-                                                    <span>{(() => {
-                                                        // Backend sends UTC time without 'Z', so we need to append it
-                                                        const timeStr = startTime?.endsWith?.('Z') ? startTime : `${startTime}Z`;
-                                                        const date = new Date(timeStr);
-                                                        return date.toLocaleDateString();
-                                                    })()}</span>
+                                                <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                                                    <span>{new Date(startTime?.endsWith('Z') ? startTime : `${startTime}Z`).toLocaleDateString()}</span>
                                                     <span>•</span>
-                                                    <span>{(() => {
-                                                        // Backend sends UTC time without 'Z', so we need to append it
-                                                        const timeStr = startTime?.endsWith?.('Z') ? startTime : `${startTime}Z`;
-                                                        const date = new Date(timeStr);
-                                                        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                                                    })()}</span>
-                                                    {status && (
-                                                        <>
-                                                            <span>•</span>
-                                                            <span className={
-                                                                status === 'Missed' ? 'text-red-500 font-medium' :
-                                                                    status === 'Completed' ? 'text-green-600 font-medium' : ''
-                                                            }>{status === 'Missed' ? t('voiceCall.missed') : status === 'Completed' ? t('voiceCall.completed') : status}</span>
-                                                        </>
-                                                    )}
-                                                </p>
+                                                    <span>{new Date(startTime?.endsWith('Z') ? startTime : `${startTime}Z`).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="flex flex-col items-end gap-1">
-                                            <div className="flex items-center gap-1.5 text-sm font-mono text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
-                                                <Clock size={14} />
-                                                <span>
-                                                    {Math.floor(duration / 60)}:{String(duration % 60).padStart(2, '0')}
-                                                </span>
+                                        <div className="text-right">
+                                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-mono text-slate-600 dark:text-slate-300">
+                                                <Clock size={12} />
+                                                {Math.floor(duration / 60)}:{String(duration % 60).padStart(2, '0')}
                                             </div>
+                                            <p className={`text-xs mt-1 font-medium ${status === 'Missed' ? 'text-red-500' :
+                                                status === 'Completed' ? 'text-green-500' : 'text-slate-500'
+                                                }`}>
+                                                {status}
+                                            </p>
                                         </div>
                                     </div>
-                                );
+                                )
                             })}
                         </div>
                     ) : (
-                        <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
-                            <div className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
-                                <History size={24} />
-                            </div>
-                            <p className="text-slate-500">{t('voiceCall.noHistory')}</p>
+                        <div className="py-20 flex flex-col items-center justify-center text-slate-400">
+                            <History size={48} className="mb-4 opacity-50" />
+                            <p>{t('voiceCall.noHistory')}</p>
                         </div>
                     )}
                 </div>
             )}
 
-            {/* Voice Call Limit Reached Modal */}
-            {showVoiceCallLimitModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6 animate-in zoom-in-95 duration-200">
+            {/* Privacy Modal */}
+            {showPrivacyModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
+                    <div className="glass-panel w-full max-w-md p-6 rounded-3xl animate-slideUp">
                         <div className="text-center mb-6">
-                            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 dark:text-red-400">
-                                <Clock size={32} />
+                            <div className="w-16 h-16 bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <User size={32} />
                             </div>
-                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                                {t('voiceCall.limitReached')}
-                            </h3>
-                            <p className="text-slate-600 dark:text-slate-400">
-                                {t('voiceCall.limitDesc')}
-                            </p>
+                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{t('voiceCall.privacyTitle')}</h3>
                         </div>
-
-                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl mb-6">
-                            <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed mb-3">
-                                {t('voiceCall.goodNews')}
-                            </p>
-                            <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-2 ml-4">
-                                <li className="flex items-start gap-2">
-                                    <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
-                                    <span>AI Pronunciation Practice</span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
-                                    <span>Topics & Learning Materials</span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
-                                    <span>Quizzes & Assessments</span>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 p-4 rounded-xl mb-6 border border-indigo-200 dark:border-indigo-800">
-                            <p className="text-sm font-medium text-indigo-900 dark:text-indigo-200 mb-2">
-                                {t('voiceCall.wantUnlimited')}
-                            </p>
-                            <p className="text-xs text-indigo-700 dark:text-indigo-300">
-                                {t('voiceCall.upgradeText')}
-                            </p>
-                        </div>
-
+                        <p className="text-slate-600 dark:text-slate-300 text-center mb-8 leading-relaxed">
+                            {t('voiceCall.privacyDesc')}
+                        </p>
                         <div className="flex gap-3">
-                            <Button
-                                variant="outline"
-                                className="flex-1"
-                                onClick={() => setShowVoiceCallLimitModal(false)}
-                            >
-                                {t('voiceCall.continuingTrial')}
-                            </Button>
-                            <Button
-                                variant="primary"
-                                className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
-                                onClick={() => {
-                                    setShowVoiceCallLimitModal(false);
-                                    navigate('/subscriptions');
-                                }}
-                            >
-                                {t('voiceCall.upgradeNow')}
-                            </Button>
+                            <button onClick={() => setShowPrivacyModal(false)} className="flex-1 px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors font-medium">
+                                {t('voiceCall.cancel')}
+                            </button>
+                            <button onClick={() => { setShowPrivacyModal(false); handleRandomCall(); }} className="flex-1 px-4 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors font-bold shadow-lg shadow-blue-500/30">
+                                {t('voiceCall.agree')}
+                            </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Limit Modal */}
+            {showVoiceCallLimitModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
+                    <div className="glass-panel w-full max-w-md p-8 rounded-3xl animate-slideUp text-center">
+                        <div className="w-20 h-20 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <Clock size={40} />
+                        </div>
+                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('voiceCall.limitReached')}</h3>
+                        <p className="text-slate-500 dark:text-slate-400 mb-8">{t('voiceCall.limitDesc')}</p>
+                        <Button className="w-full py-4 text-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 shadow-xl" onClick={() => navigate('/subscriptions')}>
+                            {t('voiceCall.upgradeNow')}
+                        </Button>
+                        <button onClick={() => setShowVoiceCallLimitModal(false)} className="mt-4 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
+                            {t('voiceCall.cancel')}
+                        </button>
                     </div>
                 </div>
             )}
@@ -648,4 +490,3 @@ const UserVoiceCall: React.FC = () => {
 };
 
 export default UserVoiceCall;
-

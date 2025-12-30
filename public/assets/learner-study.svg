@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
+  <defs>
+    <linearGradient id="skin2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffedd5"/>
+      <stop offset="100%" stop-color="#fdba74"/>
+    </linearGradient>
+    <linearGradient id="shirt" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#34d399"/>
+    </linearGradient>
+  </defs>
+  
+  <circle cx="200" cy="200" r="190" fill="#1e293b" fill-opacity="0.5"/>
+  
+  <!-- Torso -->
+  <path d="M120 350 Q200 380 280 350 L280 280 Q200 290 120 280 Z" fill="url(#shirt)"/>
+  
+  <!-- Face -->
+  <rect x="150" y="160" width="100" height="110" rx="35" fill="url(#skin2)"/>
+  
+  <!-- Hair (Spiky) -->
+  <path d="M150 170 L140 140 L160 150 L170 120 L190 150 L200 130 L220 150 L240 130 L250 170 Z" fill="#1f2937"/>
+  
+  <!-- Eyes -->
+  <circle cx="180" cy="200" r="4" fill="#1f2937"/>
+  <circle cx="220" cy="200" r="4" fill="#1f2937"/>
+  
+  <!-- Glasses -->
+  <circle cx="180" cy="200" r="12" stroke="#374151" stroke-width="2" fill="white" fill-opacity="0.2"/>
+  <circle cx="220" cy="200" r="12" stroke="#374151" stroke-width="2" fill="white" fill-opacity="0.2"/>
+  <line x1="192" y1="200" x2="208" y2="200" stroke="#374151" stroke-width="2"/>
+  
+  <!-- Tablet/Book -->
+  <rect x="100" y="300" width="200" height="140" rx="10" fill="#334155" transform="rotate(-5 200 400)"/>
+  <rect x="110" y="310" width="180" height="120" rx="5" fill="#f8fafc" transform="rotate(-5 200 400)"/>
+  <rect x="130" y="330" width="60" height="5" rx="2" fill="#94a3b8" transform="rotate(-5 200 400)"/>
+  <rect x="130" y="345" width="140" height="5" rx="2" fill="#cbd5e1" transform="rotate(-5 200 400)"/>
+  
+  <!-- Glow from tablet -->
+  <path d="M110 310 L290 310 L290 250 L110 250 Z" fill="url(#shirt)" fill-opacity="0.1" filter="blur(10px)"/>
+</svg>

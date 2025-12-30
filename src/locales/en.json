@@ -324,6 +324,7 @@
   },
   "voiceCall": {
     "title": "Voice Call",
+    "usage": "Usage",
     "availableUsers": "Available Users",
     "callHistory": "Call History",
     "available": "Available",

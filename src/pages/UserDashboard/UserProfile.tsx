@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
-import { User, Mail, Phone, Save, Camera, Wallet, CreditCard, Users, Ticket, ArrowLeft } from 'lucide-react';
+import { User, Mail, Phone, Save, Camera, Wallet, CreditCard, Users, Ticket, ArrowLeft, ShieldCheck, Crown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Button from '../../components/Button';
 import { usersService } from '../../services/users';
@@ -13,7 +13,6 @@ import UserSubscriptions from './UserSubscriptions';
 import UserReferrals from './UserReferrals';
 import UserCoupons from './UserCoupons';
 import { subscriptionsService } from '../../services/subscriptions';
-
 
 type ProfileTabType = 'profile' | 'wallet' | 'subscriptions' | 'referrals' | 'coupons';
 
@@ -55,21 +54,18 @@ const UserProfile: React.FC = () => {
         fetchProfile();
     }, []);
 
-    // Sync tab param with state
     useEffect(() => {
         if (tabParam && tabParam !== activeTab) {
             setActiveTab(tabParam);
         }
     }, [tabParam]);
 
-    // Refresh profile when switching back to profile tab
     useEffect(() => {
         if (activeTab === 'profile' && !loading) {
             fetchProfile();
         }
     }, [activeTab]);
 
-    // Update URL when tab changes
     const handleTabChange = (tab: ProfileTabType) => {
         setActiveTab(tab);
         setSearchParams({ tab });
@@ -87,7 +83,6 @@ const UserProfile: React.FC = () => {
                 phone: data.phoneNumber || ''
             });
 
-            // Dispatch updates to Redux immediately after fetch
             if (user) {
                 dispatch(setUser({
                     ...user,
@@ -100,78 +95,38 @@ const UserProfile: React.FC = () => {
                 }));
             }
 
-            // Fetch Subscription (Handle 404/Empty safely)
-            // If justSubscribed is true, poll aggressively
             const isJustSubscribed = (window.history.state?.usr?.justSubscribed) || (location.state as any)?.justSubscribed;
 
-            console.log('🔍 Profile Page - Subscription Check:', {
-                isJustSubscribed,
-                locationState: location.state,
-                historyState: window.history.state,
-                userSubscriptionStatus: data.subscriptionStatus,
-                userSubscriptionPlan: data.subscriptionPlan
-            });
-
             let attempts = 0;
-            // If just subscribed, retry up to 10 times (10 seconds), otherwise just once
             const maxAttempts = isJustSubscribed ? 10 : 1;
             let subFound = false;
 
             while (attempts < maxAttempts && !subFound) {
                 try {
-                    console.log(`🔄 Fetching subscription (attempt ${attempts + 1}/${maxAttempts})...`);
                     const subRes = await subscriptionsService.current();
                     const subData = (subRes as any)?.data || subRes;
 
-                    console.log('📦 Subscription API Response:', {
-                        raw: subRes,
-                        extracted: subData,
-                        hasStatus: !!subData?.status,
-                        hasPlanId: !!subData?.planId,
-                        status: subData?.status,
-                        planName: subData?.planName || subData?.plan?.name
-                    });
-
-                    // Only set if we have valid data
                     if (subData && (subData.status || subData.planId)) {
-                        // If we are waiting for a NEW subscription, ensure it is actually active/trialing
-                        // before accepting it, to avoid picking up an old cancelled one if backend hasn't updated
                         if (isJustSubscribed && !['active', 'trialing', 'succeeded'].includes(subData.status?.toLowerCase())) {
-                            console.log(`⏳ Subscription found but status is "${subData.status}", waiting for active/trialing...`);
                             throw new Error("Subscription found but not active yet");
                         }
-
-                        console.log('✅ Valid subscription found:', subData);
                         setCurrentSubscription(subData);
-                        subFound = true; // Exit loop
-
-                        // Dispatch subscription update immediately
+                        subFound = true;
                         dispatch(updateUserSubscription({
                             subscriptionStatus: subData.status,
                             subscriptionPlan: subData.plan?.name || subData.planName,
                             trialEndDate: subData.endDate || subData.renewalDate
                         }));
 
-                        // Force update local profile state to match if needed
                         if (isJustSubscribed) {
                             dispatch(showToast({ message: "Subscription verified!", type: "success" }));
                         }
                     } else {
-                        console.log('❌ No valid subscription data found');
                         setCurrentSubscription(null);
                     }
                 } catch (e) {
-                    console.log(`❌ Subscription fetch attempt ${attempts + 1} failed:`, e);
                     if (attempts === maxAttempts - 1) {
-                        // FALLBACK: Use subscription data from user profile if API fails
-                        console.log('🔍 Checking user profile for subscription data:', {
-                            subscriptionStatus: data.subscriptionStatus,
-                            subscriptionPlan: data.subscriptionPlan,
-                            subscription: data.subscription
-                        });
-
                         if (data.subscriptionStatus || data.subscription) {
-                            console.log('💡 Using subscription data from user profile as fallback');
                             const fallbackSub = {
                                 status: data.subscriptionStatus || data.subscription?.status,
                                 planName: data.subscriptionPlan || data.subscription?.planName || data.subscription?.plan?.name,
@@ -179,15 +134,12 @@ const UserProfile: React.FC = () => {
                                 renewalDate: data.subscription?.renewalDate || data.subscription?.endDate,
                                 endDate: data.subscription?.endDate
                             };
-                            console.log('📦 Fallback subscription:', fallbackSub);
                             setCurrentSubscription(fallbackSub);
                             subFound = true;
                         } else {
-                            console.log('❌ No subscription data available in user profile either');
                             setCurrentSubscription(null);
                         }
                     } else {
-                        // Wait 1 second before retry
                         await new Promise(r => setTimeout(r, 1000));
                     }
                 }
@@ -201,9 +153,6 @@ const UserProfile: React.FC = () => {
         }
     };
 
-    // Removed sync useEffect to avoid infinite loops and stale closures. 
-    // Dispatch is now handled in fetchProfile.
-
     const handleUpdateProfile = async () => {
         try {
             const updatedProfile = await usersService.updateProfile({
@@ -211,47 +160,23 @@ const UserProfile: React.FC = () => {
                 phoneNumber: formData.phone
             });
 
-            // Use returned data or fall back to local form data
             const mergedProfile = {
                 ...profile,
-                ...updatedProfile, // If API returns the object
-                fullName: formData.fullName, // Ensure local values take precedence if API void/partial
+                ...updatedProfile,
+                fullName: formData.fullName,
                 phoneNumber: formData.phone
             };
 
             setProfile(mergedProfile);
 
-            // Dispatch to Redux
             if (user) {
-                dispatch(setUser({
-                    ...user,
-                    ...mergedProfile,
-                    id: user.id
-                }));
+                dispatch(setUser({ ...user, ...mergedProfile, id: user.id }));
             }
 
             dispatch(showToast({ message: t('profilePage.updateSuccess'), type: 'success' }));
             setIsEditing(false);
-
-            // Optional: Re-fetch silently if needed, but we trust the update
-            // fetchProfile(); 
         } catch (error: any) {
-            console.error('Update profile failed details:', JSON.stringify(error?.response?.data || {}, null, 2));
-
-            let errorMessage = error?.response?.data?.message ||
-                error?.response?.data?.title ||
-                error?.message ||
-                'Failed to update profile';
-
-            if (error?.response?.status === 403) {
-                // If backend provided no detailed message, give a helpful hint
-                if (!error?.response?.data?.message && !error?.response?.data?.title) {
-                    errorMessage = 'Permission denied. (Note: Demo/Admin accounts may be read-only)';
-                } else {
-                    errorMessage = `Permission denied (403): ${errorMessage}`;
-                }
-            }
-
+            let errorMessage = error?.response?.data?.message || 'Failed to update profile';
             dispatch(showToast({ message: errorMessage, type: 'error' }));
         }
     };
@@ -266,97 +191,106 @@ const UserProfile: React.FC = () => {
 
     const renderContent = () => {
         switch (activeTab) {
-            case 'wallet':
-                return <UserWallet />;
-            case 'subscriptions':
-                return <UserSubscriptions />;
-            case 'referrals':
-                return <UserReferrals />;
-            case 'coupons':
-                return <UserCoupons />;
+            case 'wallet': return <UserWallet />;
+            case 'subscriptions': return <UserSubscriptions />;
+            case 'referrals': return <UserReferrals />;
+            case 'coupons': return <UserCoupons />;
             case 'profile':
-            default:
-                return renderProfileContent();
+            default: return renderProfileContent();
         }
     };
 
     const renderProfileContent = () => {
-        if (loading) return <div className="text-center py-12 text-slate-500">{t('common.loading')}</div>;
+        if (loading) return <div className="text-center py-20 text-slate-500 animate-pulse">{t('common.loading')}</div>;
         if (!profile) return null;
 
         return (
-            <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
-                {/* Profile Header */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl p-6 md:p-8 shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col md:flex-row items-center gap-6 md:gap-8">
-                    <div className="relative">
-                        <div className="w-32 h-32 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-                            {profile.avatarUrl ? (
-                                <img src={profile.avatarUrl} alt="Profile" className="w-full h-full object-cover" />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-slate-400">
-                                    {profile.fullName?.charAt(0) || 'U'}
-                                </div>
-                            )}
-                        </div>
-                        <button
-                            onClick={() => fileInputRef.current?.click()}
-                            className="absolute bottom-0 right-0 p-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-colors"
-                            aria-label={t('profilePage.editProfile')}
-                        >
-                            <Camera size={16} />
-                        </button>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            className="hidden"
-                            accept="image/*"
-                        />
-                    </div>
+            <div className="max-w-5xl mx-auto space-y-8 animate-fadeIn">
+                {/* Profile Hero Section */}
+                <div className="glass-panel p-8 rounded-3xl relative overflow-hidden">
+                    {/* Ambient Glow */}
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
 
-                    <div className="flex-1 text-center md:text-left">
-                        <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mb-2">{profile.fullName}</h2>
-                        <p className="text-slate-500 dark:text-slate-400 mb-4">{profile.email}</p>
-                        <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                            <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-full text-sm font-medium">
-                                {profile.role || 'User'}
-                            </span>
-                            {profile.isVerified && (
-                                <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-sm font-medium">
-                                    {t('profilePage.verified')}
+                    <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-12">
+                        <div className="relative group">
+                            <div className="w-40 h-40 rounded-full p-1 bg-gradient-to-br from-indigo-500 to-fuchsia-500 shadow-xl">
+                                <div className="w-full h-full rounded-full bg-slate-900 border-4 border-slate-900 overflow-hidden relative">
+                                    {profile.avatarUrl ? (
+                                        <img src={profile.avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-5xl font-bold text-slate-400 bg-slate-800">
+                                            {profile.fullName?.charAt(0) || 'U'}
+                                        </div>
+                                    )}
+                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer backdrop-blur-[2px]" onClick={() => fileInputRef.current?.click()}>
+                                        <Camera className="text-white w-8 h-8" />
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" />
+                        </div>
+
+                        <div className="flex-1 text-center md:text-left space-y-3">
+                            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">{profile.fullName}</h2>
+                            <p className="text-lg text-slate-500 dark:text-slate-400 font-medium">{profile.email}</p>
+                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-2">
+                                <span className="px-4 py-1.5 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 rounded-full text-sm font-bold border border-slate-200 dark:border-white/10 uppercase tracking-wide">
+                                    {profile.role || 'User'}
                                 </span>
-                            )}
+                                {profile.isVerified && (
+                                    <span className="flex items-center gap-1.5 px-4 py-1.5 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full text-sm font-bold border border-green-500/20 uppercase tracking-wide">
+                                        <ShieldCheck size={16} />
+                                        {t('profilePage.verified')}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Subscription Card */}
-                <div className={`rounded-xl p-6 md:p-8 shadow-lg text-white mb-6 md:mb-8 transition-all ${currentSubscription
-                    ? 'bg-gradient-to-r from-indigo-500 to-purple-600'
-                    : 'bg-gradient-to-r from-slate-600 to-slate-700 dark:from-slate-800 dark:to-slate-900 border border-slate-500/30'
+                {/* Subscription Status Card */}
+                <div className={`glass-card relative overflow-hidden rounded-3xl p-8 text-white shadow-2xl transition-transform hover:-translate-y-1 duration-300 ${currentSubscription
+                    ? 'bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600 border-indigo-400/30'
+                    : 'bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700'
                     }`}>
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <div>
-                            <h3 className="text-lg md:text-xl font-bold mb-2">{t('profilePage.currentSubscription')}</h3>
-                            <p className="text-white/90 mb-4 text-xs font-semibold uppercase tracking-wider">
-                                {getTranslatedPlanName(currentSubscription?.plan?.name || currentSubscription?.planName) || t('profilePage.noActivePlan')}
-                            </p>
-                            <div className={`inline-block px-4 py-2 rounded-full text-sm font-bold ${['active', 'trialing', 'succeeded', 'year'].includes(currentSubscription?.status?.toLowerCase() || '')
-                                ? 'bg-green-400/30 text-green-100'
-                                : 'bg-red-400/30 text-red-100'
-                                }`}>
-                                {['active', 'trialing', 'succeeded', 'year'].includes(currentSubscription?.status?.toLowerCase() || '')
-                                    ? t('profilePage.active')
-                                    : t('profilePage.noActivePlan')}
+                    {/* Decorative Patterns */}
+                    <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
+                    <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-black/10 rounded-full blur-2xl" />
+
+                    <div className="relative z-10 flex flex-col items-start sm:flex-row sm:items-center justify-between gap-6">
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-xl ${currentSubscription ? 'bg-white/20' : 'bg-slate-700'}`}>
+                                    <Crown size={24} className="text-white" />
+                                </div>
+                                <h3 className="text-2xl font-bold">{t('profilePage.currentSubscription')}</h3>
                             </div>
-                            {currentSubscription && (
-                                <p className="text-sm text-white/80 mt-2">
-                                    {['active', 'trialing', 'succeeded', 'year'].includes(currentSubscription?.status?.toLowerCase() || '') ? t('profilePage.renewsOn') : t('profilePage.expiredOn')} {new Date(currentSubscription.renewalDate || currentSubscription.endDate || Date.now()).toLocaleDateString()}
+
+                            <div>
+                                <p className="text-white/80 text-sm font-bold uppercase tracking-wider mb-1">Current Plan</p>
+                                <p className="text-3xl font-extrabold tracking-tight">
+                                    {getTranslatedPlanName(currentSubscription?.plan?.name || currentSubscription?.planName) || t('profilePage.noActivePlan')}
                                 </p>
-                            )}
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-bold ${['active', 'trialing', 'succeeded', 'year'].includes(currentSubscription?.status?.toLowerCase() || '')
+                                    ? 'bg-green-400 text-slate-900'
+                                    : 'bg-red-400 text-slate-900'
+                                    }`}>
+                                    <span className={`w-2 h-2 rounded-full ${['active', 'trialing', 'succeeded', 'year'].includes(currentSubscription?.status?.toLowerCase() || '') ? 'bg-slate-900' : 'bg-white'}`} />
+                                    {['active', 'trialing', 'succeeded', 'year'].includes(currentSubscription?.status?.toLowerCase() || '') ? t('profilePage.active') : t('profilePage.noActivePlan')}
+                                </span>
+                                {currentSubscription && (
+                                    <span className="text-white/70 text-sm font-medium">
+                                        {['active', 'trialing', 'succeeded', 'year'].includes(currentSubscription?.status?.toLowerCase() || '') ? t('profilePage.renewsOn') : t('profilePage.expiredOn')} {new Date(currentSubscription.renewalDate || currentSubscription.endDate || Date.now()).toLocaleDateString()}
+                                    </span>
+                                )}
+                            </div>
                         </div>
+
                         <Button
-                            variant="outline"
-                            className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
+                            className="bg-white text-indigo-900 hover:bg-slate-100 font-bold px-6 py-3 rounded-xl shadow-lg shadow-black/20"
                             onClick={() => handleTabChange('subscriptions')}
                         >
                             {currentSubscription ? t('profilePage.managePlan') : t('profilePage.upgradeToPro')}
@@ -364,74 +298,80 @@ const UserProfile: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Profile Information */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl p-6 md:p-8 shadow-sm border border-slate-200 dark:border-slate-700">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            <User size={20} /> {t('profilePage.personalInfo')}
-                        </h3>
+                {/* Personal Information Form */}
+                <div className="glass-panel p-8 rounded-3xl">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                        <div>
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-1">
+                                <User className="text-indigo-500" size={24} />
+                                {t('profilePage.personalInfo')}
+                            </h3>
+                            <p className="text-slate-500 text-sm">Update your personal details here.</p>
+                        </div>
+
                         {!isEditing && (
-                            <Button variant="outline" onClick={() => setIsEditing(true)}>
+                            <Button variant="outline" onClick={() => setIsEditing(true)} className="glass-button">
                                 {t('profilePage.editProfile')}
                             </Button>
                         )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">
                                 {t('profilePage.fullName')}
                             </label>
-                            <div className="relative">
-                                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                            <div className="relative group">
+                                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
                                 <input
                                     type="text"
                                     value={formData.fullName}
                                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                                     disabled={!isEditing}
-                                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 disabled:bg-slate-50 dark:disabled:bg-slate-800"
+                                    className="glass-input w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
                                 />
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">
                                 {t('profilePage.email')}
                             </label>
                             <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                                 <input
                                     type="email"
                                     value={formData.email}
                                     disabled
-                                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 bg-slate-50 dark:bg-slate-800"
+                                    className="glass-input w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/50 cursor-not-allowed opacity-70"
                                 />
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">
                                 {t('profilePage.phone')}
                             </label>
-                            <div className="relative">
-                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                            <div className="relative group">
+                                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
                                 <input
                                     type="tel"
                                     value={formData.phone}
                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                     disabled={!isEditing}
-                                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 disabled:bg-slate-50 dark:disabled:bg-slate-800"
+                                    className="glass-input w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
                                 />
                             </div>
                         </div>
                     </div>
 
                     {isEditing && (
-                        <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                            <Button onClick={handleUpdateProfile} leftIcon={<Save size={16} />}>
+                        <div className="flex items-center gap-4 mt-8 pt-6 border-t border-slate-200/50 dark:border-white/5 animate-in fade-in slide-in-from-top-2">
+                            <Button onClick={handleUpdateProfile} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30">
+                                <Save size={18} className="mr-2" />
                                 {t('profilePage.saveChanges')}
                             </Button>
-                            <Button variant="outline" onClick={() => {
+                            <Button variant="ghost" onClick={() => {
                                 setIsEditing(false);
                                 setFormData({
                                     fullName: profile.fullName || '',
@@ -449,50 +389,44 @@ const UserProfile: React.FC = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto">
-            {/* Header */}
-            <div className="mb-6 md:mb-8 flex items-center gap-3 md:gap-4">
+        <div className="max-w-7xl mx-auto pb-20">
+            {/* Page Header */}
+            <div className="mb-8 flex items-center gap-4 px-2">
                 <button
                     onClick={() => navigate(-1)}
-                    className="p-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 rounded-full transition-colors text-blue-600 dark:text-blue-400"
+                    className="glass-button p-3 rounded-full text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                 >
                     <ArrowLeft size={24} />
                 </button>
                 <div>
-                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mb-1 md:mb-2">
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">
                         {t('profilePage.myAccount')}
                     </h1>
-                    <p className="text-sm md:text-base lg:text-lg text-slate-600 dark:text-slate-400">
-                        {t('profilePage.manageAccount')}
-                    </p>
                 </div>
             </div>
 
-            {/* Navigation Tabs */}
-            <div className="mb-8 overflow-x-auto pb-2">
-                <div className="flex gap-2 min-w-max p-1 bg-slate-100 dark:bg-slate-800/50 rounded-xl">
-                    {tabs.map((tab) => {
-                        const Icon = tab.icon;
-                        const isActive = activeTab === tab.id;
-                        return (
-                            <button
-                                key={tab.id}
-                                onClick={() => handleTabChange(tab.id)}
-                                className={`flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-lg font-medium transition-all text-sm md:text-base ${isActive
-                                    ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50'
-                                    }`}
-                            >
-                                <Icon className="w-4 h-4" />
-                                {tab.label}
-                            </button>
-                        );
-                    })}
-                </div>
+            {/* Custom Tab Navigation */}
+            <div className="glass-panel p-2 mb-8 rounded-2xl flex overflow-x-auto scrollbar-hide mx-2 shadow-lg dark:shadow-black/20 sticky top-24 z-20">
+                {tabs.map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                        <button
+                            key={tab.id}
+                            onClick={() => handleTabChange(tab.id)}
+                            className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold transition-all duration-300 ${isActive
+                                ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-md'
+                                : 'text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/5'
+                                }`}
+                        >
+                            <Icon size={18} className={isActive ? 'animate-bounce-subtle' : ''} />
+                            {tab.label}
+                        </button>
+                    );
+                })}
             </div>
 
-            {/* Content Area */}
-            <div className="transition-opacity duration-200">
+            <div className="px-2 transition-all duration-500">
                 {renderContent()}
             </div>
         </div>

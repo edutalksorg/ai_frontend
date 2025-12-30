@@ -6,9 +6,6 @@ import {
     CheckSquare,
     Mic,
     Wallet,
-    CreditCard,
-    Users,
-    User
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import UserLayout from '../../components/UserLayout';
@@ -16,12 +13,6 @@ import UserTopicBrowser from './UserTopicBrowser';
 import UserQuizInterface from './UserQuizInterface';
 import UserVoiceCall from './UserVoiceCall';
 import UserPronunciation from './UserPronunciation';
-import UserWallet from './UserWallet';
-import UserSubscriptions from './UserSubscriptions';
-import UserReferrals from './UserReferrals';
-import UserProfile from './UserProfile';
-import UpgradeModal from '../../components/UpgradeModal';
-import SubscriptionLock from '../../components/SubscriptionLock';
 import DashboardCarousel from '../../components/DashboardCourosel';
 import { useUsageLimits } from '../../hooks/useUsageLimits';
 
@@ -34,16 +25,11 @@ const DashboardPage: React.FC = () => {
     const tabParam = searchParams.get('tab') as TabType;
     const [activeTab, setActiveTab] = useState<TabType>(tabParam || 'topics');
     const {
-        showUpgradeModal,
-        closeUpgradeModal,
         isTrialActive,
-        trialRemainingTime,
         hasActiveSubscription,
         triggerUpgradeModal,
     } = useUsageLimits();
 
-    // Carousel slides
-    // Carousel slides
     const carouselSlides = [
         {
             id: '1',
@@ -79,14 +65,12 @@ const DashboardPage: React.FC = () => {
         }
     ];
 
-    // Sync tab param with state
     useEffect(() => {
         if (tabParam && tabParam !== activeTab) {
             setActiveTab(tabParam);
         }
     }, [tabParam]);
 
-    // Update URL when tab changes
     const handleTabChange = (tab: TabType) => {
         setActiveTab(tab);
         setSearchParams({ tab });
@@ -101,16 +85,11 @@ const DashboardPage: React.FC = () => {
 
     const renderContent = () => {
         switch (activeTab) {
-            case 'topics':
-                return <UserTopicBrowser />;
-            case 'quizzes':
-                return <UserQuizInterface />;
-            case 'voice':
-                return <UserVoiceCall />;
-            case 'pronunciation':
-                return <UserPronunciation />;
-            default:
-                return <UserTopicBrowser />;
+            case 'topics': return <UserTopicBrowser />;
+            case 'quizzes': return <UserQuizInterface />;
+            case 'voice': return <UserVoiceCall />;
+            case 'pronunciation': return <UserPronunciation />;
+            default: return <UserTopicBrowser />;
         }
     };
 
@@ -119,22 +98,28 @@ const DashboardPage: React.FC = () => {
     return (
         <UserLayout>
             <div className="max-w-7xl mx-auto relative max-w-full overflow-x-hidden">
-                {/* Header */}
-                <div className="mb-6 md:mb-8">
-                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mb-2">
+                {/* Header with Title */}
+                <div className="mb-8 pl-1">
+                    <h1 className="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-violet-800 to-slate-900 dark:from-white dark:via-violet-200 dark:to-white mb-3">
                         {t('dashboard.title')}
                     </h1>
-                    <p className="text-sm md:text-base lg:text-lg text-slate-600 dark:text-slate-400">
+                    <p className="text-base md:text-lg text-slate-600 dark:text-slate-400 max-w-2xl">
                         {t('dashboard.subtitle')}
                     </p>
                 </div>
 
-                {/* Dashboard Carousel */}
-                <DashboardCarousel slides={carouselSlides} autoPlayInterval={5000} />
+                {/* Dashboard Carousel Container - Add subtle glass effect behind it */}
+                <div className="mb-10 relative group">
+                    {/* Glow effect behind carousel */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 blur-2xl rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                    <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-slate-900/10 dark:shadow-black/30 transform transition-transform hover:scale-[1.01] duration-500">
+                        <DashboardCarousel slides={carouselSlides} autoPlayInterval={5000} />
+                    </div>
+                </div>
 
-                {/* Navigation Tabs */}
-                <div className="mb-6 md:mb-8 sticky top-20 z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm py-2">
-                    <div className="flex overflow-x-auto scrollbar-hide gap-1 sm:gap-0 justify-evenly sm:justify-between w-full p-1 bg-slate-100 dark:bg-slate-800/50 rounded-xl">
+                {/* Navigation Tabs - Floating Glass Bar */}
+                <div className="mb-8 sticky top-24 z-30">
+                    <div className="glass-panel p-2 rounded-2xl flex items-center justify-between gap-2 overflow-x-auto scrollbar-hide shadow-xl shadow-slate-200/50 dark:shadow-black/20">
                         {tabs.map((tab) => {
                             const Icon = tab.icon;
                             const isActive = activeTab === tab.id;
@@ -142,13 +127,18 @@ const DashboardPage: React.FC = () => {
                                 <button
                                     key={tab.id}
                                     onClick={() => handleTabChange(tab.id)}
-                                    className={`flex items-center justify-center gap-1 sm:gap-3 px-3 sm:px-6 py-3 sm:py-2.5 rounded-lg font-medium transition-all flex-shrink-0 sm:flex-1 min-w-[56px] sm:min-w-0 ${isActive
-                                        ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50'
+                                    className={`relative flex items-center justify-center gap-2 px-4 md:px-6 py-3 rounded-xl font-bold transition-all duration-300 flex-1 min-w-[100px] whitespace-nowrap overflow-hidden group ${isActive
+                                            ? 'text-white shadow-lg shadow-violet-500/30'
+                                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5'
                                         }`}
                                 >
-                                    <Icon className="w-5 h-5 sm:w-5 sm:h-5 flex-shrink-0" />
-                                    <span className="hidden sm:inline text-xs sm:text-base leading-tight">{tab.label}</span>
+                                    {/* Active Background Gradient */}
+                                    {isActive && (
+                                        <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-xl animate-fadeIn" />
+                                    )}
+
+                                    <Icon className={`w-5 h-5 relative z-10 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
+                                    <span className="relative z-10 text-sm md:text-base">{tab.label}</span>
                                 </button>
                             );
                         })}
@@ -156,25 +146,24 @@ const DashboardPage: React.FC = () => {
                 </div>
 
                 {/* Content Area - VISIBLY LOCKED IF EXPIRED */}
-                <div className="relative min-h-[50vh]">
-                    {/* Lock Overlay - Smaller Popup, Transparent Background */}
+                <div className="relative min-h-[50vh] animate-slideUp">
+                    {/* Lock Overlay */}
                     {isContentLocked && (
                         <div
-                            className="absolute inset-0 z-50 flex items-center justify-center cursor-not-allowed"
+                            className="absolute inset-0 z-50 flex items-center justify-center"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 triggerUpgradeModal();
                             }}
                         >
-                            {/* Smaller, centered "Toast-like" card */}
-                            <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-6 rounded-2xl shadow-2xl border border-red-200 dark:border-red-900 flex flex-col items-center max-w-sm mx-4 animate-in fade-in zoom-in duration-300">
-                                <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-3 text-red-600 dark:text-red-400">
-                                    <Wallet size={24} />
+                            <div className="glass-panel p-8 rounded-3xl shadow-2xl border border-red-500/20 flex flex-col items-center max-w-sm mx-4 animate-in fade-in zoom-in duration-300 text-center backdrop-blur-xl bg-slate-900/80">
+                                <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-4 text-red-500 animate-bounce">
+                                    <Wallet size={32} />
                                 </div>
-                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">
+                                <h3 className="text-2xl font-bold text-white mb-2">
                                     {isExplicitlyCancelled ? 'No Active Plan' : 'Trial Expired'}
                                 </h3>
-                                <p className="text-sm text-slate-600 dark:text-slate-400 text-center mb-4 leading-relaxed">
+                                <p className="text-slate-300 mb-6 leading-relaxed">
                                     {isExplicitlyCancelled
                                         ? "You don't have any active plan."
                                         : "Your free trial has ended."}
@@ -182,22 +171,19 @@ const DashboardPage: React.FC = () => {
                                     Please subscribe to unlock content.
                                 </p>
                                 <button
-                                    className="px-5 py-2 text-sm bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all w-full"
+                                    className="w-full py-3 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-violet-500/25 transition-all hover:scale-[1.02]"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         navigate('/subscriptions');
                                     }}
                                 >
-                                    Choose Plan
+                                    Unlock Premium
                                 </button>
                             </div>
                         </div>
                     )}
 
-                    {/* Content is rendered but interactions prevented if locked */}
-                    {/* Added select-none and pointer-events-none to prevent interaction */}
-                    {/* Added slight blur and grayscale to indicate specific "disabled" state without hiding content */}
-                    <div className={`transition-all duration-300 ${isContentLocked ? 'opacity-60 blur-[2px] pointer-events-none select-none grayscale-[0.3]' : ''}`}>
+                    <div className={`transition-all duration-500 ${isContentLocked ? 'opacity-40 blur-sm pointer-events-none select-none grayscale-[0.5]' : ''}`}>
                         {renderContent()}
                     </div>
                 </div>

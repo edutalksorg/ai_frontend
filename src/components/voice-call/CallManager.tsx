@@ -77,8 +77,57 @@ const CallManager: React.FC = () => {
                         .then(() => callLogger.info('Updated availability to Online'))
                         .catch(err => callLogger.warning('Failed to auto-set availability', err));
                 })
-                .catch((error) => {
+                .catch(async (error) => {
                     callLogger.error('❌ SignalR connection failed', error);
+                });
+
+            // Try to set availability, and if it fails due to "active call", try to clean up
+            callsService.updateAvailability('Online')
+                .then(() => callLogger.info('Updated availability to Online'))
+                .catch(async (err) => {
+                    callLogger.warning('Failed to auto-set availability', err);
+
+                    const errMsg = JSON.stringify(err);
+                    if (errMsg.toLowerCase().includes('active or pending call')) {
+                        callLogger.warning('⚠️ User seems to be stuck in a call. Attempting emergency cleanup...');
+
+                        try {
+                            // 1. Try leaving queue
+                            await callsService.leaveCallQueue().catch(() => { });
+
+                            // 2. Fetch active calls (incoming/outgoing) and end them
+                            // We fetch recent ones and check status if possible, or just try to end matches
+                            // Since we don't have a dedicated "get active call" endpoint, we try lists
+                            const [incoming, outgoing] = await Promise.all([
+                                callsService.getMyIncomingCalls({ status: 'initiated' }).catch(() => ({ data: [] })),
+                                callsService.getMyOutgoingCalls({ status: 'initiated' }).catch(() => ({ data: [] }))
+                            ]);
+
+                            const allCalls = [
+                                ...(incoming as any)?.data || [],
+                                ...(outgoing as any)?.data || []
+                            ];
+
+                            // Also try "in-progress" or similar statuses if the API supports it
+                            // For now, let's just log what we found
+                            callLogger.info('Found potential stuck calls:', allCalls);
+
+                            for (const call of allCalls) {
+                                if (call.id || call.callId) {
+                                    callLogger.info('Force ending stuck call:', call.id || call.callId);
+                                    await callsService.end(call.id || call.callId, 'Stuck state cleanup').catch(() => { });
+                                }
+                            }
+
+                            // 3. Try setting availability again
+                            setTimeout(() => {
+                                callsService.updateAvailability('Online').catch(() => { });
+                            }, 1000);
+
+                        } catch (cleanupErr) {
+                            callLogger.error('Failed partial cleanup', cleanupErr);
+                        }
+                    }
                 });
 
             return () => {

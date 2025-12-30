@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { CheckSquare, Clock, ArrowRight, RotateCcw, Award, ArrowLeft } from 'lucide-react';
+import { CheckSquare, Clock, ArrowRight, RotateCcw, Award, ArrowLeft, BrainCircuit, CheckCircle, XCircle, Timer, AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { showToast } from '../../store/uiSlice';
 import { quizzesService } from '../../services/quizzes';
@@ -131,16 +131,6 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
             setSubmitting(true);
             setTimerActive(false);
 
-            // DEBUG: Log what we're sending
-            console.log('=== QUIZ SUBMISSION DEBUG ===');
-            console.log('Quiz ID:', quiz.id || quiz._id);
-            console.log('Answers object (original):', answers);
-            console.log('Started at:', startedAt);
-            console.log('Quiz questions (full structure):', JSON.stringify(quiz.questions, null, 2));
-
-            // Backend expects a dictionary: { "questionId": "answer", ... }
-            console.log('Submitting answers object:', answers);
-
             // 1. Submit the quiz
             const submitResponse = await quizzesService.submit(quiz.id || quiz._id, answers, startedAt);
 
@@ -149,15 +139,10 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
             const submitData = (submitResponse as any)?.data || submitResponse;
             const attemptId = submitData?.id || submitData?._id || submitData?.attemptId;
 
-            console.log('Submission response:', submitResponse);
-            console.log('Extracted attemptId:', attemptId);
-
             if (attemptId) {
                 // 3. Fetch detailed results
                 try {
                     const attemptDetails = await quizzesService.getAttemptDetails(quiz.id || quiz._id, attemptId);
-                    console.log('Fetched attempt details:', attemptDetails);
-
                     const resultData = (attemptDetails as any)?.data || attemptDetails;
                     setQuizResult(resultData);
                     dispatch(showToast({ message: 'Quiz submitted successfully!', type: 'success' }));
@@ -191,10 +176,10 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
     if (loading) {
         return (
             <UserLayout>
-                <div className="flex items-center justify-center min-h-dvh">
-                    <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-                        <p className="text-slate-600 dark:text-slate-400">{t('quizTaking.loadingQuiz')}</p>
+                <div className="flex items-center justify-center min-h-[50vh]">
+                    <div className="text-center animate-pulse">
+                        <BrainCircuit className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                        <p className="text-slate-500 font-bold text-lg">{t('quizTaking.loadingQuiz')}</p>
                     </div>
                 </div>
             </UserLayout>
@@ -208,72 +193,84 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
         const totalQuestions = quizResult.totalQuestions ?? quizResult.data?.totalQuestions ?? quiz?.questions?.length ?? 0;
         const totalPoints = quizResult.totalPoints ?? quizResult.data?.totalPoints ?? 0;
         const passingScore = quiz?.passingScore || 70;
+        const passed = score >= passingScore;
 
         return (
             <UserLayout>
-                <div className="max-w-3xl mx-auto text-center">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm">
-                        <div className="mb-6">
-                            {score >= passingScore ? (
-                                <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <Award size={40} />
+                <div className="max-w-2xl mx-auto text-center pb-20">
+                    {/* Result Card */}
+                    <div className="glass-panel p-10 rounded-3xl relative overflow-hidden mb-8">
+                        {/* Confeetti/Glow */}
+                        <div className={`absolute top-0 right-0 w-80 h-80 rounded-full blur-3xl -mr-20 -mt-20 ${passed ? 'bg-green-500/10' : 'bg-orange-500/10'}`} />
+                        <div className={`absolute bottom-0 left-0 w-80 h-80 rounded-full blur-3xl -ml-20 -mb-20 ${passed ? 'bg-green-500/10' : 'bg-orange-500/10'}`} />
+
+                        <div className="relative z-10">
+                            {passed ? (
+                                <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-green-500/20 animate-in zoom-in duration-500">
+                                    <Award size={48} className="text-white" />
                                 </div>
                             ) : (
-                                <div className="w-20 h-20 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <RotateCcw size={40} />
+                                <div className="w-24 h-24 bg-gradient-to-br from-orange-400 to-red-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-orange-500/20 animate-in zoom-in duration-500">
+                                    <RotateCcw size={48} className="text-white" />
                                 </div>
                             )}
-                            <h2 className="text-3xl font-bold mb-2">
-                                {score >= passingScore ? t('quizTaking.passed') : t('quizTaking.keepPracticing')}
+
+                            <h2 className="text-4xl font-extrabold mb-2 text-slate-900 dark:text-white">
+                                {passed ? t('quizTaking.passed') : t('quizTaking.keepPracticing')}
                             </h2>
+                            <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-md mx-auto">
+                                {passed
+                                    ? "Congratulations on mastering this topic! You've shown excellent understanding."
+                                    : "Don't give up! Review the material and try again to improve your score."}
+                            </p>
 
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-4 mb-8 text-center">
-                            <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-                                <div className="text-sm text-slate-500 mb-1">{t('quizTaking.correct')}</div>
-                                <div className="text-xl font-bold text-green-600">{correctAnswers}</div>
+                            <div className="grid grid-cols-3 gap-4 mb-8">
+                                <div className="p-4 bg-slate-50/50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
+                                    <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">{t('quizTaking.correct')}</div>
+                                    <div className="text-2xl font-black text-green-500">{correctAnswers}</div>
+                                </div>
+                                <div className="p-4 bg-slate-50/50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
+                                    <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">{t('quizTaking.totalQuestions')}</div>
+                                    <div className="text-2xl font-black text-slate-700 dark:text-slate-300">{totalQuestions}</div>
+                                </div>
+                                <div className="p-4 bg-slate-50/50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
+                                    <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">{t('quizTaking.score')}</div>
+                                    <div className={`text-2xl font-black ${passed ? 'text-green-500' : 'text-orange-500'}`}>{score}%</div>
+                                </div>
                             </div>
-                            <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-                                <div className="text-sm text-slate-500 mb-1">{t('quizTaking.totalQuestions')}</div>
-                                <div className="text-xl font-bold">{totalQuestions}</div>
-                            </div>
-                            <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-                                <div className="text-sm text-slate-500 mb-1">{t('quizTaking.score')}</div>
-                                <div className="text-xl font-bold text-indigo-600">{score}%</div>
-                            </div>
-                        </div>
 
-                        <div className="flex gap-4 justify-center">
-                            <Button
-                                variant="outline"
-                                onClick={() => onBack ? onBack() : navigate('/dashboard?tab=quizzes')}
-                            >
-                                {t('quizTaking.backToDashboard')}
-                            </Button>
-
-                            {/* Show Next Quiz ONLY if passed AND next quiz exists */}
-                            {((quizResult.passed || score >= passingScore) && nextQuizId) ? (
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
                                 <Button
-                                    onClick={() => {
-                                        // Force reload/navigate to new quiz
-                                        window.location.href = `/quizzes/${nextQuizId}`;
-                                    }}
-                                    className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                                    variant="outline"
+                                    onClick={() => onBack ? onBack() : navigate('/dashboard?tab=quizzes')}
+                                    className="glass-button"
                                 >
-                                    {t('quizTaking.nextQuiz')}
+                                    {t('quizTaking.backToDashboard')}
                                 </Button>
-                            ) : (
-                                <Button
-                                    onClick={() => window.location.reload()}
-                                    className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                                >
-                                    {t('quizTaking.retake')}
-                                </Button>
-                            )}
+
+                                {/* Show Next Quiz ONLY if passed AND next quiz exists */}
+                                {((passed || score >= passingScore) && nextQuizId) ? (
+                                    <Button
+                                        onClick={() => {
+                                            // Force reload/navigate to new quiz
+                                            window.location.href = `/quizzes/${nextQuizId}`;
+                                        }}
+                                        className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20"
+                                    >
+                                        {t('quizTaking.nextQuiz')}
+                                        <ArrowRight size={18} className="ml-2" />
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        onClick={() => window.location.reload()}
+                                        className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20"
+                                    >
+                                        <RotateCcw size={18} className="mr-2" />
+                                        {t('quizTaking.retake')}
+                                    </Button>
+                                )}
+                            </div>
                         </div>
-
-
                     </div>
                 </div>
             </UserLayout>
@@ -285,29 +282,46 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
     if (!hasStarted) {
         return (
             <UserLayout>
-                <div className="max-w-3xl mx-auto">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm">
-                        <div className="flex items-center gap-4 mb-4">
-                            <button
-                                onClick={() => onBack ? onBack() : navigate(-1)}
-                                className="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 rounded-full transition-colors text-slate-600 dark:text-slate-300"
-                            >
-                                <ArrowLeft size={20} />
-                            </button>
-                            <h1 className="text-3xl font-bold">{quiz.title}</h1>
-                        </div>
-                        <p className="text-slate-600 dark:text-slate-400 mb-6">{quiz.description}</p>
-                        <div className="grid grid-cols-2 gap-4 mb-8">
-                            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4">
-                                <p className="text-sm text-slate-500">{t('quizTaking.questions')}</p>
-                                <p className="text-2xl font-bold">{quiz.questions?.length || 0}</p>
+                <div className="max-w-2xl mx-auto pt-8">
+                    <div className="glass-panel p-8 md:p-12 rounded-3xl text-center relative overflow-hidden">
+                        {/* Blob */}
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl -mt-20" />
+
+                        <div className="relative z-10">
+                            <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                                <BrainCircuit className="w-10 h-10 text-indigo-500" />
                             </div>
-                            <div className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4">
-                                <p className="text-sm text-slate-500">{t('quizTaking.timeLimit')}</p>
-                                <p className="text-2xl font-bold">{quiz.timeLimit || 10} {t('quizTaking.min')}</p>
+
+                            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white mb-4">{quiz.title}</h1>
+                            <p className="text-lg text-slate-500 dark:text-slate-400 mb-8 max-w-lg mx-auto leading-relaxed">{quiz.description}</p>
+
+                            <div className="flex justify-center gap-4 mb-10">
+                                <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                                    <Clock className="w-5 h-5 text-indigo-500" />
+                                    <span className="font-bold text-slate-700 dark:text-slate-300">{quiz.timeLimit || 10} {t('quizTaking.min')}</span>
+                                </div>
+                                <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                                    <CheckSquare className="w-5 h-5 text-indigo-500" />
+                                    <span className="font-bold text-slate-700 dark:text-slate-300">{quiz.questions?.length || 0} {t('quizTaking.questions')}</span>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4 justify-center">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => onBack ? onBack() : navigate(-1)}
+                                    className="glass-button"
+                                >
+                                    {t('common.cancel')}
+                                </Button>
+                                <Button
+                                    onClick={handleStartQuiz}
+                                    className="px-8 bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-500/30 font-bold"
+                                >
+                                    {t('quizTaking.startQuiz')}
+                                </Button>
                             </div>
                         </div>
-                        <Button onClick={handleStartQuiz} className="w-full">{t('quizTaking.startQuiz')}</Button>
                     </div>
                 </div>
             </UserLayout>
@@ -319,44 +333,85 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
 
     return (
         <UserLayout>
-            <div className="max-w-4xl mx-auto">
-                <div className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-sm mb-6">
-                    <div className="flex justify-between items-center">
-                        <span>{t('quizTaking.question')} {currentQuestionIndex + 1} {t('quizTaking.of')} {quiz.questions?.length}</span>
-                        <span className={`font-mono text-lg font-bold ${timeLeft < 60 ? 'text-red-600' : ''}`}>
-                            {formatTime(timeLeft)}
+            <div className="max-w-3xl mx-auto pb-20">
+                {/* Header / Timer */}
+                <div className="glass-panel p-4 rounded-xl flex items-center justify-between mb-8 sticky top-20 z-20 backdrop-blur-xl">
+                    <div className="flex items-center gap-3">
+                        <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-600 font-bold text-sm">
+                            {currentQuestionIndex + 1}
                         </span>
+                        <span className="text-sm font-medium text-slate-500">{t('quizTaking.of')} {quiz.questions?.length}</span>
+                    </div>
+
+                    <div className={`flex items-center gap-2 px-4 py-1.5 rounded-lg border font-mono font-bold ${timeLeft < 60 ? 'bg-red-50 text-red-600 border-red-200 animate-pulse' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'}`}>
+                        <Timer size={16} />
+                        {formatTime(timeLeft)}
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm mb-6">
-                    <h2 className="text-2xl font-bold mb-6">{currentQuestion?.questionText}</h2>
-                    <div className="space-y-3">
+                {/* Progress Bar */}
+                <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full mb-8 overflow-hidden">
+                    <div
+                        className="h-full bg-indigo-500 transition-all duration-300 ease-out"
+                        style={{ width: `${((currentQuestionIndex + 1) / quiz.questions.length) * 100}%` }}
+                    />
+                </div>
+
+                {/* Question Card */}
+                <div className="glass-card p-8 md:p-10 rounded-3xl mb-8 relative overflow-hidden">
+                    {/* Decorative Elements */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl -mr-10 -mt-10" />
+
+                    <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white mb-8 leading-normal relative z-10">
+                        {currentQuestion?.questionText}
+                    </h2>
+
+                    <div className="space-y-4 relative z-10">
                         {currentQuestion?.options?.map((option: string, index: number) => (
                             <button
                                 key={index}
                                 onClick={() => handleAnswerSelect(option)}
-                                className={`w-full text-left p-4 rounded-lg border-2 transition-all ${currentAnswer === option
-                                    ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20'
-                                    : 'border-slate-200 dark:border-slate-700'
+                                className={`w-full text-left p-5 rounded-xl border-2 transition-all duration-200 flex items-center justify-between group ${currentAnswer === option
+                                    ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/20 shadow-md shadow-indigo-500/10'
+                                    : 'border-slate-100 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-slate-50 dark:hover:bg-slate-800/50'
                                     }`}
                             >
-                                {option}
+                                <span className={`font-medium ${currentAnswer === option ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300'}`}>
+                                    {option}
+                                </span>
+                                {currentAnswer === option && (
+                                    <CheckCircle className="text-indigo-500 animate-in zoom-in duration-300" size={20} />
+                                )}
                             </button>
                         ))}
                     </div>
                 </div>
 
-                <div className="flex justify-between">
-                    <Button variant="outline" onClick={handlePrev} disabled={currentQuestionIndex === 0}>
+                {/* Controls */}
+                <div className="flex justify-between items-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm p-4 rounded-2xl border border-white/20">
+                    <Button
+                        variant="ghost"
+                        onClick={handlePrev}
+                        disabled={currentQuestionIndex === 0}
+                        className="text-slate-500 hover:text-indigo-600"
+                    >
+                        <ArrowLeft size={20} className="mr-2" />
                         {t('quizTaking.previous')}
                     </Button>
+
                     {currentQuestionIndex === (quiz.questions?.length || 0) - 1 ? (
-                        <Button onClick={handleSubmitQuiz} disabled={submitting}>
-                            {submitting ? t('quizTaking.submitting') : t('quizTaking.submitQuiz')}
+                        <Button
+                            onClick={handleSubmitQuiz}
+                            disabled={submitting}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 shadow-lg shadow-indigo-500/20"
+                        >
+                            {submitting ? 'Submitting...' : t('quizTaking.submitQuiz')}
                         </Button>
                     ) : (
-                        <Button onClick={handleNext}>{t('quizTaking.next')}</Button>
+                        <Button onClick={handleNext} className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 shadow-lg shadow-indigo-500/20">
+                            {t('quizTaking.next')}
+                            <ArrowRight size={20} className="ml-2" />
+                        </Button>
                     )}
                 </div>
             </div>
@@ -365,4 +420,3 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
 };
 
 export default UserQuizTakingPage;
-

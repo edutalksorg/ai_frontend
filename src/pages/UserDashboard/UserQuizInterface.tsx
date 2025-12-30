@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckSquare, Clock, ArrowRight, RotateCcw, Award, ChevronRight, ChevronDown, Lock, CheckCircle } from 'lucide-react';
+import { CheckSquare, Clock, ArrowRight, RotateCcw, Award, ChevronRight, ChevronDown, Lock, CheckCircle, BrainCircuit, History } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { quizzesService } from '../../services/quizzes';
 import Button from '../../components/Button';
@@ -26,34 +26,18 @@ const UserQuizInterface: React.FC = () => {
     const fetchQuizzes = async () => {
         try {
             setLoading(true);
-            // Revert to standard list endpoint for users to avoid permission issues
             const res = await quizzesService.list();
             const items = (res as any)?.data || (Array.isArray(res) ? res : (res as any)?.items) || [];
-            console.log('Raw Quizzes from API (User List):', items);
 
-            // Filter out deleted or locally hidden quizzes
-            // First pass: Basic property check
             const potentialItems = items.filter((quiz: any) => {
                 const id = quiz.id || quiz._id;
-
-                // Check if hidden locally
                 const hiddenQuizzes = JSON.parse(localStorage.getItem('hidden_quizzes') || '[]');
                 if (hiddenQuizzes.includes(id)) return false;
-
-                // Check deleted status
                 if (quiz.deleted || quiz.isDeleted) return false;
-
-                // Check isLocked status (User Request: only show unlocked quizzes)
-                // We default to true (show) if isLocked is missing to be safe, 
-                // but if it's explicitly true, we hide it.
                 if (quiz.isLocked === true) return false;
-
                 return true;
             });
 
-            // Second pass: Validate by fetching attempts
-            // This is critical because some deleted quizzes might still be returned by the list API
-            // but will fail with 400/404 when we try to interact with them.
             const attemptsData: Record<string, any[]> = {};
             const validItems: any[] = [];
 
@@ -65,22 +49,12 @@ const UserQuizInterface: React.FC = () => {
                     attemptsData[quizId] = attemptsItems;
                     validItems.push(quiz);
                 } catch (err: any) {
-                    // If we get a 400 or 404, assume the quiz is invalid/deleted and exclude it
                     if (err?.response?.status === 400 || err?.response?.status === 404 || err?.status === 400 || err?.status === 404) {
-                        console.warn(`Excluding invalid quiz ${quizId} (likely deleted):`, err);
-                    } else {
-                        // For other errors (500, network), we might still want to show it or at least log it
-                        console.error(`Failed to fetch attempts for quiz ${quizId}`, err);
-                        // Decided: If we can't fetch attempts, we probably shouldn't show it as "active" 
-                        // to prevent user frustration, but strictly only filtering 4xx is safer for flakes.
-                        // However, to be safe against the specific issue USER reported, we filter it.
+                        console.warn(`Excluding invalid quiz ${quizId}`, err);
                     }
                 }
             }));
 
-            console.log('Active Quizzes (Validated):', validItems);
-
-            // Sort to ensure consistent order (e.g., by created date)
             const sortedItems = [...validItems].sort((a: any, b: any) =>
                 new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
             );
@@ -88,12 +62,10 @@ const UserQuizInterface: React.FC = () => {
             setQuizzes(sortedItems);
             setAttempts(attemptsData);
 
-            // Determine unlocked index based on fetched attempts
             let lastCompletedIndex = -1;
             sortedItems.forEach((quiz: any, index: number) => {
                 const quizId = quiz.id || quiz._id;
                 const quizAttempts = attemptsData[quizId] || [];
-                // Check if there are any attempts
                 if (quizAttempts.length > 0) {
                     lastCompletedIndex = index;
                 }
@@ -103,10 +75,6 @@ const UserQuizInterface: React.FC = () => {
             const newUnlockedIndex = Math.min(nextIndex, sortedItems.length - 1);
 
             setUnlockedIndex(newUnlockedIndex);
-            // Default to showing the active unlocked quiz
-
-            // Only update current index if we are at 0 (initial load)
-            // or if the current index is now out of bounds
             if (currentQuizIndex === 0 || currentQuizIndex >= sortedItems.length) {
                 setCurrentQuizIndex(newUnlockedIndex);
             }
@@ -121,7 +89,6 @@ const UserQuizInterface: React.FC = () => {
 
     const fetchAttempts = async (quizId: string) => {
         if (attempts[quizId]) return;
-
         try {
             const res = await quizzesService.getAttempts(quizId);
             const items = (res as any)?.data || (Array.isArray(res) ? res : (res as any)?.items) || [];
@@ -131,7 +98,6 @@ const UserQuizInterface: React.FC = () => {
         }
     };
 
-    // Load attempts when current index changes, effectively lazy loading when user navigates
     useEffect(() => {
         if (quizzes.length > 0) {
             const quiz = quizzes[currentQuizIndex];
@@ -144,82 +110,92 @@ const UserQuizInterface: React.FC = () => {
     const formatDate = (attempt: any): string => {
         const dateString = attempt?.createdAt || attempt?.completedAt || attempt?.submittedAt || attempt?.timestamp;
         if (!dateString) return 'N/A';
-        try {
-            return new Date(dateString).toLocaleDateString();
-        } catch {
-            return 'N/A';
-        }
+        try { return new Date(dateString).toLocaleDateString(); } catch { return 'N/A'; }
     };
 
-    if (loading) {
-        return <div className="py-12 text-center text-slate-500">{t('quiz.loading')}</div>;
-    }
+    if (loading) return <div className="py-20 text-center text-slate-500 animate-pulse">{t('quiz.loading')}</div>;
 
-    // If a quiz is selected, show the quiz taking page
     if (selectedQuizId) {
         return (
             <UserQuizTakingPage
                 quizId={selectedQuizId}
                 onBack={() => {
                     setSelectedQuizId(null);
-                    fetchQuizzes(); // Refresh to update attempts
+                    fetchQuizzes();
                 }}
             />
         );
     }
 
     return (
-        <div className="space-y-4 md:space-y-6">
-            <div className="flex items-center justify-between px-2 sm:px-0">
-                <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-slate-900 dark:text-white">{t('quiz.title')}</h3>
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="glass-panel p-4 flex items-center justify-between rounded-xl sticky top-20 z-20 backdrop-blur-md">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-pink-500/10 rounded-lg">
+                        <CheckSquare className="w-6 h-6 text-pink-500" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                        {t('quiz.title')}
+                    </h3>
+                </div>
+                <div className="text-sm font-bold px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                    {t('quiz.progress')}: {quizzes.length > 0 ? `${currentQuizIndex + 1} / ${quizzes.length}` : '0 / 0'}
+                </div>
             </div>
 
             {quizzes.length > 0 ? (
-                <div className="flex flex-col items-center max-w-2xl mx-auto px-2 sm:px-4">
-                    {/* Progress Indicator */}
-                    <div className="w-full mb-4 sm:mb-6">
-                        <div className="flex justify-between text-xs sm:text-sm text-slate-500 mb-2">
-                            <span>{t('quiz.quiz')} {currentQuizIndex + 1} {t('quiz.of')} {quizzes.length}</span>
-                            <span className="hidden xs:inline">{Math.round(((currentQuizIndex + 1) / quizzes.length) * 100)}% {t('quiz.progress')}</span>
-                            <span className="xs:hidden">{Math.round(((currentQuizIndex + 1) / quizzes.length) * 100)}%</span>
-                        </div>
-                        <div className="w-full h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                            <div
-                                className="h-full bg-pink-600 transition-all duration-300"
-                                style={{ width: `${((currentQuizIndex + 1) / quizzes.length) * 100}%` }}
-                            />
+                <div className="flex flex-col items-center max-w-3xl mx-auto px-4">
+                    {/* Progress Bar - Glass Style */}
+                    <div className="glass-panel w-full mb-8 p-6 rounded-2xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-pink-500/5 rounded-full blur-2xl" />
+
+                        <div className="relative z-10">
+                            <div className="flex justify-between items-end mb-3">
+                                <div>
+                                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1 uppercase tracking-wider">Your Mastery</span>
+                                    <span className="text-3xl font-extrabold text-slate-900 dark:text-white">{Math.round(((currentQuizIndex + 1) / quizzes.length) * 100)}%</span>
+                                </div>
+                                <BrainCircuit className="w-8 h-8 text-pink-500/30" />
+                            </div>
+                            <div className="w-full h-3 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden shadow-inner">
+                                <div
+                                    className="h-full bg-gradient-to-r from-pink-500 to-rose-500 transition-all duration-500 shadow-[0_0_10px_rgba(236,72,153,0.5)]"
+                                    style={{ width: `${((currentQuizIndex + 1) / quizzes.length) * 100}%` }}
+                                />
+                            </div>
                         </div>
                     </div>
 
                     {/* Navigation Controls */}
-                    <div className="w-full flex justify-between items-center mb-4 sm:mb-6 gap-2">
+                    <div className="w-full flex justify-between items-center mb-6 gap-2">
                         <button
                             onClick={() => setCurrentQuizIndex(prev => Math.max(0, prev - 1))}
                             disabled={currentQuizIndex === 0}
-                            className={`px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-all min-h-[44px] ${currentQuizIndex === 0
-                                ? 'text-slate-300 cursor-not-allowed'
-                                : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
+                            className={`glass-button px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${currentQuizIndex === 0
+                                ? 'opacity-50 cursor-not-allowed'
+                                : 'hover:-translate-x-1'
                                 }`}
                         >
-                            <span className="hidden sm:inline">← {t('common.previous')}</span>
-                            <span className="sm:hidden">←</span>
+                            <ArrowRight className="rotate-180" size={18} />
+                            <span className="hidden sm:inline">{t('common.previous')}</span>
                         </button>
 
                         <div className="flex gap-2">
                             {currentQuizIndex < unlockedIndex ? (
-                                <span className="text-green-600 text-xs sm:text-sm font-medium flex items-center px-2 sm:px-3 py-1 bg-green-50 dark:bg-green-900/20 rounded-full">
+                                <span className="flex items-center gap-2 px-4 py-1.5 bg-green-500/10 text-green-500 rounded-full font-bold text-sm border border-green-500/20 backdrop-blur-sm">
+                                    <CheckCircle size={14} />
                                     <span className="hidden xs:inline">{t('quiz.completed')}</span>
-                                    <span className="xs:hidden">✓</span>
                                 </span>
                             ) : currentQuizIndex === unlockedIndex ? (
-                                <span className="text-pink-600 text-xs sm:text-sm font-medium flex items-center px-2 sm:px-3 py-1 bg-pink-50 dark:bg-pink-900/20 rounded-full animate-pulse">
+                                <span className="flex items-center gap-2 px-4 py-1.5 bg-pink-500/10 text-pink-500 rounded-full font-bold text-sm border border-pink-500/20 backdrop-blur-sm animate-pulse-subtle">
+                                    <BrainCircuit size={14} />
                                     <span className="hidden xs:inline">{t('quiz.current')}</span>
-                                    <span className="xs:hidden">●</span>
                                 </span>
                             ) : (
-                                <span className="text-slate-400 text-xs sm:text-sm font-medium flex items-center px-2 sm:px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full">
+                                <span className="flex items-center gap-2 px-4 py-1.5 bg-slate-500/10 text-slate-500 rounded-full font-bold text-sm border border-slate-500/20 backdrop-blur-sm">
+                                    <Lock size={14} />
                                     <span className="hidden xs:inline">{t('quiz.locked')}</span>
-                                    <span className="xs:hidden">🔒</span>
                                 </span>
                             )}
                         </div>
@@ -227,13 +203,13 @@ const UserQuizInterface: React.FC = () => {
                         <button
                             onClick={() => setCurrentQuizIndex(prev => Math.min(quizzes.length - 1, prev + 1))}
                             disabled={currentQuizIndex >= unlockedIndex || currentQuizIndex === quizzes.length - 1}
-                            className={`px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-all min-h-[44px] ${currentQuizIndex >= unlockedIndex || currentQuizIndex === quizzes.length - 1
-                                ? 'text-slate-300 cursor-not-allowed'
-                                : 'text-pink-600 hover:bg-pink-50 dark:text-pink-400 dark:hover:bg-pink-900/20'
+                            className={`glass-button px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${currentQuizIndex >= unlockedIndex || currentQuizIndex === quizzes.length - 1
+                                ? 'opacity-50 cursor-not-allowed'
+                                : 'hover:translate-x-1'
                                 }`}
                         >
-                            <span className="hidden sm:inline">{t('common.next')} →</span>
-                            <span className="sm:hidden">→</span>
+                            <span className="hidden sm:inline">{t('common.next')}</span>
+                            <ArrowRight size={18} />
                         </button>
                     </div>
 
@@ -248,113 +224,125 @@ const UserQuizInterface: React.FC = () => {
                             : null;
 
                         return (
-                            <div className={`w-full bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl border transition-all ${isLocked
-                                ? 'border-slate-200 dark:border-slate-700 opacity-75'
-                                : isCompleted
-                                    ? 'border-green-200 dark:border-green-900/50 bg-green-50/10'
-                                    : 'border-pink-200 dark:border-pink-900 ring-1 ring-pink-100 dark:ring-pink-900/30 shadow-md'
+                            <div className={`glass-card relative w-full overflow-visible p-0 rounded-3xl transition-all duration-500 ${isLocked
+                                ? 'grayscale opacity-75'
+                                : 'hover:shadow-[0_20px_60px_-15px_rgba(236,72,153,0.3)]'
                                 }`}>
-                                <div className="p-4 sm:p-6 md:p-8">
-                                    <div className="flex justify-between items-start mb-4 sm:mb-6">
-                                        <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${isLocked
-                                            ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500'
+
+                                <div className="p-8 sm:p-10 relative z-10 w-full bg-white/5 backdrop-blur-md rounded-3xl">
+                                    {/* Decorative Blob inside card */}
+                                    {!isLocked && <div className="absolute top-10 right-10 w-32 h-32 bg-pink-500/10 rounded-full blur-3xl pointer-events-none" />}
+
+                                    <div className="flex justify-between items-start mb-6">
+                                        <div className={`p-4 rounded-2xl ${isLocked
+                                            ? 'bg-slate-100/50 dark:bg-slate-800/50 text-slate-400'
                                             : isCompleted
-                                                ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
-                                                : 'bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400'
+                                                ? 'bg-green-500/10 text-green-500 shadow-lg shadow-green-500/20'
+                                                : 'bg-pink-500/10 text-pink-500 shadow-lg shadow-pink-500/20'
                                             }`}>
-                                            {isCompleted ? <CheckCircle className="w-6 h-6 sm:w-7 sm:h-7" /> : (isLocked ? <Lock className="w-6 h-6 sm:w-7 sm:h-7" /> : <CheckSquare className="w-6 h-6 sm:w-7 sm:h-7" />)}
+                                            {isCompleted ? <CheckCircle className="w-8 h-8" strokeWidth={1.5} /> : <CheckSquare className="w-8 h-8" strokeWidth={1.5} />}
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className={`text-sm font-medium px-3 py-1 rounded-full ${isLocked
-                                                ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500'
-                                                : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+                                        <div className="flex items-center gap-3">
+                                            <span className={`text-sm font-bold px-4 py-1.5 rounded-full border ${isLocked
+                                                ? 'bg-slate-100/50 border-slate-200 text-slate-400'
+                                                : 'bg-white/50 dark:bg-slate-800/50 border-slate-200/50 dark:border-white/10 text-slate-600 dark:text-slate-300'
                                                 }`}>
                                                 {quiz.difficulty || 'Medium'}
                                             </span>
                                         </div>
                                     </div>
 
-                                    <h4 className={`text-lg sm:text-xl md:text-2xl font-bold mb-2 sm:mb-3 ${isLocked ? 'text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white'}`}>
+                                    <h4 className={`text-2xl sm:text-3xl font-extrabold mb-4 leading-tight ${isLocked ? 'text-slate-400' : 'text-slate-900 dark:text-white'}`}>
                                         {quiz.title}
                                     </h4>
 
-                                    <p className={`text-sm sm:text-base mb-4 sm:mb-6 line-clamp-2 sm:line-clamp-none ${isLocked ? 'text-slate-400 dark:text-slate-600' : 'text-slate-500 dark:text-slate-400'}`}>
+                                    <p className={`text-lg mb-8 leading-relaxed line-clamp-2 ${isLocked ? 'text-slate-400' : 'text-slate-600 dark:text-slate-300'}`}>
                                         {quiz.description}
                                     </p>
 
-                                    <div className={`flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm mb-6 sm:mb-8 ${isLocked ? 'text-slate-400' : 'text-slate-500'}`}>
-                                        <div className="flex items-center gap-2">
+                                    <div className={`flex flex-wrap items-center gap-6 mb-8 text-sm font-medium ${isLocked ? 'text-slate-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                                        <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700/50">
                                             <Clock className="w-4 h-4" />
                                             <span>{quiz.timeLimit || 10} {t('common.mins')}</span>
                                         </div>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700/50">
                                             <Award className="w-4 h-4" />
                                             <span>{quiz.questions?.length || 0} {t('quiz.questions')}</span>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700">
+                                    <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-6 border-t border-slate-200/50 dark:border-white/10">
                                         {isLocked ? (
-                                            <div className="flex items-center text-slate-400 text-xs sm:text-sm font-medium w-full justify-center py-2">
-                                                <span className="hidden sm:inline">{t('quiz.lockedDesc')}</span>
-                                                <span className="sm:hidden">{t('quiz.locked')}</span>
+                                            <div className="flex items-center text-slate-400 font-medium bg-slate-100 dark:bg-slate-800/50 px-4 py-2 rounded-xl">
+                                                <Lock size={18} className="mr-2" />
+                                                <span>{t('quiz.lockedDesc')}</span>
                                             </div>
                                         ) : (
-                                            <div className="w-full">
-                                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
-                                                    <div>
-                                                        {bestScore !== null && (
-                                                            <div className="text-xs sm:text-sm">
-                                                                {t('quiz.bestScore')}: <span className={`font-bold ${bestScore >= 80 ? 'text-green-600' : 'text-orange-500'
-                                                                    }`}>{bestScore}%</span>
+                                            <>
+                                                <div className="w-full sm:w-auto">
+                                                    {bestScore !== null && (
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm border-4 ${bestScore >= 80 ? 'border-green-500 text-green-600' : 'border-orange-500 text-orange-600'
+                                                                }`}>
+                                                                {bestScore}%
                                                             </div>
-                                                        )}
-                                                    </div>
-                                                    <Button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            // Calculate next quiz ID for "next" navigation after completion?
-                                                            // Usually we just go to the quiz page.
-                                                            const nextIndex = currentQuizIndex + 1;
-                                                            const nextQuizId = nextIndex < quizzes.length ? (quizzes[nextIndex].id || quizzes[nextIndex]._id) : null;
-
-                                                            navigate(`/quizzes/${quiz.id || quiz._id}`, {
-                                                                state: { nextQuizId }
-                                                            });
-                                                        }}
-                                                        className="bg-pink-600 hover:bg-pink-700 text-white w-full sm:w-auto"
-                                                    >
-                                                        <span className="hidden sm:inline">{isCompleted ? t('quiz.retake') : (bestScore !== null ? t('quiz.improve') : t('quiz.start'))}</span>
-                                                        <span className="sm:hidden">{isCompleted ? t('quiz.retake') : (bestScore !== null ? t('quiz.improve') : t('quiz.start'))}</span>
-                                                    </Button>
+                                                            <div className="flex flex-col">
+                                                                <span className="text-xs uppercase font-bold text-slate-400">{t('quiz.bestScore')}</span>
+                                                                <span className="text-sm font-medium text-slate-900 dark:text-white">Keep improving!</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
 
-                                                {/* Recent Attempts Mini-view */}
-                                                {!isLocked && quizAttempts.length > 0 && (
-                                                    <div className="mt-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg p-3">
-                                                        <h5 className="text-xs font-semibold uppercase text-slate-500 mb-2">{t('quiz.recentHistory')}</h5>
-                                                        <div className="space-y-2">
-                                                            {quizAttempts.slice(0, 2).map((attempt: any) => (
-                                                                <div key={attempt.id} className="flex justify-between text-xs">
-                                                                    <span className="text-slate-500">{formatDate(attempt)}</span>
-                                                                    <span className="font-mono">{attempt.score}%</span>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        // Pass the next quiz ID to handle seamless transitions if needed
+                                                        const nextIndex = currentQuizIndex + 1;
+                                                        const nextQuizId = nextIndex < quizzes.length ? (quizzes[nextIndex].id || quizzes[nextIndex]._id) : null;
+
+                                                        // Navigate to taking page with logic to render it
+                                                        setSelectedQuizId(quiz.id || quiz._id);
+                                                    }}
+                                                    className="w-full sm:w-auto relative group px-8 py-3 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white rounded-xl font-bold shadow-lg shadow-pink-500/30 hover:shadow-pink-500/50 hover:-translate-y-1 transition-all"
+                                                >
+                                                    <span className="flex items-center justify-center gap-2">
+                                                        {isCompleted ? t('quiz.retake') : (bestScore !== null ? t('quiz.improve') : t('quiz.start'))}
+                                                        <ArrowRight size={18} />
+                                                    </span>
+                                                </button>
+                                            </>
                                         )}
                                     </div>
+
+                                    {/* Recent Attempts Integrated nicely */}
+                                    {!isLocked && quizAttempts.length > 0 && (
+                                        <div className="mt-8 pt-4 border-t border-slate-200/50 dark:border-white/5">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <History size={14} className="text-slate-400" />
+                                                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">{t('quiz.recentHistory')}</span>
+                                            </div>
+                                            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                                                {quizAttempts.slice(0, 3).map((attempt: any) => (
+                                                    <div key={attempt.id} className="flex flex-col items-center bg-slate-50 dark:bg-slate-800/50 px-3 py-2 rounded-lg min-w-[80px] border border-slate-100 dark:border-slate-700/50">
+                                                        <span className="text-xs text-slate-500 mb-1">{formatDate(attempt)}</span>
+                                                        <span className={`font-bold text-sm ${attempt.score >= 80 ? 'text-green-500' : 'text-slate-700 dark:text-slate-300'}`}>{attempt.score}%</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
                                 </div>
                             </div>
-
                         );
                     })()}
                 </div>
             ) : (
-                <div className="text-center py-12">
-                    <p className="text-slate-500">{t('quiz.noQuizzes')}</p>
+                <div className="glass-panel py-20 text-center rounded-3xl border-dashed border-2 border-slate-300 dark:border-slate-700">
+                    <CheckSquare className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                    <p className="text-xl text-slate-500 font-bold">{t('quiz.noQuizzes')}</p>
+                    <p className="text-slate-400 mt-2">Check back later for new challenges!</p>
                 </div>
             )}
         </div>

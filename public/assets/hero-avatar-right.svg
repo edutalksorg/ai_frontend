@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 400" fill="none">
+  <defs>
+    <filter id="neonGlow2">
+      <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <g stroke="#a78bfa" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#neonGlow2)">
+    
+    <!-- Hair (Spiky Variation) -->
+    <path d="M85 130 L100 95 L120 120 L150 85 L180 120 L200 95 L215 130" />
+    
+    <!-- Head -->
+    <rect x="90" y="130" width="120" height="130" rx="30" />
+    
+    <!-- Eyes -->
+    <circle cx="125" cy="180" r="5" fill="#a78bfa" stroke="none"/>
+    <circle cx="175" cy="180" r="5" fill="#a78bfa" stroke="none"/>
+    
+    <!-- Mouth/Goatee -->
+    <rect x="130" y="220" width="40" height="30" />
+    
+    <!-- Torso -->
+    <path d="M50 280 L50 350 Q150 380 250 350 L250 280" />
+    
+    <!-- Hand holding phone -->
+    <circle cx="70" cy="280" r="20" />
+    
+    <!-- Phone -->
+    <rect x="50" y="230" width="50" height="80" rx="5" transform="rotate(15 70 280)" />
+    <rect x="55" y="235" width="40" height="60" rx="2" transform="rotate(15 70 280)" opacity="0.6"/>
+
+  </g>
+</svg>

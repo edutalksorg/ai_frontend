@@ -9,11 +9,8 @@ import {
     User,
     Ticket,
     Home,
-    Moon,
-    Sun,
-    BookOpen,
-    Mic,
-    Menu
+
+    Clock
 } from 'lucide-react';
 import type { RootState, AppDispatch } from '../store';
 import { logout } from '../store/authSlice';
@@ -27,6 +24,7 @@ import { LanguageSelector } from './common/LanguageSelector';
 import { Logo } from './common/Logo';
 import callsService from '../services/calls';
 import { useTranslation } from 'react-i18next';
+import BackgroundGraphics from './BackgroundGraphics';
 
 interface UserLayoutProps {
     children: React.ReactNode;
@@ -62,7 +60,6 @@ const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
         navigate('/');
     };
 
-    // Close profile dropdown when clicking outside or pressing Escape
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (!profileRef.current) return;
@@ -70,11 +67,9 @@ const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                 setProfileOpen(false);
             }
         };
-
         const handleKey = (e: KeyboardEvent) => {
             if (e.key === 'Escape' && profileOpen) setProfileOpen(false);
         };
-
         document.addEventListener('mousedown', handleClickOutside);
         document.addEventListener('keydown', handleKey);
         return () => {
@@ -93,30 +88,33 @@ const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
     ];
 
     return (
-        <div className="min-h-dvh bg-slate-50 dark:bg-slate-950 flex flex-col">
-            {/* Header */}
-            <header className="sticky top-0 z-40 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-                <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-14 md:h-16">
-                        {/* Logo */}
-                        <div className="cursor-pointer" onClick={() => navigate('/dashboard')}>
+        <div className="min-h-[100dvh] relative flex flex-col isolate">
+            {/* Ambient Background */}
+            <BackgroundGraphics />
+
+            {/* Floating Glass Header */}
+            <div className="sticky top-4 z-50 px-3 sm:px-4 md:px-6 lg:px-8 pointer-events-none">
+                <header className="glass-panel mx-auto max-w-7xl rounded-2xl pointer-events-auto transition-all duration-300">
+                    <div className="px-4 h-16 md:h-20 flex items-center justify-between">
+                        {/* Logo Area */}
+                        <div className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')}>
                             <Logo />
                         </div>
 
                         {/* Right Actions */}
                         <div className="flex items-center gap-2 md:gap-4">
-                            {/* Trial/Plan Status */}
+                            {/* Status Badges */}
                             {isExplicitlyCancelled ? (
-                                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-full animate-pulse">
-                                    <div className="w-2 h-2 rounded-full bg-red-500" />
-                                    <span className="text-xs font-semibold text-red-700 dark:text-red-300">
+                                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-full animate-pulse">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
+                                    <span className="text-xs font-semibold text-red-600 dark:text-red-300">
                                         {t('subscription.noActivePlan')}
                                     </span>
                                 </div>
                             ) : isContentLocked && !hasActiveSubscription ? (
-                                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-full">
-                                    <div className="w-2 h-2 rounded-full bg-orange-500" />
-                                    <span className="text-xs font-semibold text-orange-700 dark:text-orange-300">
+                                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 border border-orange-500/20 rounded-full">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]" />
+                                    <span className="text-xs font-semibold text-orange-600 dark:text-orange-300">
                                         {t('subscription.planExpired')}
                                     </span>
                                 </div>
@@ -130,46 +128,43 @@ const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                                 />
                             )}
 
-                            {/* Theme Toggle */}
-                            <button
-                                onClick={() => dispatch(toggleTheme())}
-                                className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-                                aria-label="Toggle theme"
-                            >
-                                {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-                            </button>
+
 
                             {/* Language Selector */}
-                            <LanguageSelector />
+                            <div className="glass-button rounded-lg px-2 flex items-center !text-slate-600 dark:!text-slate-300">
+                                <LanguageSelector />
+                            </div>
 
                             {/* Profile Dropdown */}
                             <div className="relative" ref={profileRef}>
                                 <button
                                     onClick={() => setProfileOpen(!profileOpen)}
-                                    className="flex items-center gap-2 focus:outline-none relative min-h-[44px] min-w-[44px]"
+                                    className="flex items-center gap-2 focus:outline-none relative transition-transform active:scale-95"
                                 >
-                                    <div className="relative">
+                                    <div className="relative ring-2 ring-white/20 rounded-full">
                                         <img
                                             src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'User')}`}
                                             alt="Profile"
-                                            className="w-9 h-9 md:w-10 md:h-10 rounded-full border border-slate-200 dark:border-slate-700"
+                                            className="w-10 h-10 rounded-full object-cover"
                                         />
-                                        <OnlineStatusIndicator />
+                                        <div className="absolute bottom-0 right-0 border-[3px] border-white dark:border-slate-900 rounded-full">
+                                            <OnlineStatusIndicator />
+                                        </div>
                                     </div>
                                 </button>
 
                                 {profileOpen && (
-                                    <div className="absolute right-0 mt-2 w-56 md:w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-2 z-50">
-                                        <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 mb-2">
-                                            <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                                    <div className="glass-card absolute right-0 mt-3 w-64 rounded-xl shadow-2xl py-2 z-50 animate-slideUp origin-top-right overflow-hidden">
+                                        <div className="px-4 py-4 border-b border-slate-200/50 dark:border-white/10 mb-2 bg-slate-50/50 dark:bg-slate-900/50">
+                                            <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
                                                 {user?.fullName}
                                             </p>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5 font-medium">
                                                 {user?.email}
                                             </p>
                                         </div>
 
-                                        <div className="max-h-[60vh] overflow-y-auto">
+                                        <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
                                             {menuItems.map((item) => (
                                                 <button
                                                     key={item.path}
@@ -177,18 +172,18 @@ const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                                                         setProfileOpen(false);
                                                         navigate(item.path);
                                                     }}
-                                                    className="w-full text-left flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors min-h-[44px]"
+                                                    className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-300 transition-all border-l-2 border-transparent hover:border-violet-500"
                                                 >
-                                                    {item.icon}
+                                                    {React.cloneElement(item.icon as any, { className: "opacity-70 group-hover:opacity-100" })}
                                                     {item.label}
                                                 </button>
                                             ))}
                                         </div>
 
-                                        <div className="mt-2 border-t border-slate-200 dark:border-slate-800 pt-2">
+                                        <div className="mt-2 border-t border-slate-200/50 dark:border-white/10 pt-2">
                                             <button
                                                 onClick={() => { setProfileOpen(false); handleLogout(); }}
-                                                className="w-full text-left flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors min-h-[44px]"
+                                                className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors"
                                             >
                                                 <LogOut size={18} />
                                                 {t('nav.signOut')}
@@ -199,11 +194,11 @@ const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                             </div>
                         </div>
                     </div>
-                </div>
-            </header>
+                </header>
+            </div>
 
             {/* Main Content */}
-            <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-6 lg:py-8 overflow-x-hidden">
+            <main className="flex-1 w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-12 mt-4 animate-fadeIn user-select-none">
                 {children}
             </main>
 

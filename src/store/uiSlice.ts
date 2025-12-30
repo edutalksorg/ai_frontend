@@ -20,7 +20,7 @@ const DEFAULT_LANGUAGE = 'English';
 const LANGUAGE_KEY = 'edutalks_language';
 
 const initialState: UIState = {
-  theme: (localStorage.getItem('edutalks_theme') as 'light' | 'dark') || 'light',
+  theme: 'dark', // Force dark mode
   sidebarOpen: true,
   toast: null,
   modal: null,
@@ -32,22 +32,16 @@ export const uiSlice = createSlice({
   initialState,
   reducers: {
     setTheme: (state, action: PayloadAction<'light' | 'dark'>) => {
-      state.theme = action.payload;
-      localStorage.setItem('edutalks_theme', action.payload);
-      if (action.payload === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+      // Force dark mode regardless of payload
+      state.theme = 'dark';
+      localStorage.setItem('edutalks_theme', 'dark');
+      document.documentElement.classList.add('dark');
     },
     toggleTheme: (state) => {
-      state.theme = state.theme === 'light' ? 'dark' : 'light';
-      localStorage.setItem('edutalks_theme', state.theme);
-      if (state.theme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+      // Always ensure it's dark
+      state.theme = 'dark';
+      localStorage.setItem('edutalks_theme', 'dark');
+      document.documentElement.classList.add('dark');
     },
     setSidebarOpen: (state, action: PayloadAction<boolean>) => {
       state.sidebarOpen = action.payload;

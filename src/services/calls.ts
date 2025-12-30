@@ -12,12 +12,21 @@ export const callsService = {
   searchUsers: async (searchTerm: string, language?: string) =>
     apiService.get('/calls/search-users', { params: { searchTerm, language } }),
 
-  updateAvailability: async (status: 'Online' | 'Offline') =>
-    apiService.put('/calls/availability', { status }),
+  updateAvailability: async (status: 'Online' | 'Offline') => {
+    try {
+      return await apiService.put('/calls/availability', { status });
+    } catch (error: any) {
+      console.error('Failed to update availability:', JSON.stringify(error.response?.data || error.message, null, 2));
+      throw error;
+    }
+  },
 
   // Call Management
   initiate: async (data: { calleeId: string; topicId?: string }) =>
     apiService.post('/calls/initiate', data),
+
+  initiateRandomCall: async (data: { preferredLanguage?: string | null; topicId?: string | null }) =>
+    apiService.post('/calls/initiate-random', data),
 
   respond: async (callId: string, accept: boolean) =>
     apiService.post(`/calls/${callId}/respond`, accept), // Sending boolean directly as per spec

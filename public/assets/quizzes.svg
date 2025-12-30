@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+  </defs>
+  
+  <rect width="800" height="600" fill="url(#bg)"/>
+  
+  <!-- Question Card -->
+  <rect x="200" y="100" width="400" height="400" rx="30" fill="white" fill-opacity="0.05" stroke="white" stroke-opacity="0.1"/>
+  
+  <!-- Timer -->
+  <circle cx="400" cy="160" r="40" stroke="#f59e0b" stroke-width="5" fill="none"/>
+  <path d="M400 160 L400 135" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>
+  
+  <!-- Question Text -->
+  <rect x="250" y="230" width="300" height="15" rx="7" fill="white" fill-opacity="0.8"/>
+  <rect x="250" y="260" width="200" height="15" rx="7" fill="white" fill-opacity="0.4"/>
+  
+  <!-- Options -->
+  <rect x="250" y="310" width="300" height="40" rx="10" fill="#22c55e" fill-opacity="0.2" stroke="#22c55e"/>
+  <circle cx="275" cy="330" r="10" fill="#22c55e"/>
+  <path d="M270 330 L273 333 L280 326" stroke="white" stroke-width="2"/>
+  
+  <rect x="250" y="370" width="300" height="40" rx="10" fill="white" fill-opacity="0.05"/>
+  <circle cx="275" cy="390" r="10" fill="#475569"/>
+  
+  <!-- Confetti -->
+  <rect x="100" y="100" width="10" height="20" fill="#ec4899" transform="rotate(45 100 100)"/>
+  <rect x="700" y="200" width="10" height="20" fill="#6366f1" transform="rotate(-30 700 200)"/>
+  <circle cx="650" cy="500" r="8" fill="#f59e0b"/>
+</svg>

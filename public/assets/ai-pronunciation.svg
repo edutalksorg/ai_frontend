@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="grad1" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#818cf8"/>
+    </linearGradient>
+  </defs>
+  
+  <rect width="800" height="600" fill="url(#bg)"/>
+  
+  <!-- Central Mic -->
+  <circle cx="400" cy="300" r="80" fill="#22d3ee" fill-opacity="0.1"/>
+  <circle cx="400" cy="300" r="60" fill="none" stroke="#22d3ee" stroke-width="2"/>
+  
+  <rect x="385" y="270" width="30" height="60" rx="15" fill="white"/>
+  <path d="M415 300 A1 1 0 0 1 385 300" fill="white"/>
+  <path d="M400 340 L400 360 M380 360 L420 360" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  
+  <!-- Sound Waves (Neural) -->
+  <path d="M100 300 Q200 100 300 300 T500 300 T700 300" stroke="url(#grad1)" stroke-width="2" fill="none" opacity="0.3"/>
+  <path d="M100 300 Q200 500 300 300 T500 300 T700 300" stroke="url(#grad1)" stroke-width="2" fill="none" opacity="0.3"/>
+  
+  <rect x="200" y="250" width="5" height="100" rx="2" fill="#818cf8"/>
+  <rect x="220" y="220" width="5" height="160" rx="2" fill="#22d3ee"/>
+  <rect x="240" y="280" width="5" height="40" rx="2" fill="#818cf8"/>
+  <rect x="560" y="260" width="5" height="80" rx="2" fill="#22d3ee"/>
+  <rect x="580" y="230" width="5" height="140" rx="2" fill="#818cf8"/>
+  
+  <!-- Score -->
+  <text x="400" y="450" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="24" fill="#22c55e">98% Match</text>
+</svg>

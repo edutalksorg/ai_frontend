@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#ec4899"/>
+    </linearGradient>
+    <filter id="blur">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="15" />
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="800" height="600" fill="url(#bg)"/>
+  
+  <!-- Ambient Glows -->
+  <circle cx="200" cy="500" r="150" fill="#6366f1" fill-opacity="0.1" filter="url(#blur)"/>
+  <circle cx="600" cy="100" r="120" fill="#ec4899" fill-opacity="0.1" filter="url(#blur)"/>
+
+  <!-- Phone UI Container -->
+  <rect x="250" y="100" width="300" height="400" rx="40" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
+  
+  <!-- Avatars -->
+  <circle cx="400" cy="220" r="60" fill="rgba(255,255,255,0.1)" stroke="url(#glow)" stroke-width="3"/>
+  <circle cx="400" cy="220" r="50" fill="#334155"/>
+  <path d="M375 235 Q400 260 425 235" stroke="white" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <circle cx="385" cy="210" r="5" fill="white"/>
+  <circle cx="415" cy="210" r="5" fill="white"/>
+  
+  <!-- Waveform -->
+  <path d="M290 350 Q310 320 330 350 T370 350 T410 350 T450 350 T490 350" stroke="#6366f1" stroke-width="3" fill="none"/>
+  <path d="M290 350 Q310 380 330 350 T370 350 T410 350 T450 350 T490 350" stroke="#ec4899" stroke-width="3" fill="none" opacity="0.6"/>
+
+  <!-- Controls -->
+  <circle cx="330" cy="420" r="25" fill="#ef4444" fill-opacity="0.2"/>
+  <circle cx="400" cy="420" r="25" fill="#3b82f6" fill-opacity="0.2"/>
+  <circle cx="470" cy="420" r="25" fill="#22c55e" fill-opacity="0.2"/>
+  
+  <!-- Icons -->
+  <path d="M320 410 L340 430 M340 410 L320 430" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+</svg>

@@ -190,6 +190,7 @@
   },
   "voiceCall": {
     "title": "വോയ്സ് കോൾ",
+    "usage": "ഉപയോഗം",
     "availableUsers": "ലഭ്യമായ ഉപയോക്താക്കൾ",
     "callHistory": "കോൾ ചരിത്രം",
     "available": "ലഭ്യമാണ്",

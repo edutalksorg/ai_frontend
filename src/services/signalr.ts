@@ -1,5 +1,6 @@
 import * as signalR from '@microsoft/signalr';
 import { store } from '../store';
+import { callsService } from './calls';
 import {
     setSignalRConnected,
     setIncomingInvitation,
@@ -7,7 +8,9 @@ import {
     acceptCall,
     setCallStatus,
     endCall,
-    updateDuration
+    updateDuration,
+    initiateCall,
+    VoiceCall
 } from '../store/callSlice';
 import { callLogger } from '../utils/callLogger';
 
@@ -250,11 +253,50 @@ class SignalRService {
         });
 
         // 2. CallAccepted
-        register('CallAccepted', (payload: any) => {
+        register('CallAccepted', async (payload: any) => {
             callLogger.signalrEvent('CallAccepted', payload);
-            const callId = payload.callId || payload.CallId;
+
+            // Try all possible casing variants or direct string
+            const callId = typeof payload === 'string' ? payload : (payload?.callId || payload?.CallId || payload?.id || payload?.Id);
+
+            if (!callId) {
+                callLogger.error('❌ CallAccepted event received but Call ID is missing!', payload);
+                return;
+            }
+
+            // Check if we have currentCall state (needed for overlay). 
+            // If random call, we might not have it yet.
+            const state = store.getState();
+            if (!state.call.currentCall) {
+                callLogger.info('⚠️ currentCall is missing in CallAccepted (Random Call?), fetching details...', { callId });
+                try {
+                    const response = await callsService.getCall(callId);
+                    const callData: any = (response as any).data || response;
+
+                    // Map to VoiceCall object
+                    const voiceCall: VoiceCall = {
+                        callId: callData.id || callData.callId,
+                        callerId: callData.callerId,
+                        callerName: callData.callerName || 'Caller',
+                        callerAvatar: callData.callerAvatar,
+                        calleeId: callData.calleeId,
+                        calleeName: callData.calleeName || 'User',
+                        calleeAvatar: callData.calleeAvatar,
+                        topicId: callData.topicId,
+                        topicTitle: callData.topicTitle,
+                        status: 'accepted',
+                        initiatedAt: callData.initiatedAt || new Date().toISOString(),
+                    };
+
+                    store.dispatch(initiateCall(voiceCall));
+                    callLogger.info('✅ Populated missing currentCall from API', { callId: voiceCall.callId });
+                } catch (err) {
+                    callLogger.error('Failed to fetch call details for random call', err);
+                }
+            }
+
             callLogger.info('✅ Call accepted by callee', { callId });
-            store.dispatch(setCallStatus('connecting'));
+            store.dispatch(setCallStatus('connecting' as any));
 
             // Caller joins the session strictly AFTER Callee accepts
             callLogger.info('Joining session after acceptance', { callId });
@@ -308,11 +350,41 @@ class SignalRService {
         });
 
         // 5. CallActive
-        register('CallActive', (payload: any) => {
+        register('CallActive', async (payload: any) => {
             callLogger.signalrEvent('CallActive', payload);
-            const callId = payload.callId || payload.CallId;
+            const callId = typeof payload === 'string' ? payload : (payload?.callId || payload?.CallId);
             callLogger.info('🟢 Call is now active', { callId });
-            store.dispatch(setCallStatus('active'));
+
+            // Ensure we have currentCall state
+            const state = store.getState();
+            if (!state.call.currentCall && callId) {
+                callLogger.info('⚠️ currentCall is missing in CallActive, fetching details...', { callId });
+                try {
+                    const response = await callsService.getCall(callId);
+                    const callData: any = (response as any).data || response;
+
+                    const voiceCall: VoiceCall = {
+                        callId: callData.id || callData.callId,
+                        callerId: callData.callerId,
+                        callerName: callData.callerName || 'Caller',
+                        callerAvatar: callData.callerAvatar,
+                        calleeId: callData.calleeId,
+                        calleeName: callData.calleeName || 'User',
+                        calleeAvatar: callData.calleeAvatar,
+                        topicId: callData.topicId,
+                        topicTitle: callData.topicTitle,
+                        status: 'ongoing',
+                        initiatedAt: callData.initiatedAt || new Date().toISOString(),
+                    };
+
+                    store.dispatch(initiateCall(voiceCall));
+                    callLogger.info('✅ Populated missing currentCall from API in CallActive');
+                } catch (err) {
+                    callLogger.error('Failed to fix missing state in CallActive', err);
+                }
+            }
+
+            store.dispatch(setCallStatus('active' as any));
         });
 
         // 6. DurationWarning
