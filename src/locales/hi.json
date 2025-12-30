@@ -164,6 +164,7 @@
     },
     "voiceCall": {
         "title": "वॉयस कॉल",
+        "usage": "उपयोग",
         "availableUsers": "उपलब्ध उपयोगकर्ता",
         "callHistory": "कॉल इतिहास",
         "available": "उपलब्ध",

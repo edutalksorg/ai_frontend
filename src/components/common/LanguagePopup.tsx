@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import { RootState } from '../../store';
 import { setLanguage } from '../../store/uiSlice';
 import { Globe, Check } from 'lucide-react';
@@ -11,22 +12,35 @@ const POPUP_SEEN_KEY = 'has_seen_language_popup';
 
 export const LanguagePopup: React.FC = () => {
     const dispatch = useDispatch();
+    const { i18n } = useTranslation();
     const { language, modal } = useSelector((state: RootState) => state.ui);
     const { isAuthenticated } = useSelector((state: RootState) => state.auth);
     const [isOpen, setIsOpen] = useState(false);
-    const [selectedLang, setSelectedLang] = useState(language);
+    const [selectedLang, setSelectedLang] = useState(i18n.language || 'en');
 
     useEffect(() => {
         // Only show if authenticated and hasn't seen popup
         const hasSeen = localStorage.getItem(POPUP_SEEN_KEY);
         if (isAuthenticated && !hasSeen) {
             setIsOpen(true);
-            setSelectedLang(language);
+            setSelectedLang(i18n.language || 'en');
         }
-    }, [isAuthenticated, language]);
+    }, [isAuthenticated, i18n.language]);
 
     const handleSave = () => {
-        dispatch(setLanguage(selectedLang));
+        // Update i18n language
+        i18n.changeLanguage(selectedLang);
+
+        // Also persist to the language preference key used by i18n
+        localStorage.setItem('edutalks_language_preference', selectedLang);
+
+        // Update Redux state (for backwards compatibility)
+        const selectedLanguage = LANGUAGES.find(lang => lang.code === selectedLang);
+        if (selectedLanguage) {
+            dispatch(setLanguage(selectedLanguage.name));
+        }
+
+        // Mark popup as seen
         localStorage.setItem(POPUP_SEEN_KEY, 'true');
         setIsOpen(false);
     };
@@ -50,7 +64,7 @@ export const LanguagePopup: React.FC = () => {
 
                 <div className="p-4 max-h-[60vh] overflow-y-auto">
                     <div className="grid grid-cols-1 gap-2">
-                        {LANGUAGES.filter(lang => lang.code !== 'English').map((lang) => (
+                        {LANGUAGES.filter(lang => lang.code !== 'en').map((lang) => (
                             <button
                                 key={lang.code}
                                 onClick={() => setSelectedLang(lang.code)}

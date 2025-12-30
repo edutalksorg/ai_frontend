@@ -281,10 +281,10 @@ const UserVoiceCall: React.FC = () => {
 
             {/* Main Content Area */}
             {activeTab === 'available' && (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                     {/* Left: Random Call CTA */}
                     <div className="lg:col-span-2 space-y-6">
-                        <div className="relative overflow-hidden glass-panel rounded-3xl p-8 sm:p-12 text-center group">
+                        <div className="relative overflow-hidden glass-panel rounded-3xl p-8 sm:p-12 text-center group flex flex-col justify-center min-h-[500px]">
                             {/* Decorative Background Blobs inside card */}
                             <div className="absolute top-0 right-0 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-violet-500/20 transition-all duration-700" />
                             <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3 group-hover:bg-cyan-500/20 transition-all duration-700" />
@@ -332,7 +332,7 @@ const UserVoiceCall: React.FC = () => {
                     </div>
 
                     {/* Right: Stats Table / Info */}
-                    <div className="glass-panel p-6 rounded-3xl space-y-6">
+                    <div className="glass-panel p-6 rounded-3xl space-y-6 flex flex-col max-h-[500px]">
                         <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-white/10">
                             <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                                 <Clock className="w-4 h-4 text-violet-500" />
@@ -369,9 +369,9 @@ const UserVoiceCall: React.FC = () => {
                             )}
                         </div>
 
-                        <div className="pt-6 border-t border-slate-200/50 dark:border-white/10">
+                        <div className="pt-6 border-t border-slate-200/50 dark:border-white/10 flex-1 flex flex-col min-h-0">
                             <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-4">{t('voiceCall.onlineUsers')} ({availableUsers.length})</h4>
-                            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                            <div className="space-y-3 flex-1 min-h-0 overflow-y-auto pr-2 custom-scrollbar">
                                 {availableUsers.map((u, i) => (
                                     <div key={i} className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/50 dark:hover:bg-white/5 transition-colors">
                                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 p-[2px]">

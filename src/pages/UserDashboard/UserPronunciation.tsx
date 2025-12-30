@@ -106,27 +106,27 @@ const UserPronunciation: React.FC = () => {
     return (
         <div className="space-y-8">
             {/* Rich Header */}
-            <div className="glass-panel p-6 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden group">
+            <div className="glass-panel p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 relative overflow-hidden group">
                 {/* Decorative background for header */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-pink-500/20 transition-all duration-700" />
 
-                <div className="flex items-center gap-5 relative z-10">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-500 p-[2px] shadow-lg shadow-pink-500/20">
+                <div className="flex items-center gap-4 relative z-10">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-500 p-[2px] shadow-lg shadow-pink-500/20">
                         <div className="w-full h-full rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center backdrop-blur-sm">
-                            <Mic className="w-8 h-8 text-pink-500" />
+                            <Mic className="w-6 h-6 text-pink-500" />
                         </div>
                     </div>
                     <div>
-                        <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300">
+                        <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300">
                             {t('pronunciation.title')}
                         </h3>
-                        <p className="text-slate-500 dark:text-slate-400 font-medium">
+                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
                             Master your speaking skills
                         </p>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 bg-white/50 dark:bg-slate-800/50 px-5 py-3 rounded-xl border border-slate-200/50 dark:border-white/10 backdrop-blur-md relative z-10">
+                <div className="flex items-center gap-3 bg-white/50 dark:bg-slate-800/50 px-4 py-2 rounded-xl border border-slate-200/50 dark:border-white/10 backdrop-blur-md relative z-10">
                     <div className="flex flex-col items-end">
                         <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Progress</span>
                         <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
@@ -276,8 +276,8 @@ const UserPronunciation: React.FC = () => {
                                         onClick={() => setSidebarPage(prev => Math.max(0, prev - 1))}
                                         disabled={sidebarPage === 0}
                                         className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold flex items-center justify-center gap-1 transition-all ${sidebarPage === 0
-                                                ? 'text-slate-300 bg-slate-100 dark:bg-slate-800/50 cursor-not-allowed'
-                                                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                                            ? 'text-slate-300 bg-slate-100 dark:bg-slate-800/50 cursor-not-allowed'
+                                            : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                                             }`}
                                     >
                                         <ChevronLeft size={16} /> Prev
@@ -286,8 +286,8 @@ const UserPronunciation: React.FC = () => {
                                         onClick={() => setSidebarPage(prev => Math.min(Math.ceil(paragraphs.length / ITEMS_PER_PAGE) - 1, prev + 1))}
                                         disabled={sidebarPage >= Math.ceil(paragraphs.length / ITEMS_PER_PAGE) - 1}
                                         className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold flex items-center justify-center gap-1 transition-all ${sidebarPage >= Math.ceil(paragraphs.length / ITEMS_PER_PAGE) - 1
-                                                ? 'text-slate-300 bg-slate-100 dark:bg-slate-800/50 cursor-not-allowed'
-                                                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                                            ? 'text-slate-300 bg-slate-100 dark:bg-slate-800/50 cursor-not-allowed'
+                                            : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                                             }`}
                                     >
                                         Next <ChevronRight size={16} />

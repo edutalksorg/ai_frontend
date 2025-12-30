@@ -21,17 +21,31 @@ export const LanguageSelector: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [showAllLanguages, setShowAllLanguages] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const isUpdatingRef = useRef(false);
+
+    // Sync with i18n language changes (from popup or other sources)
+    useEffect(() => {
+        if (isUpdatingRef.current) {
+            isUpdatingRef.current = false;
+            return;
+        }
+
+        const currentLang = i18n.language;
+        const found = LANGUAGES.find(l => l.code === currentLang);
+        if (found && found.code !== selectedLanguage.code) {
+            setSelectedLanguage(found);
+        }
+    }, [i18n.language]);
 
     // Persist to localStorage and change i18n language whenever selection changes
     useEffect(() => {
-        if (selectedLanguage) {
+        if (selectedLanguage && i18n.language !== selectedLanguage.code) {
+            isUpdatingRef.current = true;
             localStorage.setItem(STORAGE_KEY, selectedLanguage.code);
-            // Change i18n language
             i18n.changeLanguage(selectedLanguage.code);
-            // Dispatch custom event if other components need to know
             window.dispatchEvent(new Event('languageChanged'));
         }
-    }, [selectedLanguage, i18n]);
+    }, [selectedLanguage.code]);
 
     // Close on click outside & Reset list view
     useEffect(() => {

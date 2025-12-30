@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { Mic, BookOpen, Phone, CheckSquare, Rocket, Star, Zap, Twitter, Github, Linkedin, Instagram, Mail, ArrowRight } from 'lucide-react';
 import Button from '../../components/Button';
 import { Logo } from '../../components/common/Logo';
-import { LanguageSelector } from '../../components/common/LanguageSelector';
 
 const LandingPage: React.FC = () => {
   const { t } = useTranslation();
@@ -18,7 +17,6 @@ const LandingPage: React.FC = () => {
             <Logo className="!text-xl sm:!text-2xl" />
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
-            <LanguageSelector />
             <Link to="/login">
               <Button variant="outline" size="md" className="!px-2.5 !py-1.5 !text-xs sm:!px-4 sm:!py-2.5 sm:!text-base">
                 {t('landing.nav.login')}

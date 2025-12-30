@@ -317,15 +317,33 @@ class SignalRService {
         register('CallEnded', (payload: any) => {
             callLogger.signalrEvent('CallEnded', payload);
 
-            const reason = payload.reason || payload.Reason;
+            const reason = payload.reason || payload.Reason || 'No reason provided';
             const callId = payload.callId || payload.CallId;
             const timestamp = payload.timestamp || payload.Timestamp;
+
+            // Log full payload for debugging auto-disconnect issues
+            callLogger.info(`📞 CallEnded event received`, {
+                reason,
+                callId,
+                timestamp,
+                fullPayload: payload
+            });
 
             // Bypass backend duration limits as per user request
             if (reason && reason.toLowerCase().includes('maximum duration exceeded')) {
                 callLogger.warning(`⚠️ Ignoring backend forced termination: ${reason}`, {
                     callId
                 });
+                return;
+            }
+
+            // Check for other backend-initiated endings that should be ignored
+            if (reason && (
+                reason.toLowerCase().includes('timeout') ||
+                reason.toLowerCase().includes('duration limit') ||
+                reason.toLowerCase().includes('time limit')
+            )) {
+                callLogger.warning(`⚠️ Ignoring backend timeout: ${reason}`, { callId });
                 return;
             }
 
@@ -409,6 +427,16 @@ class SignalRService {
                     type: 'warning'
                 }));
             });
+        });
+
+        // 8. ParticipantLeft (when remote user leaves the call)
+        register('ParticipantLeft', (payload: any) => {
+            callLogger.signalrEvent('ParticipantLeft', payload);
+            const userId = payload.userId || payload.UserId;
+            callLogger.info(`👋 Participant left: ${userId}`, payload);
+
+            // Don't auto-end call here - let CallEnded event handle it
+            // This is just a notification that someone left
         });
 
         // Note: WebRTC signaling events (ReceiveOffer, ReceiveAnswer, ReceiveIceCandidate) 

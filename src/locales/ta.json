@@ -164,6 +164,7 @@
     },
     "voiceCall": {
         "title": "குரல் அழைப்பு",
+        "usage": "பயன்பாடு",
         "availableUsers": "கிடைக்கும் பயனர்கள்",
         "callHistory": "அழைப்பு வரலாறு",
         "available": "கிடைக்கிறது",

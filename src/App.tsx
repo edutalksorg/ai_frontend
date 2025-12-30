@@ -11,6 +11,7 @@ import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import ResendConfirmationPage from './pages/auth/ResendConfirmationPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import ChangePasswordPage from './pages/auth/ChangePasswordPage';
+import VerifyEmailPage from './pages/auth/VerifyEmailPage';
 import AdminDashboardPage from './pages/AdminDashboard/AdminDashboardPage';
 import AdminUsersPage from './pages/AdminDashboard/AdminUsersPage';
 import AdminInstructorsPage from './pages/AdminDashboard/AdminInstructorsPage';
@@ -253,7 +254,8 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/resend-confirmation" element={<ResendConfirmationPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/register" element={<RegisterPage />} /><Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/verify/:token" element={<VerifyEmailPage />} />
 
         {/* Admin Routes - Restricted to admin role */}
         {/* Redirect /admin to /admindashboard for consistency */}
