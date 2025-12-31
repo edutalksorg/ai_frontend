@@ -26,7 +26,7 @@ const UserVoiceCall: React.FC = () => {
 
     const [activeTab, setActiveTab] = useState<'available' | 'history'>('available');
     const [availableUsers, setAvailableUsers] = useState<any[]>([]);
-    const [userStatus, setUserStatus] = useState('online');
+    const [userStatus, setUserStatus] = useState(() => localStorage.getItem('user_availability_preference') || 'online');
     const [history, setHistory] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
@@ -192,9 +192,13 @@ const UserVoiceCall: React.FC = () => {
                 if (pollCount % 6 === 0) {
                     // Heartbeat to keep availability fresh (every 30 seconds)
                     // Silently fail if backend rejects (user might already be marked Online)
-                    callsService.updateAvailability('Online').catch(() => {
-                        // Ignore errors - backend might reject if status unchanged
-                    });
+                    // Only pulse if user intends to be online
+                    const pref = localStorage.getItem('user_availability_preference');
+                    if (pref !== 'offline') {
+                        callsService.updateAvailability('Online').catch(() => {
+                            // Ignore errors - backend might reject if status unchanged
+                        });
+                    }
                 }
             }, 5000);
             return () => clearInterval(interval);
@@ -265,9 +269,11 @@ const UserVoiceCall: React.FC = () => {
                             className="bg-transparent border-none text-slate-700 dark:text-slate-200 text-sm font-medium focus:ring-0 cursor-pointer"
                             value={userStatus}
                             onChange={(e) => {
-                                setUserStatus(e.target.value);
-                                if (e.target.value === 'online' || e.target.value === 'offline') {
-                                    callsService.updateAvailability(e.target.value === 'online' ? 'Online' : 'Offline').catch(console.error);
+                                const newStatus = e.target.value;
+                                setUserStatus(newStatus);
+                                localStorage.setItem('user_availability_preference', newStatus);
+                                if (newStatus === 'online' || newStatus === 'offline') {
+                                    callsService.updateAvailability(newStatus === 'online' ? 'Online' : 'Offline').catch(console.error);
                                 }
                             }}
                         >

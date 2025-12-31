@@ -72,18 +72,23 @@ const CallManager: React.FC = () => {
             signalRService.connect(HUB_URL)
                 .then(() => {
                     callLogger.info('✅ SignalR connection established successfully');
-                    // Automatically set availability to Online
-                    callsService.updateAvailability('Online')
-                        .then(() => callLogger.info('Updated availability to Online'))
-                        .catch(err => callLogger.warning('Failed to auto-set availability', err));
+                    // Automatically set availability to Online (or preferred status)
+                    // Add small delay to ensure connection is fully stabilized
+                    setTimeout(() => {
+                        const preferredStatus = localStorage.getItem('user_availability_preference') === 'offline' ? 'Offline' : 'Online';
+                        callsService.updateAvailability(preferredStatus as 'Online' | 'Offline')
+                            .then(() => callLogger.info(`Updated availability to ${preferredStatus}`))
+                            .catch(err => callLogger.warning('Failed to auto-set availability', err));
+                    }, 250);
                 })
                 .catch(async (error) => {
                     callLogger.error('❌ SignalR connection failed', error);
                 });
 
             // Try to set availability, and if it fails due to "active call", try to clean up
-            callsService.updateAvailability('Online')
-                .then(() => callLogger.info('Updated availability to Online'))
+            const preferredStatus = localStorage.getItem('user_availability_preference') === 'offline' ? 'Offline' : 'Online';
+            callsService.updateAvailability(preferredStatus as 'Online' | 'Offline')
+                .then(() => callLogger.info(`Updated availability to ${preferredStatus}`))
                 .catch(async (err) => {
                     callLogger.warning('Failed to auto-set availability', err);
 
@@ -121,7 +126,8 @@ const CallManager: React.FC = () => {
 
                             // 3. Try setting availability again
                             setTimeout(() => {
-                                callsService.updateAvailability('Online').catch(() => { });
+                                const retryStatus = localStorage.getItem('user_availability_preference') === 'offline' ? 'Offline' : 'Online';
+                                callsService.updateAvailability(retryStatus as 'Online' | 'Offline').catch(() => { });
                             }, 1000);
 
                         } catch (cleanupErr) {
@@ -149,10 +155,11 @@ const CallManager: React.FC = () => {
             // Force reset to idle
             dispatch(forceResetCallState());
 
-            // Update availability back to Online
+            // Update availability back to Online (or preferred status)
             if (user) {
-                callsService.updateAvailability('Online')
-                    .then(() => callLogger.info('Reset availability to Online after cleanup'))
+                const preferredStatus = localStorage.getItem('user_availability_preference') === 'offline' ? 'Offline' : 'Online';
+                callsService.updateAvailability(preferredStatus as 'Online' | 'Offline')
+                    .then(() => callLogger.info(`Reset availability to ${preferredStatus} after cleanup`))
                     .catch(err => callLogger.warning('Failed to reset availability', err));
             }
         }
@@ -303,7 +310,8 @@ const CallManager: React.FC = () => {
                 dispatch(forceResetCallState());
 
                 // Reset availability
-                callsService.updateAvailability('Online').catch(err =>
+                const resetStatus = localStorage.getItem('user_availability_preference') === 'offline' ? 'Offline' : 'Online';
+                callsService.updateAvailability(resetStatus as 'Online' | 'Offline').catch(err =>
                     callLogger.error('Error resetting availability', err)
                 );
 
@@ -335,7 +343,8 @@ const CallManager: React.FC = () => {
             }
 
             dispatch(forceResetCallState());
-            callsService.updateAvailability('Online').catch(err =>
+            const resetStatus = localStorage.getItem('user_availability_preference') === 'offline' ? 'Offline' : 'Online';
+            callsService.updateAvailability(resetStatus as 'Online' | 'Offline').catch(err =>
                 callLogger.error('Error resetting availability', err)
             );
 

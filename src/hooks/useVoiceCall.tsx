@@ -346,11 +346,12 @@ export const useVoiceCall = () => {
         // Note: 'InCall' status is managed automatically by the backend when users join/leave calls
         // We don't need to manually update it here as it causes 400 errors
 
-        // Revert to 'Online' when call ends (becomes idle)
+        // Revert to 'Online' (or preferred status) when call ends (becomes idle)
         if (callState === 'idle' && user) {
-            callLogger.info('Reverting availability to Online');
-            callsService.updateAvailability('Online').catch(err => {
-                callLogger.warning('Failed to revert to Online status', err);
+            const preferredStatus = localStorage.getItem('user_availability_preference') === 'offline' ? 'Offline' : 'Online';
+            callLogger.info(`Reverting availability to ${preferredStatus}`);
+            callsService.updateAvailability(preferredStatus as 'Online' | 'Offline').catch(err => {
+                callLogger.warning(`Failed to revert to ${preferredStatus} status`, err);
             });
         }
     }, [callState, user]);
