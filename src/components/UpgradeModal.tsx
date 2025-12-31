@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Crown, Check, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 interface UpgradeModalProps {
     isOpen: boolean;
@@ -10,6 +11,7 @@ interface UpgradeModalProps {
 
 const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, reason = 'general' }) => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     if (!isOpen) return null;
 
@@ -21,21 +23,21 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, reason = '
     const getReasonMessage = () => {
         switch (reason) {
             case 'voiceCall':
-                return "You've used your daily 5 minutes of voice calls.";
+                return t('upgradeModal.reasons.voiceCall');
             case 'pronunciation':
-                return "Your 24-hour pronunciation access has expired.";
+                return t('upgradeModal.reasons.pronunciation');
             default:
-                return "Unlock unlimited access to all features.";
+                return t('upgradeModal.reasons.general');
         }
     };
 
     const features = [
-        'Unlimited voice calls',
-        'Unlimited pronunciation practice',
-        'Access to all quizzes and topics',
-        'Priority AI support',
-        'Ad-free experience',
-        'Advanced analytics',
+        t('upgradeModal.features.unlimitedVoice'),
+        t('upgradeModal.features.unlimitedPronunciation'),
+        t('upgradeModal.features.allQuizzes'),
+        t('upgradeModal.features.prioritySupport'),
+        t('upgradeModal.features.adFree'),
+        t('upgradeModal.features.analytics'),
     ];
 
     return (
@@ -55,8 +57,8 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, reason = '
                             <Crown className="w-8 h-8" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold">Upgrade to Pro</h2>
-                            <p className="text-white/90 text-sm">Unlock your full potential</p>
+                            <h2 className="text-2xl font-bold">{t('upgradeModal.title')}</h2>
+                            <p className="text-white/90 text-sm">{t('upgradeModal.subtitle')}</p>
                         </div>
                     </div>
                 </div>
@@ -73,7 +75,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, reason = '
                     {/* Features list */}
                     <div className="mb-6">
                         <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
-                            Pro Features
+                            {t('upgradeModal.featuresTitle')}
                         </h3>
                         <div className="space-y-3">
                             {features.map((feature, index) => (
@@ -94,11 +96,11 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, reason = '
                         <div className="flex items-center gap-2 mb-1">
                             <Zap className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                             <span className="text-sm font-semibold text-blue-900 dark:text-blue-200">
-                                Limited Time Offer
+                                {t('upgradeModal.limitedOffer')}
                             </span>
                         </div>
                         <p className="text-xs text-blue-700 dark:text-blue-300">
-                            Get 20% off on annual plans
+                            {t('upgradeModal.offerDesc')}
                         </p>
                     </div>
 
@@ -108,13 +110,13 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, reason = '
                             onClick={onClose}
                             className="flex-1 px-4 py-2.5 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors font-medium"
                         >
-                            Maybe Later
+                            {t('upgradeModal.maybeLater')}
                         </button>
                         <button
                             onClick={handleUpgrade}
                             className="flex-1 px-4 py-2.5 bg-gradient-to-r from-yellow-500 to-amber-600 text-white rounded-lg hover:from-yellow-600 hover:to-amber-700 transition-all shadow-lg hover:shadow-xl font-medium"
                         >
-                            Upgrade Now
+                            {t('upgradeModal.upgradeNow')}
                         </button>
                     </div>
                 </div>
@@ -124,3 +126,4 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, reason = '
 };
 
 export default UpgradeModal;
+

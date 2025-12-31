@@ -639,5 +639,27 @@
                 }
             }
         }
+    },
+    "upgradeModal": {
+        "title": "Upgrade to Pro",
+        "subtitle": "Unlock your full potential",
+        "reasons": {
+            "voiceCall": "You've used your daily 5 minutes of voice calls.",
+            "pronunciation": "Your 24-hour pronunciation access has expired.",
+            "general": "Unlock unlimited access to all features."
+        },
+        "featuresTitle": "Pro Features",
+        "features": {
+            "unlimitedVoice": "Unlimited voice calls",
+            "unlimitedPronunciation": "Unlimited pronunciation practice",
+            "allQuizzes": "Access to all quizzes and topics",
+            "prioritySupport": "Priority AI support",
+            "adFree": "Ad-free experience",
+            "analytics": "Advanced analytics"
+        },
+        "limitedOffer": "Limited Time Offer",
+        "offerDesc": "Get 20% off on annual plans",
+        "maybeLater": "Maybe Later",
+        "upgradeNow": "Upgrade Now"
     }
 }
