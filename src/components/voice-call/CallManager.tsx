@@ -88,7 +88,8 @@ const CallManager: React.FC = () => {
                                 .then(() => callLogger.info(`Updated availability to ${preferredStatus}`))
                                 .catch(err => callLogger.warning('Failed to auto-set availability', err));
                         } else {
-                            callLogger.info('Skipping availability update due to active call');
+                            callLogger.info('Setting availability to Busy due to active call');
+                            callsService.updateAvailability('Busy').catch(err => callLogger.warning('Failed to set busy status', err));
                         }
                     }, 250);
                 })
@@ -146,7 +147,8 @@ const CallManager: React.FC = () => {
                         }
                     });
             } else {
-                callLogger.info('Skipping initial availability check due to active call');
+                callLogger.info('Setting availability to Busy due to active call');
+                callsService.updateAvailability('Busy').catch(err => callLogger.warning('Failed to set busy status', err));
             }
 
             return () => {
@@ -193,6 +195,21 @@ const CallManager: React.FC = () => {
                     })
                     .catch(err => callLogger.error('Error leaving Agora channel', err));
             }
+        }
+    }, [callState]);
+
+    // Update availability based on call state changes
+    useEffect(() => {
+        if (callState === 'idle') {
+            const preferredStatus = localStorage.getItem('user_availability_preference') === 'offline' ? 'Offline' : 'Online';
+            callsService.updateAvailability(preferredStatus as 'Online' | 'Offline')
+                .then(() => callLogger.info(`Updated availability to ${preferredStatus} (Call Ended)`))
+                .catch(err => callLogger.warning('Failed to restore availability', err));
+        } else {
+            // connecting, ringing, active
+            callsService.updateAvailability('Busy')
+                .then(() => callLogger.info('Updated availability to Busy (Call Started)'))
+                .catch(err => callLogger.warning('Failed to set busy status', err));
         }
     }, [callState]);
 
