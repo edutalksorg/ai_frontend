@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Wallet, TrendingUp, TrendingDown, Clock, ArrowLeft, AlertCircle, CheckCircle, XCircle, Gift, CreditCard, Landmark } from 'lucide-react';
+import { format } from 'date-fns';
 import Button from '../../components/Button';
 import { walletService } from '../../services/wallet';
 import { referralsService } from '../../services/referrals';
@@ -360,18 +361,11 @@ const UserWallet: React.FC = () => {
                                                 </div>
                                                 <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
                                                     <span>
-                                                        {new Date(tx.createdAt).toLocaleDateString('en-IN', {
-                                                            year: 'numeric',
-                                                            month: 'short',
-                                                            day: 'numeric'
-                                                        })}
+                                                        {format(new Date(tx.createdAt.endsWith('Z') ? tx.createdAt : `${tx.createdAt}Z`), 'd MMM yyyy')}
                                                     </span>
                                                     <span>•</span>
                                                     <span>
-                                                        {new Date(tx.createdAt).toLocaleTimeString('en-IN', {
-                                                            hour: '2-digit',
-                                                            minute: '2-digit'
-                                                        })}
+                                                        {format(new Date(tx.createdAt.endsWith('Z') ? tx.createdAt : `${tx.createdAt}Z`), 'hh:mm a')}
                                                     </span>
                                                 </div>
                                                 {tx.failureReason && (

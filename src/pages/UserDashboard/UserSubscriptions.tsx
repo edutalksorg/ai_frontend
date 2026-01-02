@@ -357,6 +357,8 @@ const UserSubscriptions: React.FC = () => {
                         const subStatus = currentSub?.status?.toLowerCase();
                         const isSubActive = ['active', 'trialing', 'succeeded', 'year'].includes(subStatus);
                         const isLocked = isCurrentPlan && isSubActive;
+                        const isFreeTrialPlan = plan.name?.toLowerCase().includes('free trial');
+                        const isPlanUsed = isLocked || (isFreeTrialPlan && (isSubActive || isExplicitlyCancelled || !!currentSub));
 
                         return (
                             <div key={plan.id || plan._id} className={`glass-card relative rounded-3xl p-6 sm:p-8 flex flex-col h-full transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl ${isYearlyPlan
@@ -391,7 +393,13 @@ const UserSubscriptions: React.FC = () => {
                                             ₹{plan.price}
                                         </span>
                                         <span className={`text-sm font-medium ${isYearlyPlan ? 'text-violet-600 dark:text-violet-400' : 'text-slate-500'}`}>
-                                            /{plan.interval === 'year' ? t('subscriptionsPageView.year') : t('subscriptionsPageView.month')}
+                                            /{(() => {
+                                                const lowerName = plan.name?.toLowerCase() || '';
+                                                if (lowerName.includes('free trial')) return '24hours';
+                                                if (lowerName.includes('quarterly')) return '3 months';
+                                                if (lowerName.includes('yearly') || plan.interval === 'year') return t('subscriptionsPageView.year');
+                                                return t('subscriptionsPageView.month');
+                                            })()}
                                         </span>
                                     </div>
                                 </div>
@@ -428,16 +436,22 @@ const UserSubscriptions: React.FC = () => {
                                         const planId = plan.id || plan._id;
                                         const appliedCoupon = appliedCoupons[planId];
                                         const showInput = showCouponInput[planId];
-                                        if (!isLocked) {
+                                        if (!isPlanUsed && !isFreeTrialPlan) {
                                             if (appliedCoupon) {
-                                                return <div className="p-3 bg-green-500/10 rounded-lg flex justify-between items-center">
-                                                    <span className="text-sm text-green-600 font-bold">{appliedCoupon.code} applied!</span>
-                                                    <button onClick={() => removeCoupon(planId)}><X size={14} className="text-red-500" /></button>
+                                                return <div className="space-y-2">
+                                                    <div className="p-3 bg-green-500/10 rounded-lg flex justify-between items-center">
+                                                        <span className="text-sm text-green-600 font-bold">{appliedCoupon.code} applied!</span>
+                                                        <button onClick={() => removeCoupon(planId)}><X size={14} className="text-red-500" /></button>
+                                                    </div>
+                                                    <div className="flex justify-between items-center px-2">
+                                                        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Payable Amount:</span>
+                                                        <span className="text-lg font-bold text-slate-900 dark:text-white">₹{calculateFinalPrice(plan, appliedCoupon)}</span>
+                                                    </div>
                                                 </div>
                                             } else {
                                                 if (showInput) {
                                                     return <div className="flex gap-2">
-                                                        <input className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2 text-sm" value={couponCode} onChange={e => setCouponCode(e.target.value)} placeholder="Code" />
+                                                        <input className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2 text-sm" value={couponCode} onChange={e => setCouponCode(e.target.value.toUpperCase())} placeholder="Code" />
                                                         <Button size="sm" onClick={() => validateAndApplyCoupon(plan, couponCode)} disabled={!couponCode}>Apply</Button>
                                                     </div>
                                                 }
@@ -447,9 +461,6 @@ const UserSubscriptions: React.FC = () => {
                                     })()}
 
                                     {(() => {
-                                        const isFreeTrialPlan = plan.name?.toLowerCase().includes('free trial');
-                                        const isPlanUsed = isLocked || (isFreeTrialPlan && (isSubActive || isExplicitlyCancelled || !!currentSub));
-
                                         return (
                                             <Button
                                                 className={`w-full py-4 rounded-xl font-bold shadow-lg transition-all ${isLocked ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 cursor-default' :
