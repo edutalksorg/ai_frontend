@@ -162,7 +162,7 @@ const RoleBasedRoute: React.FC<RoleBasedRouteProps> = ({ allowedRoles, children 
 function App() {
   const dispatch = useDispatch();
   const { theme } = useSelector((state: RootState) => state.ui);
-  const { user } = useSelector((state: RootState) => state.auth);
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   // Global payment verification - checks localStorage on every page load
   usePaymentVerification();
@@ -698,7 +698,8 @@ function App() {
       </Routes>
 
       {/* Voice Call Manager - Global */}
-      <CallManager />
+      {/* Only for authenticated users who are NOT superadmins */}
+      {isAuthenticated && user && (user.role as string) !== 'superadmin' && <CallManager />}
 
       {/* Toast Notifications */}
       <LanguagePopup />

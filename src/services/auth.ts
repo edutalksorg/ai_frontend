@@ -53,7 +53,7 @@ export const authService = {
   },
 
   verifyEmail: async (email: string, code: string): Promise<any> => {
-    return apiService.post('/auth/verify-email', { email, code });
+    return apiService.get('/auth/verify-email', { params: { email, code } });
   },
 
   resendOtp: async (email: string): Promise<any> => {
