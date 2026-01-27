@@ -17,16 +17,29 @@ const VerifyEmailPage: React.FC = () => {
     const [countdown, setCountdown] = useState(5);
 
     const token = paramsToken || searchParams.get('token');
+    const email = searchParams.get('email');
 
     useEffect(() => {
-        // Dummy verification flow
-        const timer = setTimeout(() => {
-            setStatus('success');
-            setMessage(t('auth.verifyEmail.successMessage'));
-        }, 2000);
+        const verify = async () => {
+            if (!token || !email) {
+                setStatus('error');
+                setMessage(t('auth.verifyEmail.invalidLink'));
+                return;
+            }
 
-        return () => clearTimeout(timer);
-    }, [t]);
+            try {
+                await authService.verifyEmail(email, token);
+                setStatus('success');
+                setMessage(t('auth.verifyEmail.successMessage'));
+            } catch (error: any) {
+                console.error('Verification error:', error);
+                setStatus('error');
+                setMessage(error.response?.data?.message || t('auth.verifyEmail.errorMessage'));
+            }
+        };
+
+        verify();
+    }, [token, email, t]);
 
     useEffect(() => {
         let timer: NodeJS.Timeout;
