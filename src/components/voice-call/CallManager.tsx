@@ -71,7 +71,10 @@ const CallManager: React.FC = () => {
 
             signalRService.setToken(token);
 
-            const HUB_URL = 'https://edutalks-backend.lemonfield-c795bfef.centralindia.azurecontainerapps.io/hubs/call-signaling';
+            const apiUrl = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:5000' : 'https://edutalks-backend.lemonfield-c795bfef.centralindia.azurecontainerapps.io');
+            // Remove /api/* suffix if present to get root to append hub path
+            const rootUrl = apiUrl.replace(/\/api.*$/, '');
+            const HUB_URL = `${rootUrl}/hubs/call-signaling`;
 
             callLogger.info('Connecting to SignalR hub', { hubUrl: HUB_URL });
 

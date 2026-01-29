@@ -58,17 +58,24 @@ const LoginPage: React.FC = () => {
       console.log('Sending login request with:', { email: data.email, password: '***' });
 
       const response = await authService.login({
-        identifier: data.email,  // Backend expects 'identifier' not 'email'
+        identifier: data.email,
         password: data.password,
         rememberMe: true,
       });
 
       console.log('Login response:', response);
 
-      // API interceptor already unwraps response.data, so response is the inner data object
-      // Structure: { user, accessToken, refreshToken } OR { accessToken, refreshToken, data: { user } }
-      const user = response?.user || response?.data?.user;
-      const token = response?.accessToken || response?.token;
+      // Handle different response structures
+      // 1. Nested: { user: {...}, token: '...' }
+      // 2. Flattened: { id: 1, email: '...', token: '...' }
+      let user = response?.user || response?.data?.user;
+      let token = response?.accessToken || response?.token;
+
+      // Fallback for flattened structure (backend returns user fields at root)
+      if (!user && response?.id && response?.email) {
+        user = response;
+        token = response.token;
+      }
 
       console.log('Extracted user:', user);
       console.log('Extracted token:', token ? 'Present' : 'Missing');

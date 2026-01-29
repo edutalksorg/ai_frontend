@@ -2,29 +2,25 @@ import axios, { AxiosInstance, AxiosError, AxiosResponse } from 'axios';
 import { STORAGE_KEYS } from '../constants';
 
 const getBaseUrl = () => {
-  // In development, use the direct absolute URL to bypass Vite proxy
-  // This ensures API requests share the same domain/cookies as the direct SignalR connection (Sticky Sessions)
-  if (import.meta.env.DEV) {
-    return 'https://edutalks-backend.lemonfield-c795bfef.centralindia.azurecontainerapps.io/api/v1';
-  }
-
-  // In production, use the environment variable
   const envUrl = import.meta.env.VITE_API_BASE_URL;
+
+  // If env var is set, use it (prioritize over hardcoded defaults)
   if (envUrl) {
     // Check if the URL already ends with /api/v1
-    if (envUrl.endsWith('/api/v1')) {
-      return envUrl;
-    }
+    if (envUrl.endsWith('/api/v1')) return envUrl;
     // Check if it ends with /api
-    if (envUrl.endsWith('/api')) {
-      return `${envUrl}/v1`;
-    }
+    if (envUrl.endsWith('/api')) return `${envUrl}/v1`;
     // Otherwise append the full path
     return `${envUrl}/api/v1`;
   }
 
-  // Fallback for production if env var is missing (though it shouldn't be)
-  return 'https://edutalks-backend.lemonfield-c795bfef.centralindia.azurecontainerapps.io/api/v1';
+  // Fallback for development if no env var
+  if (import.meta.env.DEV) {
+    return 'http://localhost:5000/api/v1';
+  }
+
+  // Fallback for production
+  return '/api/v1';
 };
 
 const API_BASE_URL = getBaseUrl();
