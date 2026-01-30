@@ -53,6 +53,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       }
     };
 
+
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && profileOpen) setProfileOpen(false);
     };

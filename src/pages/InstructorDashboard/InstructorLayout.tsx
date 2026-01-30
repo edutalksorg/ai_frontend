@@ -46,7 +46,7 @@ const InstructorLayout: React.FC<InstructorLayoutProps> = ({ children }) => {
     ];
 
     return (
-        <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex overflow-hidden">
+        <div className="h-screen bg-slate-50 dark:bg-slate-900 flex overflow-hidden">
             {/* Mobile Sidebar Overlay */}
             {sidebarOpen && (
                 <div

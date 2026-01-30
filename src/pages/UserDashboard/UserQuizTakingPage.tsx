@@ -105,9 +105,11 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
     const handleAnswerSelect = (optionId: string) => {
         const currentQuestion = quiz?.questions[currentQuestionIndex];
         if (currentQuestion) {
+            // Fallback to index if ID is missing (common cause of scoring errors)
+            const key = currentQuestion.id || currentQuestion._id || currentQuestionIndex;
             setAnswers(prev => ({
                 ...prev,
-                [currentQuestion.id || currentQuestion._id]: optionId
+                [key]: optionId
             }));
         }
     };
@@ -329,7 +331,8 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
     }
 
     const currentQuestion = quiz.questions[currentQuestionIndex];
-    const currentAnswer = answers[currentQuestion?.id || currentQuestion?._id];
+    // Check both ID (if exists) and index to find the saved answer
+    const currentAnswer = answers[currentQuestion?.id] || answers[currentQuestion?._id] || answers[currentQuestionIndex];
 
     return (
         <UserLayout>

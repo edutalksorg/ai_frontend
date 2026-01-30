@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import AdminLayout from '../../components/AdminLayout';
-import { TrendingUp, Users, DollarSign, Activity } from 'lucide-react';
+import { BarChart as BarChartIcon, Users, DollarSign, TrendingUp, Download, Calendar, ArrowLeft, Activity } from 'lucide-react';
 import { adminService } from '../../services/admin';
 
 interface DashboardStats {
@@ -19,18 +20,21 @@ const AdminAnalyticsPage: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dateRange, setDateRange] = useState('month');
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchAnalytics();
-  }, []);
+    fetchStats();
+  }, [dateRange]);
 
-  const fetchAnalytics = async () => {
+  const fetchStats = async () => {
     try {
       setLoading(true);
-      const data = await adminService.getDashboardStats() as DashboardStats;
-      setStats(data);
+      const data = await adminService.getDashboardStats();
+      setStats(data as unknown as DashboardStats);
       setError(null);
     } catch (err: any) {
+      console.error('Error fetching stats:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -40,8 +44,8 @@ const AdminAnalyticsPage: React.FC = () => {
   if (loading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <p className="text-slate-600 dark:text-slate-400">Loading analytics...</p>
+        <div className="flex items-center justify-center h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
       </AdminLayout>
     );
@@ -63,9 +67,17 @@ const AdminAnalyticsPage: React.FC = () => {
     <AdminLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-2">Analytics Dashboard</h1>
-          <p className="text-slate-600 dark:text-slate-400">Platform insights and metrics</p>
+        <div className="mb-8 flex items-center gap-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2 bg-slate-800 hover:bg-slate-700 rounded-full transition-colors text-white"
+          >
+            <ArrowLeft size={24} />
+          </button>
+          <div>
+            <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-2">Analytics Dashboard</h1>
+            <p className="text-slate-600 dark:text-slate-400">Platform insights and metrics</p>
+          </div>
         </div>
 
         {/* Key Metrics */}
@@ -103,8 +115,8 @@ const AdminAnalyticsPage: React.FC = () => {
               <Activity className="text-orange-600" size={20} />
             </div>
             <p className="text-2xl font-bold text-slate-900 dark:text-white">
-              {stats?.activeUsers && stats?.totalUsers 
-                ? Math.round((stats.activeUsers / stats.totalUsers) * 100) 
+              {stats?.activeUsers && stats?.totalUsers
+                ? Math.round((stats.activeUsers / stats.totalUsers) * 100)
                 : 0}%
             </p>
           </div>
@@ -144,7 +156,7 @@ const AdminAnalyticsPage: React.FC = () => {
           <div className="bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700">
             <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Top Topics</h2>
             <div className="space-y-2">
-              {(stats?.topTopics || []).map((topic, idx) => (
+              {(stats?.topTopics || []).map((topic: { topic: string; count: number }, idx: number) => (
                 <div key={idx} className="flex items-center justify-between">
                   <span className="text-slate-600 dark:text-slate-400">{topic.topic}</span>
                   <div className="flex items-center gap-2">

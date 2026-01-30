@@ -141,6 +141,7 @@ export interface PronunciationParagraph {
   referenceAudioUrl?: string;
   wordCount?: number;
   estimatedDurationSeconds?: number;
+  isPublished?: boolean;
 }
 
 export interface AiAssessmentResponse {

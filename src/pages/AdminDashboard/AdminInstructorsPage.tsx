@@ -160,6 +160,40 @@ const AdminInstructorsPage: React.FC = () => {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this instructor? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setActionLoading(id);
+      await adminService.deleteUser(id);
+
+      // Update local state
+      const updatedInstructors = allInstructors.filter(i => i.id !== id);
+      setAllInstructors(updatedInstructors);
+
+      // Recalculate stats
+      calculateStats(updatedInstructors);
+
+      // Reapply filters
+      filterInstructors(updatedInstructors, filterStatus, searchTerm);
+
+      if (selectedInstructor?.id === id) {
+        setShowDetails(false);
+        setSelectedInstructor(null);
+      }
+
+      alert('✓ Instructor deleted successfully.');
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Failed to delete instructor';
+      alert(`Error: ${msg}`);
+      console.error(err);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="min-h-screen bg-white dark:bg-slate-950 p-6">
@@ -323,6 +357,13 @@ const AdminInstructorsPage: React.FC = () => {
                             >
                               <Eye size={14} /> View
                             </button>
+                            <button
+                              onClick={() => handleDelete(instructor.id)}
+                              disabled={actionLoading === instructor.id}
+                              className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 text-xs font-medium transition disabled:opacity-50"
+                            >
+                              <Trash2 size={14} /> Delete
+                            </button>
                             {!instructor.isApproved && (
                               <button
                                 onClick={() => handleReview(instructor.id, true)}
@@ -413,36 +454,46 @@ const AdminInstructorsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="border-t border-slate-200 dark:border-slate-700 pt-6 flex gap-3">
-                    {!selectedInstructor.isApproved && (
-                      <>
+                  <div className="border-t border-slate-200 dark:border-slate-700 pt-6 flex flex-col gap-3">
+                    <div className="flex gap-3">
+                      {!selectedInstructor.isApproved && (
+                        <>
+                          <Button
+                            variant="danger"
+                            onClick={() => handleReview(selectedInstructor.id, false)}
+                            isLoading={actionLoading === selectedInstructor.id}
+                            className="flex-1"
+                          >
+                            Reject
+                          </Button>
+                          <Button
+                            variant="primary"
+                            onClick={() => handleReview(selectedInstructor.id, true)}
+                            isLoading={actionLoading === selectedInstructor.id}
+                            className="flex-1"
+                          >
+                            Approve
+                          </Button>
+                        </>
+                      )}
+                      {selectedInstructor.isApproved && (
                         <Button
-                          variant="danger"
-                          onClick={() => handleReview(selectedInstructor.id, false)}
-                          isLoading={actionLoading === selectedInstructor.id}
-                          className="flex-1"
+                          variant="secondary"
+                          onClick={() => setShowDetails(false)}
+                          className="w-full flex-1"
                         >
-                          Reject
+                          Close
                         </Button>
-                        <Button
-                          variant="primary"
-                          onClick={() => handleReview(selectedInstructor.id, true)}
-                          isLoading={actionLoading === selectedInstructor.id}
-                          className="flex-1"
-                        >
-                          Approve
-                        </Button>
-                      </>
-                    )}
-                    {selectedInstructor.isApproved && (
-                      <Button
-                        variant="secondary"
-                        onClick={() => setShowDetails(false)}
-                        className="w-full"
-                      >
-                        Close
-                      </Button>
-                    )}
+                      )}
+                    </div>
+                    <Button
+                      variant="danger"
+                      onClick={() => handleDelete(selectedInstructor.id)}
+                      isLoading={actionLoading === selectedInstructor.id}
+                      className="w-full"
+                    >
+                      <Trash2 size={16} className="mr-2" /> Delete Instructor
+                    </Button>
                   </div>
                 </div>
               </div>

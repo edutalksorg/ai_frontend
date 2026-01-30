@@ -4,6 +4,7 @@ interface OnlineStatusIndicatorProps {
     showLabel?: boolean;
 }
 
+
 const OnlineStatusIndicator: React.FC<OnlineStatusIndicatorProps> = ({ showLabel = false }) => {
     const [isOnline, setIsOnline] = useState(navigator.onLine);
 

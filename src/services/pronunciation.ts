@@ -75,8 +75,8 @@ export const pronunciationService = {
   deleteParagraph: async (paragraphId: string) =>
     apiService.delete(`/pronunciation/paragraphs/${paragraphId}`),
 
-  publishParagraph: async (paragraphId: string) =>
-    apiService.post(`/pronunciation/paragraphs/${paragraphId}/publish`),
+  togglePublish: async (paragraphId: string, isPublished: boolean) =>
+    apiService.post(`/pronunciation/paragraphs/${paragraphId}/publish`, { isPublished }),
 
   getInstructorParagraphs: async (params?: Record<string, any>) =>
     apiService.get('/pronunciation/paragraphs', {

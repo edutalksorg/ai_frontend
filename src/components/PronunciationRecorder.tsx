@@ -163,41 +163,49 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
   const handleSpeakerToggle = async () => {
     // If already playing, stop it
     if (isSpeaking) {
+      window.speechSynthesis.cancel();
       setIsSpeaking(false);
-      if (referenceAudioRef.current) {
-        referenceAudioRef.current.pause();
-        referenceAudioRef.current.currentTime = 0;
-      }
       return;
     }
 
-    // If we have cached audio, just play it
-    if (referenceAudioUrl) {
-      playReferenceAudio(referenceAudioUrl);
-      return;
-    }
-
-    // Otherwise, generate new audio
     try {
       setIsLoadingAudio(true);
       setError(null);
+      console.log('🎤 Using Browser TTS...');
 
-      console.log('🎤 Converting paragraph to speech...', paragraphId);
-      const response = await pronunciationService.convertToSpeech(paragraphId);
-      const data = (response as any).data || response;
+      const utterance = new SpeechSynthesisUtterance(paragraphText);
+      utterance.lang = 'en-US'; // Default to US English
 
-      console.log('✅ Speech synthesis response:', data);
+      utterance.onstart = () => {
+        setIsSpeaking(true);
+        setIsLoadingAudio(false);
+      };
 
-      if (data.synthesisCompleted && data.audioUrl) {
-        setReferenceAudioUrl(data.audioUrl);
-        playReferenceAudio(data.audioUrl);
-      } else {
-        setError('Failed to generate audio. Please try again.');
-      }
+      utterance.onend = () => {
+        setIsSpeaking(false);
+      };
+
+      utterance.onerror = (e) => {
+        // Ignore errors caused by pausing/cancelling
+        if (e.error === 'interrupted' || e.error === 'canceled') {
+          setIsSpeaking(false);
+          setIsLoadingAudio(false);
+          return;
+        }
+
+
+
+        console.error('Speech synthesis error:', e);
+        setIsSpeaking(false);
+        setIsLoadingAudio(false);
+        setError('Failed to play audio.');
+      };
+
+      window.speechSynthesis.speak(utterance);
+
     } catch (err: any) {
       console.error('❌ Speech synthesis error:', err);
       setError('Failed to generate reference audio. Please try again.');
-    } finally {
       setIsLoadingAudio(false);
     }
   };

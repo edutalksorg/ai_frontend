@@ -204,6 +204,10 @@ const AdminCouponsPage: React.FC = () => {
 
         const data = {
             id: editingCoupon.id,
+            code: editingCoupon.code,
+            discountType: editingCoupon.discountType,
+            discountValue: editingCoupon.discountValue,
+            applicableTo: editingCoupon.applicableTo,
             description: formData.get('description') as string,
             maxDiscountAmount: parseFloat(formData.get('maxDiscountAmount') as string) || 0,
             minimumPurchaseAmount: parseFloat(formData.get('minimumPurchaseAmount') as string) || 0,
