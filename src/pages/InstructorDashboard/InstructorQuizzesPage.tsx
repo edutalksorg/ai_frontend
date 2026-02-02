@@ -155,6 +155,16 @@ const InstructorQuizzesPage: React.FC = () => {
     };
 
     const handlePublish = async (id: string, isCurrentlyPublished: boolean) => {
+        const newStatus = !isCurrentlyPublished;
+
+        // 1. Optimistic Update (Immediate Feedback)
+        setQuizzes(prev => prev.map(q =>
+            (q.id === id || q._id === id) ? { ...q, isPublished: newStatus } : q
+        ));
+        setAllQuizzes(prev => prev.map(q =>
+            (q.id === id || q._id === id) ? { ...q, isPublished: newStatus } : q
+        ));
+
         try {
             if (!isCurrentlyPublished) {
                 // Publish the quiz
@@ -165,14 +175,24 @@ const InstructorQuizzesPage: React.FC = () => {
                 await quizzesService.unpublishQuiz(id);
                 dispatch(showToast({ message: 'Quiz unpublished successfully', type: 'success' }));
             }
-            // Small delay to ensure backend persistence
-            setTimeout(() => {
-                fetchQuizzes();
-            }, 300);
+            // 2. Background Consistency Check
+            // We TRUST the optimistic update if the API call didn't throw.
+            // Re-fetching immediately often causes a race condition where we get stale data (Draft) 
+            // before the DB commit finishes, causing a "blink". 
+            // We skip re-fetching here. Use manual refresh if needed.
+            // fetchQuizzes(page);
         } catch (error: any) {
             console.error('Failed to update quiz status:', error);
             const errorMsg = error?.response?.data?.message || error?.response?.data?.messages?.[0] || 'Failed to update quiz status';
             dispatch(showToast({ message: errorMsg, type: 'error' }));
+
+            // 3. Rollback on Failure
+            setQuizzes(prev => prev.map(q =>
+                (q.id === id || q._id === id) ? { ...q, isPublished: isCurrentlyPublished } : q
+            ));
+            setAllQuizzes(prev => prev.map(q =>
+                (q.id === id || q._id === id) ? { ...q, isPublished: isCurrentlyPublished } : q
+            ));
         }
     };
 

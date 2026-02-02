@@ -364,7 +364,7 @@ const AdminSubscriptionsPage: React.FC = () => {
                                             {plan.currency === 'USD' ? '$' : plan.currency}
                                             {plan.price}
                                         </span>
-                                        <span className="text-slate-500 dark:text-slate-400">/{plan.billingCycle.toLowerCase()}</span>
+                                        <span className="text-slate-500 dark:text-slate-400">/{plan.billingCycle?.toLowerCase() || 'monthly'}</span>
                                     </div>
                                     {plan.trialDays > 0 && (
                                         <p className="text-sm text-green-600 dark:text-green-400 mt-1">

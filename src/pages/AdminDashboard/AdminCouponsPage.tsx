@@ -134,15 +134,17 @@ const AdminCouponsPage: React.FC = () => {
         e.preventDefault();
         const formData = new FormData(e.target as HTMLFormElement);
 
-        // Map form values to Enum integers for API
+        // Map form values to Enum integers for logic, but STRINGS for API
         const formDiscountType = formData.get('discountType') as string;
-        // 1 = Percentage, 2 = Flat
-        const discountType = formDiscountType === 'Percentage' ? DiscountType.Percentage : DiscountType.Flat;
+        // Backend expects 'Percentage' or 'Flat' string
+        const discountType = formDiscountType;
 
         // Applicable Type logic
-        // 1 = All/Both, 2 = Quiz, 3 = Plan
-        // If 2, send specificQuizIds. If 3, send specificPlanIds.
-        const applicableTo = parseInt(formData.get('applicableTo') as string) || ApplicabilityType.AllSubscriptions;
+        const applicableToVal = parseInt(formData.get('applicableTo') as string) || ApplicabilityType.AllSubscriptions;
+
+        let applicableToString = 'AllSubscriptions';
+        if (applicableToVal === ApplicabilityType.SpecificQuizzes) applicableToString = 'SpecificQuizzes';
+        if (applicableToVal === ApplicabilityType.SpecificPlans) applicableToString = 'SpecificPlans';
 
         const data = {
             code: formData.get('code') as string,
@@ -151,9 +153,9 @@ const AdminCouponsPage: React.FC = () => {
             discountValue: parseFloat(formData.get('discountValue') as string),
             maxDiscountAmount: parseFloat(formData.get('maxDiscountAmount') as string) || 0,
             minimumPurchaseAmount: parseFloat(formData.get('minimumPurchaseAmount') as string) || 0,
-            applicableTo: applicableTo,
-            specificQuizIds: applicableTo === ApplicabilityType.SpecificQuizzes ? selectedQuizzes : [],
-            specificPlanIds: applicableTo === ApplicabilityType.SpecificPlans ? selectedPlans : [],
+            applicableTo: applicableToString,
+            specificQuizIds: applicableToVal === ApplicabilityType.SpecificQuizzes ? selectedQuizzes : [],
+            specificPlanIds: applicableToVal === ApplicabilityType.SpecificPlans ? selectedPlans : [],
             maxTotalUsage: parseInt(formData.get('maxTotalUsage') as string) || 1000,
             maxUsagePerUser: parseInt(formData.get('maxUsagePerUser') as string) || 1,
             startDate: new Date(formData.get('startDate') as string).toISOString(),
@@ -211,11 +213,19 @@ const AdminCouponsPage: React.FC = () => {
             description: formData.get('description') as string,
             maxDiscountAmount: parseFloat(formData.get('maxDiscountAmount') as string) || 0,
             minimumPurchaseAmount: parseFloat(formData.get('minimumPurchaseAmount') as string) || 0,
-            maxTotalUsage: parseInt(formData.get('maxTotalUsage') as string),
-            maxUsagePerUser: parseInt(formData.get('maxUsagePerUser') as string),
+            maxTotalUsage: parseInt(formData.get('maxTotalUsage') as string) || 0,
+            maxUsagePerUser: parseInt(formData.get('maxUsagePerUser') as string) || 0,
             expiryDate: new Date(formData.get('expiryDate') as string).toISOString(),
             status: formData.get('status') as 'Active' | 'Inactive',
         };
+
+        // 1. Optimistic Update
+        const optimisticCoupon = {
+            ...editingCoupon,
+            ...data,
+            currentUsageCount: editingCoupon.currentUsageCount // Preserve usage count directly from state
+        };
+        setCoupons(prev => prev.map(c => c.id === editingCoupon.id ? optimisticCoupon : c));
 
         try {
             setUpdating(true);
@@ -223,9 +233,15 @@ const AdminCouponsPage: React.FC = () => {
             dispatch(showToast({ message: 'Coupon updated successfully!', type: 'success' }));
             setShowEditModal(false);
             setEditingCoupon(null);
+
+            // 2. Background Sync
             fetchCoupons();
         } catch (error: any) {
             console.error('Update failed:', error);
+
+            // 3. Rollback on Failure
+            setCoupons(prev => prev.map(c => c.id === editingCoupon.id ? editingCoupon : c));
+
             const errorMsg = error.response?.data?.message || error.response?.data?.title || 'Failed to update coupon';
             dispatch(showToast({ message: errorMsg, type: 'error' }));
         } finally {
