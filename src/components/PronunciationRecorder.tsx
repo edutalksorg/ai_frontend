@@ -9,6 +9,7 @@ import { SpeakerPlayButton } from './common/SpeakerPlayButton';
 interface PronunciationRecorderProps {
   paragraphId: string;
   paragraphText: string;
+  title?: string;
   onSubmit?: (result: any) => void;
   onCancel?: () => void;
   onNext?: () => void;
@@ -18,10 +19,11 @@ interface PronunciationRecorderProps {
 export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
   paragraphId,
   paragraphText,
+  title,
   onSubmit,
   onCancel,
   onNext,
-  showNextButton = false,
+  showNextButton = true,
 }) => {
   const { t } = useTranslation();
   const [isRecording, setIsRecording] = useState(false);
@@ -43,6 +45,10 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<any>(null);
   const audioPlayRef = useRef<HTMLAudioElement>(null);
+
+  // Speech Recognition
+  const [transcript, setTranscript] = useState('');
+  const recognitionRef = useRef<any>(null);
 
   // Initialize microphone
   useEffect(() => {
@@ -117,11 +123,42 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
       setError(null);
       audioChunksRef.current = [];
       setRecordingTime(0);
+      setTranscript('');
 
+      // Start Media Recorder
       if (mediaRecorderRef.current) {
         mediaRecorderRef.current.start();
         setIsRecording(true);
       }
+
+      // Start Speech Recognition
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onresult = (event: any) => {
+          let finalTrans = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              finalTrans += event.results[i][0].transcript;
+            }
+          }
+          if (finalTrans) {
+            setTranscript(prev => prev + ' ' + finalTrans);
+          }
+        };
+
+        recognition.onerror = (event: any) => {
+          console.error('Speech recognition error', event.error);
+        };
+
+        recognition.start();
+        recognitionRef.current = recognition;
+      }
+
     } catch (err: any) {
       setError('Failed to start recording');
     }
@@ -133,6 +170,10 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
       if (mediaRecorderRef.current) {
         mediaRecorderRef.current.stop();
         setIsRecording(false);
+      }
+
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
       }
     } catch (err: any) {
       setError('Failed to stop recording');
@@ -264,8 +305,9 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
       setIsLoading(true);
       setError(null);
 
-      // Submit audio for assessment
-      let result: any = await pronunciationService.assessAudio(paragraphId, recordedAudio);
+      // Submit audio (and transcript) for assessment
+      // Note: We pass transcript for better accuracy in backend
+      let result: any = await pronunciationService.assessAudio(paragraphId, recordedAudio, transcript);
       console.log('Initial assessment response:', result);
 
       // Handle raw string ID response
@@ -463,10 +505,10 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
             {onCancel && (
               <Button
                 onClick={onCancel}
-                variant="secondary"
-                className="flex-1"
+                variant={showNextButton ? "secondary" : "primary"}
+                className={showNextButton ? "flex-1" : "flex-1 bg-green-600 hover:bg-green-700 text-white"}
               >
-                Done
+                {showNextButton ? "Done" : "Finish Practice"}
               </Button>
             )}
           </div>
@@ -479,11 +521,16 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
   return (
     <div className="max-w-2xl mx-auto bg-slate-800 rounded-lg shadow-xl overflow-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6">
-        <h2 className="text-2xl font-bold text-white mb-2">Pronunciation Practice</h2>
-        <p className="text-blue-100">Read the text below carefully and clearly</p>
+      <div className={`p-6 ${isRecording ? 'bg-red-500/10' : 'bg-gradient-to-r from-blue-600 to-blue-700'} transition-colors duration-300`}>
+        <div>
+          <h2 className="text-xl font-bold text-white mb-2">
+            {assessmentResult ? 'Assessment Results' : (title || 'Pronunciation Practice')}
+          </h2>
+          <p className="text-white/80 text-sm">
+            {assessmentResult ? 'Review your scores and feedback below' : 'Read the text below carefully and clearly'}
+          </p>
+        </div>
       </div>
-
       {/* Content */}
       <div className="p-6">
         {/* Text to Read */}

@@ -162,7 +162,7 @@ export const useVoiceCall = () => {
             // We don't have the full response from REST if we skip waiting for it, so we rely on current user + invitation data
             dispatch(acceptCallAction({
                 callId: callId,
-                callerId: incomingInvitation?.callerName || '', // Fallback, we might not have ID here easily without REST response
+                callerId: incomingInvitation?.callerId || '',
                 callerName: incomingInvitation?.callerName || 'Caller',
                 callerAvatar: incomingInvitation?.callerAvatar,
                 calleeId: user?.id || '',
@@ -242,9 +242,10 @@ export const useVoiceCall = () => {
 
             callLogger.info('Ending call', { callId: currentCall.callId, reason });
 
-            // Determine partner name before ending
-            const isIncoming = currentCall.calleeId === user?.id;
+            // Determine partner name and ID before ending
+            const isIncoming = currentCall.calleeId?.toString() === user?.id?.toString();
             const partnerName = isIncoming ? currentCall.callerName : currentCall.calleeName;
+            const partnerId = isIncoming ? currentCall.callerId : currentCall.calleeId;
 
             // 1. Call API to end call
             callLogger.apiCall('POST', `/calls/${currentCall.callId}/end`, reason);
@@ -255,8 +256,8 @@ export const useVoiceCall = () => {
             callLogger.signalrInvoke('LeaveCallSession', currentCall.callId);
             await signalRService.leaveCallSession(currentCall.callId);
 
-            // 3. Update Redux state with partner name for rating modal
-            dispatch(endCallAction({ partnerName }));
+            // 3. Update Redux state with partner info for rating modal
+            dispatch(endCallAction({ partnerName, partnerId }));
             callLogger.stateTransition(callState, 'idle', currentCall.callId);
 
             callLogger.info('Call ended successfully', { callId: currentCall.callId });
@@ -266,9 +267,13 @@ export const useVoiceCall = () => {
             callLogger.error('Failed to end call properly', error);
 
             // End anyway to clean up state
-            const isIncoming = currentCall?.calleeId === user?.id;
+            const isIncoming = currentCall?.calleeId?.toString() === user?.id?.toString();
             const partnerName = isIncoming ? currentCall?.callerName : currentCall?.calleeName;
-            dispatch(endCallAction({ partnerName: partnerName || 'User' }));
+            const partnerId = isIncoming ? currentCall?.callerId : currentCall?.calleeId;
+            dispatch(endCallAction({
+                partnerName: partnerName || 'User',
+                partnerId: partnerId || ''
+            }));
 
             return { success: false, error: error?.message };
         }

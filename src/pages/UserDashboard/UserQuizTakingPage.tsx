@@ -134,7 +134,13 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
             setTimerActive(false);
 
             // 1. Submit the quiz
-            const submitResponse = await quizzesService.submit(quiz.id || quiz._id, answers, startedAt);
+            // Backend expects array of { questionId, selectedOption }
+            const formattedAnswers = Object.entries(answers).map(([questionId, selectedOption]) => ({
+                questionId,
+                selectedOption
+            }));
+
+            const submitResponse = await quizzesService.submit(quiz.id || quiz._id, formattedAnswers, startedAt);
 
             // 2. Extract attempt ID
             // Handle various possible response structures
@@ -191,7 +197,8 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
     if (quizResult) {
         // Extract data from result - handle both nested and flat structures
         const score = quizResult.score ?? quizResult.data?.score ?? 0;
-        const correctAnswers = quizResult.correctAnswers ?? quizResult.data?.correctAnswers ?? 0;
+        // Backend returns correctCount, mapped here to correctAnswers for display
+        const correctAnswers = quizResult.correctAnswers ?? quizResult.data?.correctAnswers ?? quizResult.correctCount ?? quizResult.data?.correctCount ?? 0;
         const totalQuestions = quizResult.totalQuestions ?? quizResult.data?.totalQuestions ?? quiz?.questions?.length ?? 0;
         const totalPoints = quizResult.totalPoints ?? quizResult.data?.totalPoints ?? 0;
         const passingScore = quiz?.passingScore || 70;

@@ -111,6 +111,14 @@ class SignalRService {
         this.socket?.on(event, handler);
     }
 
+    public onEvent(event: string, handler: (...args: any[]) => void) {
+        this.socket?.on(event, handler);
+    }
+
+    public offEvent(event: string) {
+        this.socket?.off(event);
+    }
+
     // --- Hub Methods ---
     public async joinCallSession(callId: string): Promise<void> {
         this.invoke('JoinCallSession', callId);
@@ -150,6 +158,7 @@ class SignalRService {
             callLogger.signalrEvent('CallInvitation', payload);
             const normalizedPayload: CallInvitationEvent = {
                 callId: payload.callId,
+                callerId: payload.callerId,
                 callerName: payload.callerName,
                 callerAvatar: payload.callerAvatar,
                 timestamp: payload.timestamp,
@@ -195,11 +204,13 @@ class SignalRService {
             const currentUser = state.auth.user;
 
             let partnerName = 'User';
+            let partnerId = '';
             if (currentCall && currentUser) {
-                const isIncoming = currentCall.calleeId === currentUser.id;
+                const isIncoming = currentCall.calleeId?.toString() === currentUser.id?.toString();
                 partnerName = isIncoming ? currentCall.callerName : currentCall.calleeName;
+                partnerId = isIncoming ? currentCall.callerId : currentCall.calleeId;
             }
-            store.dispatch(endCall({ partnerName }));
+            store.dispatch(endCall({ partnerName, partnerId }));
         });
 
         // 5. CallActive

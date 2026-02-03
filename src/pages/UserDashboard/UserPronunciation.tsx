@@ -16,11 +16,13 @@ const UserPronunciation: React.FC = () => {
     const [paragraphs, setParagraphs] = useState<any[]>([]);
     const [currentParaIndex, setCurrentParaIndex] = useState(() => {
         const stored = localStorage.getItem('pronunciation_unlocked_index');
-        return stored ? parseInt(stored, 10) : 0;
+        // stored is 1-based (count). current index is 0-based.
+        // If we have unlocked 4 items, we should be on index 3 (4th item).
+        return stored ? Math.max(0, parseInt(stored, 10) - 1) : 0;
     });
     const [unlockedIndex, setUnlockedIndex] = useState(() => {
         const stored = localStorage.getItem('pronunciation_unlocked_index');
-        return stored ? parseInt(stored, 10) : 0;
+        return stored ? Math.max(1, parseInt(stored, 10)) : 1;
     });
     const [loading, setLoading] = useState(false);
     const [practiceComplete, setPracticeComplete] = useState(false);
@@ -45,7 +47,15 @@ const UserPronunciation: React.FC = () => {
         }
     }, [currentParaIndex, paragraphs.length]);
 
-    const paginatedParagraphs = paragraphs.slice(
+    // Show completed history AND current active.
+    // unlockedIndex is 1-based count.
+    // slice(0, unlockedIndex) shows (0...unlockedIndex-1).
+    let visibleCount = unlockedIndex;
+    if (visibleCount > paragraphs.length) visibleCount = paragraphs.length;
+
+    const visibleParagraphs = paragraphs.slice(0, visibleCount);
+
+    const paginatedParagraphs = visibleParagraphs.slice(
         sidebarPage * ITEMS_PER_PAGE,
         (sidebarPage + 1) * ITEMS_PER_PAGE
     );
@@ -68,13 +78,38 @@ const UserPronunciation: React.FC = () => {
         }
     };
 
+    // Safety check: Clamp indices if they exceed bounds (e.g., if paragraphs were deleted)
+    useEffect(() => {
+        if (paragraphs.length > 0) {
+            const maxIndex = paragraphs.length - 1;
+            // unlockedIndex is 1-based count. Max accessible index is unlockedIndex - 1.
+            const maxUnlocked = Math.max(0, unlockedIndex - 1);
+
+            if (currentParaIndex > maxIndex || currentParaIndex > maxUnlocked) {
+                // If current index is out of bounds, reset to the last available/unlocked paragraph
+                setCurrentParaIndex(prev => Math.min(prev, maxIndex, maxUnlocked));
+            }
+
+            // Also clamp unlockedIndex if it exceeds length + 1 (allow it to be length + 1 for 'all done')
+            if (unlockedIndex > paragraphs.length + 1) {
+                setUnlockedIndex(paragraphs.length + 1);
+            }
+        }
+    }, [paragraphs.length, currentParaIndex, unlockedIndex]);
+
     const handlePronunciationSubmit = (result: any) => {
         const accuracy = result.scores?.accuracy ?? result.pronunciationAccuracy ?? result.accuracy ?? 0;
 
-        if (accuracy >= 75) {
+        if (accuracy >= 70) {
             dispatch(showToast({ message: t('pronunciation.greatJob') + `: ${accuracy.toFixed(1)}%. ` + t('pronunciation.nextUnlocked'), type: 'success' }));
-            if (currentParaIndex === unlockedIndex) {
-                if (currentParaIndex < paragraphs.length - 1) {
+
+            // Unlock next paragraph if we are at the edge of progress
+            // unlockedIndex is 1-based count (e.g., 1 means 1st paragraph unlocked).
+            // currentParaIndex is 0-based.
+            // So if we are on index 0, and unlockedIndex is 1, we are at the edge.
+            if (currentParaIndex === unlockedIndex - 1) {
+                // Prevent incrementing passed the total number of paragraphs
+                if (unlockedIndex < paragraphs.length) {
                     setUnlockedIndex(prev => {
                         const next = prev + 1;
                         localStorage.setItem('pronunciation_unlocked_index', next.toString());
@@ -84,7 +119,7 @@ const UserPronunciation: React.FC = () => {
             }
             setPracticeComplete(true);
         } else {
-            dispatch(showToast({ message: t('pronunciation.accuracy') + `: ${accuracy.toFixed(1)}%. ` + t('pronunciation.tryReach'), type: 'info' }));
+            dispatch(showToast({ message: t('pronunciation.accuracy') + `: ${accuracy.toFixed(1)}%. ` + "Try to get over 70% to unlock the next one!", type: 'info' }));
             setPracticeComplete(false);
         }
     };
@@ -126,17 +161,7 @@ const UserPronunciation: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 bg-white/50 dark:bg-slate-800/50 px-4 py-2 rounded-xl border border-slate-200/50 dark:border-white/10 backdrop-blur-md relative z-10">
-                    <div className="flex flex-col items-end">
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{t('pronunciation.progress')}</span>
-                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
-                            {paragraphs.length > 0 ? `${currentParaIndex + 1} / ${paragraphs.length}` : '0 / 0'}
-                        </span>
-                    </div>
-                    <div className="w-10 h-10 rounded-full bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center text-pink-500 border border-pink-200 dark:border-pink-500/30">
-                        <CheckCircle size={20} />
-                    </div>
-                </div>
+                {/* Progress indicator removed */}
             </div>
 
             {loading ? (
@@ -156,11 +181,8 @@ const UserPronunciation: React.FC = () => {
                                 {(hasActiveSubscription || isTrialActive) ? (
                                     <div className="flex flex-col h-full">
                                         <div className="mb-6 flex justify-between items-center">
-                                            <div className="bg-slate-100 dark:bg-slate-800/50 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700/50">
-                                                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                                                    {t('pronunciation.paragraph')} {currentParaIndex + 1}
-                                                </span>
-                                            </div>
+                                            {/* Paragraph Label Removed */}
+                                            <div></div>
                                             {practiceComplete && (
                                                 <span className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm font-bold animate-pulse bg-green-500/10 px-4 py-2 rounded-xl border border-green-500/20">
                                                     <CheckCircle size={16} />
@@ -172,9 +194,15 @@ const UserPronunciation: React.FC = () => {
                                         <PronunciationRecorder
                                             paragraphId={paragraphs[currentParaIndex]?._id || paragraphs[currentParaIndex]?.id}
                                             paragraphText={paragraphs[currentParaIndex]?.text || paragraphs[currentParaIndex]?.content}
+                                            title={paragraphs[currentParaIndex]?.title}
                                             onSubmit={handlePronunciationSubmit}
                                             onNext={handleNextParagraph}
-                                            showNextButton={currentParaIndex < unlockedIndex}
+                                            onCancel={() => navigate('/dashboard')}
+                                            // Show next button if there are more paragraphs available
+                                            // We remove the unlockedIndex check here because if they pass, unlockedIndex updates instantly, 
+                                            // but structurally strictly speaking, as long as it's not the last one, we can offer 'Next'
+                                            // provided they actually passed (handled by Recorder UI mostly, but let's be safe)
+                                            showNextButton={currentParaIndex < paragraphs.length - 1}
                                         />
                                     </div>
                                 ) : (
@@ -186,7 +214,7 @@ const UserPronunciation: React.FC = () => {
                                         <p className="text-lg text-slate-600 dark:text-slate-300 mb-10 max-w-md leading-relaxed">
                                             {t('pronunciation.trialExpiredMessage')}
                                         </p>
-                                        <Button className="py-4 px-10 text-lg bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 shadow-xl shadow-pink-500/30 rounded-xl" onClick={triggerUpgradeModal}>
+                                        <Button className="py-4 px-10 text-lg bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 shadow-xl shadow-pink-500/30 rounded-xl" onClick={() => triggerUpgradeModal()}>
                                             {t('pronunciation.upgradeToPro')}
                                         </Button>
                                     </div>
@@ -206,9 +234,6 @@ const UserPronunciation: React.FC = () => {
                                     </span>
                                     {t('pronunciation.courseContent')}
                                 </div>
-                                <span className="text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md">
-                                    {t('pronunciation.page')} {sidebarPage + 1} / {Math.ceil(paragraphs.length / ITEMS_PER_PAGE) || 1}
-                                </span>
                             </h4>
 
                             <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-3">
@@ -247,11 +272,11 @@ const UserPronunciation: React.FC = () => {
                                                     {isLocked ? <Lock size={14} /> : isCompleted ? <CheckCircle size={14} /> : index + 1}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className={`text-sm font-semibold truncate mb-1 ${isActive ? 'text-white' : ''}`}>
-                                                        {t('pronunciation.paragraph')} {index + 1}
+                                                    <p className={`text-sm font-medium truncate ${isActive ? 'text-white' : 'text-slate-700 dark:text-slate-200'}`}>
+                                                        {para.title || `Paragraph ${index + 1}`}
                                                     </p>
                                                     <p className={`text-xs truncate ${isActive ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'}`}>
-                                                        {para.text || para.content || "Practice text..."}
+                                                        {(para.content || "").substring(0, 40)}...
                                                     </p>
                                                 </div>
                                                 {isActive && (
@@ -270,7 +295,7 @@ const UserPronunciation: React.FC = () => {
                             </div>
 
                             {/* Pagination Controls - Correctly Placed Outside List */}
-                            {paragraphs.length > ITEMS_PER_PAGE && (
+                            {visibleParagraphs.length > ITEMS_PER_PAGE && (
                                 <div className="pt-4 mt-auto border-t border-slate-200 dark:border-slate-700 flex justify-between items-center gap-2">
                                     <button
                                         onClick={() => setSidebarPage(prev => Math.max(0, prev - 1))}
@@ -283,9 +308,9 @@ const UserPronunciation: React.FC = () => {
                                         <ChevronLeft size={16} /> {t('pronunciation.prev')}
                                     </button>
                                     <button
-                                        onClick={() => setSidebarPage(prev => Math.min(Math.ceil(paragraphs.length / ITEMS_PER_PAGE) - 1, prev + 1))}
-                                        disabled={sidebarPage >= Math.ceil(paragraphs.length / ITEMS_PER_PAGE) - 1}
-                                        className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold flex items-center justify-center gap-1 transition-all ${sidebarPage >= Math.ceil(paragraphs.length / ITEMS_PER_PAGE) - 1
+                                        onClick={() => setSidebarPage(prev => Math.min(Math.ceil(visibleParagraphs.length / ITEMS_PER_PAGE) - 1, prev + 1))}
+                                        disabled={sidebarPage >= Math.ceil(visibleParagraphs.length / ITEMS_PER_PAGE) - 1}
+                                        className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold flex items-center justify-center gap-1 transition-all ${sidebarPage >= Math.ceil(visibleParagraphs.length / ITEMS_PER_PAGE) - 1
                                             ? 'text-slate-300 bg-slate-100 dark:bg-slate-800/50 cursor-not-allowed'
                                             : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                                             }`}

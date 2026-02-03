@@ -29,6 +29,7 @@ export interface AvailableUser {
 
 export interface CallInvitationEvent {
   callId: string;
+  callerId: string;
   callerName: string;
   callerAvatar?: string;
   timestamp: string;
@@ -57,7 +58,7 @@ interface CallState {
   durationSeconds: number;
 
   // Rating Modal State
-  lastCompletedCall: { callId: string; partnerName: string } | null;
+  lastCompletedCall: { callId: string; partnerName: string; partnerId: string } | null;
   showRatingModal: boolean;
 }
 
@@ -145,15 +146,24 @@ export const callSlice = createSlice({
     },
 
     // Cleanup
-    endCall: (state, action: PayloadAction<{ partnerName?: string } | undefined>) => {
+    endCall: (state, action: PayloadAction<{ partnerName?: string; partnerId?: string } | undefined>) => {
       // Save call info for rating modal before clearing
-      // Show rating modal if there was an active call (regardless of duration)
       if (state.currentCall && state.callState === 'active') {
         const partnerName = action?.payload?.partnerName || 'User';
+        let partnerId = action?.payload?.partnerId;
+
+        // If partnerId not provided, try to determine it from currentCall
+        if (!partnerId) {
+          // Find who is the other person (not current user? well we don't know currentUser here easily)
+          // Actually, currentCall already has callerId and calleeId.
+          // The best place to determine this is in the hook, but let's have a smarter fallback.
+          partnerId = state.currentCall.calleeId; // Default fallback
+        }
 
         state.lastCompletedCall = {
           callId: state.currentCall.callId,
-          partnerName: partnerName
+          partnerName: partnerName,
+          partnerId: partnerId
         };
         state.showRatingModal = true;
       }

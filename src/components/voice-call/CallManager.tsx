@@ -297,8 +297,10 @@ const CallManager: React.FC = () => {
                     onUserLeft: (remoteUser) => {
                         callLogger.info('👋 Remote user left channel', { uid: remoteUser.uid });
                         // End call immediately when partner leaves
-                        const partnerName = currentCall.callerName || currentCall.calleeName || 'Unknown';
-                        dispatch(endCall({ partnerName }));
+                        const isIncoming = currentCall.calleeId?.toString() === user?.id?.toString();
+                        const partnerName = isIncoming ? currentCall.callerName : currentCall.calleeName;
+                        const partnerId = isIncoming ? currentCall.callerId : currentCall.calleeId;
+                        dispatch(endCall({ partnerName, partnerId }));
 
                         import('../../store/uiSlice').then(({ showToast }) => {
                             dispatch(showToast({
@@ -314,7 +316,10 @@ const CallManager: React.FC = () => {
                         } else if (state === 'DISCONNECTED' || state === 'FAILED') {
                             callLogger.error('Agora connection failed/disconnected');
                             // End call on connection failure
-                            dispatch(endCall({ partnerName: currentCall.callerName || currentCall.calleeName || 'Unknown' }));
+                            const isIncoming = currentCall.calleeId?.toString() === user?.id?.toString();
+                            const partnerName = isIncoming ? currentCall.callerName : currentCall.calleeName;
+                            const partnerId = isIncoming ? currentCall.callerId : currentCall.calleeId;
+                            dispatch(endCall({ partnerName, partnerId }));
                         }
                     }
                 });
@@ -333,8 +338,10 @@ const CallManager: React.FC = () => {
                 hasJoinedChannel.current = false;
 
                 // End call on failure
-                const partnerName = currentCall.callerName || currentCall.calleeName || 'Unknown';
-                dispatch(endCall({ partnerName }));
+                const isIncoming = currentCall?.calleeId?.toString() === user?.id?.toString();
+                const partnerName = isIncoming ? currentCall?.callerName : currentCall?.calleeName;
+                const partnerId = isIncoming ? currentCall?.callerId : currentCall?.calleeId;
+                dispatch(endCall({ partnerName: partnerName || 'User', partnerId }));
 
                 // Show error to user
                 import('../../store/uiSlice').then(({ showToast }) => {

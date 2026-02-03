@@ -229,6 +229,7 @@ const UserLayout: React.FC<UserLayoutProps> = ({ children, hideNavbar = false })
                 <CallRatingModal
                     callId={lastCompletedCall.callId}
                     partnerName={lastCompletedCall.partnerName}
+                    partnerId={lastCompletedCall.partnerId}
                     onClose={() => dispatch(closeRatingModal())}
                 />
             )}

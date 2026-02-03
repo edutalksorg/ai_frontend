@@ -73,30 +73,38 @@ export const useUsageLimits = () => {
                 const today = new Date().toISOString().split('T')[0];
                 console.log(`📅 Today's date: ${today}`);
 
-                // Calculate total seconds used from ALL completed calls (Lifetime limit for free trial)
+                // Calculate total seconds used from ALL completed calls TODAY (Daily limit)
                 const completedCalls = history.filter((call: any) => {
                     const status = (call.status || '').toLowerCase();
                     const isCompleted = status === 'completed';
 
+                    // Check if call is from today
+                    const callDateStr = call.initiatedAt || call.startTime || call.startedAt || call.createdAt;
+                    if (!callDateStr) return false;
+
+                    const callDate = new Date(callDateStr).toISOString().split('T')[0];
+                    const isToday = callDate === today;
+
                     // Log ignored calls for debugging
                     if (!isCompleted) {
                         console.log(`Skipping call ${call.callId || call.id}: Status=${status} (not completed)`);
+                    } else if (!isToday) {
+                        console.log(`Skipping call ${call.callId || call.id}: Date=${callDate} (not today: ${today})`);
                     }
 
-                    return isCompleted;
+                    return isCompleted && isToday;
                 });
 
-                console.log(`✅ Found ${completedCalls.length} completed calls (lifetime history)`);
+                console.log(`✅ Found ${completedCalls.length} completed calls today`);
 
                 const totalUsedSeconds = completedCalls.reduce((total: number, call: any) => {
                     const duration = call.durationSeconds !== undefined ? call.durationSeconds : call.duration || 0;
                     return total + duration;
                 }, 0);
 
-                console.log(`📊 Total lifetime usage calculated: ${totalUsedSeconds} seconds (${Math.floor(totalUsedSeconds / 60)}:${String(totalUsedSeconds % 60).padStart(2, '0')})`);
+                console.log(`📊 Total daily usage calculated: ${totalUsedSeconds} seconds (${Math.floor(totalUsedSeconds / 60)}:${String(totalUsedSeconds % 60).padStart(2, '0')})`);
 
                 // Update Redux with backend data (this will override localStorage)
-                // Always sync, even if 0, to ensure correct state if user clears history
                 console.log(`💾 Updating Redux with backend usage: ${totalUsedSeconds}s`);
                 dispatch(setUsage(totalUsedSeconds));
                 console.log('✅ Redux updated successfully');

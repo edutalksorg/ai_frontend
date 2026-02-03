@@ -19,13 +19,6 @@ const AdminReferralsPage: React.FC = () => {
         refereeRewardAmount: 0,
         refereeDiscountPercentage: 0,
         currency: 'INR',
-        bonusTier1Count: 0,
-        bonusTier1Amount: 0,
-        bonusTier2Count: 0,
-        bonusTier2Amount: 0,
-        bonusTier3Count: 0,
-
-        bonusTier3Amount: 0,
         requireEmailVerification: true,
         requireFirstPayment: true,
         rewardPendingPeriodHours: 24,
@@ -218,83 +211,7 @@ const AdminReferralsPage: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Bonus Tiers */}
-                        <div className="bg-white dark:bg-slate-900 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-                                <Users className="text-blue-500" size={24} />
-                                Bonus Tiers
-                            </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {/* Tier 1 */}
-                                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 space-y-4">
-                                    <h4 className="font-bold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-2">Tier 1</h4>
-                                    <div>
-                                        <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Referrals Required</label>
-                                        <input
-                                            type="number"
-                                            value={settings.bonusTier1Count}
-                                            onChange={(e) => handleChange('bonusTier1Count', parseInt(e.target.value) || 0)}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-colors"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Bonus Amount</label>
-                                        <input
-                                            type="number"
-                                            value={settings.bonusTier1Amount}
-                                            onChange={(e) => handleChange('bonusTier1Amount', parseFloat(e.target.value) || 0)}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-colors"
-                                        />
-                                    </div>
-                                </div>
 
-                                {/* Tier 2 */}
-                                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 space-y-4">
-                                    <h4 className="font-bold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-2">Tier 2</h4>
-                                    <div>
-                                        <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Referrals Required</label>
-                                        <input
-                                            type="number"
-                                            value={settings.bonusTier2Count}
-                                            onChange={(e) => handleChange('bonusTier2Count', parseInt(e.target.value) || 0)}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-colors"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Bonus Amount</label>
-                                        <input
-                                            type="number"
-                                            value={settings.bonusTier2Amount}
-                                            onChange={(e) => handleChange('bonusTier2Amount', parseFloat(e.target.value) || 0)}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-colors"
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Tier 3 */}
-                                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 space-y-4">
-                                    <h4 className="font-bold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-2">Tier 3</h4>
-                                    <div>
-                                        <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Referrals Required</label>
-                                        <input
-                                            type="number"
-                                            value={settings.bonusTier3Count}
-                                            onChange={(e) => handleChange('bonusTier3Count', parseInt(e.target.value) || 0)}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-colors"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Bonus Amount</label>
-                                        <input
-                                            type="number"
-                                            value={settings.bonusTier3Amount}
-                                            onChange={(e) => handleChange('bonusTier3Amount', parseFloat(e.target.value) || 0)}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-colors"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
                         {/* Limits & Security */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

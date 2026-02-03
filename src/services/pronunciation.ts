@@ -21,14 +21,11 @@ export const pronunciationService = {
     apiService.get(`/pronunciation/paragraphs/level/${level}`, { params }),
 
   // Assessment
-  assessAudio: async (paragraphId: string, audioFile: Blob) => {
-    const form = new FormData();
-    form.append('ParagraphId', paragraphId);
-    // Append blob with a filename to ensure it's treated as a file
-    form.append('AudioFile', audioFile, 'recording.webm');
-
-    return apiService.post('/pronunciation/assess', form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+  assessAudio: async (paragraphId: string, audioFile: Blob, transcript: string) => {
+    // Send JSON with transcript for text-based analysis (since backend doesn't support multipart/form-data)
+    return apiService.post('/pronunciation/assess', {
+      paragraphId,
+      transcript
     });
   },
 

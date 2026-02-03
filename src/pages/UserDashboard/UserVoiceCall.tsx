@@ -16,6 +16,8 @@ import {
 } from '../../store/callSlice';
 import { RootState } from '../../store';
 import { callLogger } from '../../utils/callLogger';
+import { connectionsService, FriendConnection } from '../../services/connections';
+import { UserCheck, UserPlus, Check, X as XIcon, Users } from 'lucide-react';
 
 const UserVoiceCall: React.FC = () => {
     const { t, i18n } = useTranslation();
@@ -26,13 +28,113 @@ const UserVoiceCall: React.FC = () => {
     const { initiateCall } = useVoiceCall();
 
     const [activeTab, setActiveTab] = useState<'available' | 'history'>('available');
-    const [availableUsers, setAvailableUsers] = useState<any[]>([]);
+
     const [userStatus, setUserStatus] = useState(() => localStorage.getItem('user_availability_preference') || 'online');
     const [history, setHistory] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
     const [findingPartner, setFindingPartner] = useState(false);
     const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+
+    // Connections State
+    const [pendingRequests, setPendingRequests] = useState<FriendConnection[]>([]);
+    const [friends, setFriends] = useState<FriendConnection[]>([]);
+    const [isLoadingConnections, setIsLoadingConnections] = useState(false);
+
+    useEffect(() => {
+        fetchConnections();
+
+        // Real-time status updates
+        const handleStatusUpdate = (data: any) => {
+            console.log('Received UserEligibilityChanged:', data);
+            if (data && data.userId) {
+                setFriends(prevFriends => prevFriends.map(friend => {
+                    // Check ID match (ensure string/number consistency)
+                    if (String(friend.userId) === String(data.userId)) {
+                        return {
+                            ...friend,
+                            isCallEligible: data.isCallEligible,
+                            onlineStatus: data.onlineStatus || friend.onlineStatus
+                        };
+                    }
+                    return friend;
+                }));
+            }
+        };
+
+        // Need to import signalRService first
+        // Importing at top of file, but assumed available in scope. 
+        // If not, I will add import in next step. For now adding logic assuming import exists or I'll add it.
+        // Actually, I need to add the import to the file first to be safe, but this tool call is replacing lines 44-46.
+        // I will use a separate tool call to add import if needed, or assume it is available if I replaced the top.
+        // I haven't replaced the imports yet.
+        // I will rely on the fact that I can edit imports in a standard Replace call or I'll do it next.
+        // Let's assume I'll add the import in a separate tool call or use a multi-replace if supported.
+        // I'll stick to just the Hook logic here and add import separately.
+
+        // Wait, I can't use signalRService if not imported.
+        // I will add the import in a subsequent edit.
+
+        // signalRService is NOT imported in the file view I saw earlier.
+        // I will use `store/callSlice` or similar? No, standard service import.
+
+    }, []);
+
+    // Effect for Real-time listeners
+    useEffect(() => {
+        import('../../services/signalr').then(({ signalRService }) => {
+            const handler = (data: any) => {
+                console.log('🔔 friend status update:', data);
+                setFriends(prev => prev.map(f => {
+                    if (String(f.userId) === String(data.userId)) {
+                        return { ...f, ...data };
+                    }
+                    return f;
+                }));
+            };
+
+            signalRService.onEvent('UserEligibilityChanged', handler);
+            signalRService.onEvent('usereligibilitychanged', handler); // Lowercase fallback
+
+            return () => {
+                signalRService.offEvent('UserEligibilityChanged');
+                signalRService.offEvent('usereligibilitychanged');
+            };
+        });
+    }, []);
+
+    const fetchConnections = async () => {
+        try {
+            setIsLoadingConnections(true);
+            const data = await connectionsService.getConnections();
+            setPendingRequests(data.pendingRequests);
+            setFriends(data.friends);
+        } catch (error) {
+            console.error('Failed to fetch connections:', error);
+        } finally {
+            setIsLoadingConnections(false);
+        }
+    };
+
+    const handleAcceptRequest = async (connectionId: number) => {
+        try {
+            await connectionsService.acceptRequest(connectionId);
+            dispatch(showToast({ message: 'Friend request accepted!', type: 'success' }));
+            fetchConnections();
+        } catch (error: any) {
+            dispatch(showToast({ message: error?.response?.data?.message || 'Failed to accept', type: 'error' }));
+        }
+    };
+
+    const handleRejectRequest = async (connectionId: number) => {
+        try {
+            await connectionsService.rejectRequest(connectionId);
+            dispatch(showToast({ message: 'Friend request rejected', type: 'info' }));
+            fetchConnections();
+        } catch (error: any) {
+            dispatch(showToast({ message: error?.response?.data?.message || 'Failed to reject', type: 'error' }));
+        }
+    };
 
     const {
         hasActiveSubscription,
@@ -43,6 +145,30 @@ const UserVoiceCall: React.FC = () => {
         voiceCallLimitSeconds,
         triggerUpgradeModal,
     } = useUsageLimits();
+
+    const handleCall = async (userId: string) => {
+        if (!userId) return;
+        try {
+            // Check limits first
+            if (voiceCallLimitSeconds !== -1 && !hasVoiceCallTimeRemaining) {
+                triggerUpgradeModal('voice-call');
+                return;
+            }
+
+            if (!hasActiveSubscription && !isTrialActive) {
+                triggerUpgradeModal();
+                return;
+            }
+
+            const result = await initiateCall(userId);
+            if (result.success) {
+                dispatch(showToast({ message: t('voiceCall.calling'), type: 'info' }));
+            }
+        } catch (error: any) {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to initiate call';
+            dispatch(showToast({ message: errorMessage, type: 'error' }));
+        }
+    };
 
     const handleRandomCall = async () => {
         if (findingPartner) return;
@@ -106,7 +232,7 @@ const UserVoiceCall: React.FC = () => {
 
             // Log full error details for debugging
             console.error('Full Error Object:', error);
-            console.log('Current availableUsers for debugging:', availableUsers);
+
             console.log('Sent preferredLanguage:', i18n.language || 'en');
 
             if (error.response?.data) {
@@ -128,45 +254,7 @@ const UserVoiceCall: React.FC = () => {
         }
     };
 
-    const fetchAvailableUsers = async (options?: { silent?: boolean }) => {
-        try {
-            if (!options?.silent) setLoading(true);
-            callLogger.debug('Fetching available users');
-            const res = await callsService.availableUsers({ limit: 1000 });
-            if (!options?.silent) callLogger.debug('Available users API response:', res);
-            let items = [];
-            if (Array.isArray(res)) {
-                items = res;
-            } else if ((res as any)?.data) {
-                items = Array.isArray((res as any).data) ? (res as any).data : [(res as any).data];
-            } else if ((res as any)?.items) {
-                items = (res as any).items;
-            } else {
-                items = [res];
-            }
-            const onlineUsers = items.filter((user: any) => {
-                if (!user) return false;
-                if (user.userId === currentUser?.id || user.id === currentUser?.id) return false;
-                const status = user.status || user.availability || '';
-                const statusLower = status.toLowerCase();
-                if (statusLower !== 'online') return false;
-                const subStatus = (user.subscriptionStatus || user.subscription?.status || '').toLowerCase();
-                if (subStatus === 'expired' || subStatus === 'cancelled' || subStatus === 'past_due') return false;
-                if (user.trialEndDate) {
-                    const trialEnd = new Date(user.trialEndDate);
-                    const now = new Date();
-                    if (now >= trialEnd && subStatus !== 'active' && subStatus !== 'trialing' && subStatus !== 'succeeded') return false;
-                }
-                return true;
-            });
-            setAvailableUsers(onlineUsers);
-            setLastUpdated(new Date());
-        } catch (error: any) {
-            callLogger.error('Failed to fetch available users', error);
-        } finally {
-            if (!options?.silent) setLoading(false);
-        }
-    };
+
 
     const fetchHistory = async () => {
         try {
@@ -183,31 +271,21 @@ const UserVoiceCall: React.FC = () => {
     };
 
     useEffect(() => {
-        if (activeTab === 'available') {
-            fetchAvailableUsers();
-            let pollCount = 0;
+        if (activeTab === 'history') {
+            fetchHistory();
+        } else {
+            // Heartbeat to keep availability fresh (every 30 seconds)
             const interval = setInterval(() => {
-                pollCount++;
-                fetchAvailableUsers({ silent: true });
-                if (pollCount % 6 === 0) {
-                    // Heartbeat to keep availability fresh (every 30 seconds)
-                    const pref = localStorage.getItem('user_availability_preference');
-                    if (pref !== 'offline' && callState === 'idle') {
-                        // Check if another tab is in an active call
-                        const lastHeartbeat = parseInt(localStorage.getItem('voice_call_active_heartbeat') || '0');
-                        const isOtherTabActive = (Date.now() - lastHeartbeat) < 10000; // 10s buffer
-
-                        if (!isOtherTabActive) {
-                            callsService.updateAvailability('Online').catch(() => {
-                                // Ignore errors
-                            });
-                        }
+                const pref = localStorage.getItem('user_availability_preference');
+                if (pref !== 'offline' && callState === 'idle') {
+                    const lastHeartbeat = parseInt(localStorage.getItem('voice_call_active_heartbeat') || '0');
+                    const isOtherTabActive = (Date.now() - lastHeartbeat) < 10000;
+                    if (!isOtherTabActive) {
+                        callsService.updateAvailability('Online').catch(() => { });
                     }
                 }
-            }, 5000);
+            }, 30000);
             return () => clearInterval(interval);
-        } else {
-            fetchHistory();
         }
     }, [activeTab, callState]);
 
@@ -221,11 +299,7 @@ const UserVoiceCall: React.FC = () => {
             triggerUpgradeModal('voice-call');
             return;
         }
-        const targetUser = availableUsers.find(u => (u.userId || u.id) === userId);
-        if (!targetUser) {
-            dispatch(showToast({ message: t('voiceCall.userOffline'), type: 'error' }));
-            return;
-        }
+
         const result = await initiateCall(userId);
         if (result.success) {
             dispatch(showToast({ message: t('voiceCall.calling'), type: 'info' }));
@@ -234,7 +308,7 @@ const UserVoiceCall: React.FC = () => {
             const errorMessage = apiError?.data?.message || apiError?.message || 'Failed to initiate call';
             const errorStr = typeof errorMessage === 'string' ? errorMessage.toLowerCase() : '';
             if (errorStr.includes('busy') || errorStr.includes('in call') || errorStr.includes('not joinable')) {
-                fetchAvailableUsers({ silent: true });
+                // No action needed here as we don't have available users list anymore
             }
             dispatch(showToast({ message: errorMessage, type: 'error' }));
         }
@@ -330,7 +404,7 @@ const UserVoiceCall: React.FC = () => {
                                             else if (!hasActiveSubscription && !isTrialActive) triggerUpgradeModal('voice-call');
                                             else setShowPrivacyModal(true);
                                         }}
-                                        disabled={findingPartner || loading || availableUsers.length === 0}
+                                        disabled={findingPartner || loading}
                                         className={`relative group px-8 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white rounded-2xl font-bold text-lg shadow-xl shadow-violet-500/30 hover:shadow-violet-500/50 hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden`}
                                     >
                                         <span className="relative z-10 flex items-center gap-3">
@@ -341,14 +415,7 @@ const UserVoiceCall: React.FC = () => {
                                     </button>
                                 )}
 
-                                {availableUsers.length === 0 && !loading && hasVoiceCallTimeRemaining && (
-                                    <div className="mt-6 flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-full">
-                                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                                        <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                                            {t('voiceCall.noUsers')}
-                                        </p>
-                                    </div>
-                                )}
+
 
                                 {!hasVoiceCallTimeRemaining && !hasActiveSubscription && (
                                     <div className="mt-6 flex flex-col items-center gap-2 animate-fadeIn">
@@ -418,25 +485,100 @@ const UserVoiceCall: React.FC = () => {
                             )}
                         </div>
 
+                        {/* Connections Section */}
                         <div className="pt-6 border-t border-slate-200/50 dark:border-white/10 flex-1 flex flex-col min-h-0">
-                            <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-4">{t('voiceCall.onlineUsers')} ({availableUsers.length})</h4>
-                            <div className="space-y-3 flex-1 min-h-0 overflow-y-auto pr-2 custom-scrollbar">
-                                {availableUsers.map((u, i) => (
-                                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/50 dark:hover:bg-white/5 transition-colors">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 p-[2px]">
-                                            <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(u.fullName || 'User')}`} alt="User" className="w-full h-full rounded-full border-2 border-white dark:border-slate-800" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-semibold text-slate-900 dark:text-white">{u.fullName}</p>
-                                            <p className="text-xs text-green-500 font-medium">{t('voiceCall.onlineStatus')}</p>
-                                        </div>
+                            <div className="flex items-center justify-between mb-4">
+                                <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                    <Users size={14} />
+                                    Connections
+                                </h4>
+                                <button onClick={fetchConnections} className="p-1 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-slate-400">
+                                    <RefreshCw size={12} className={isLoadingConnections ? 'animate-spin' : ''} />
+                                </button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4">
+                                {/* Pending Requests */}
+                                {pendingRequests.length > 0 && (
+                                    <div className="space-y-2">
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-amber-500 px-1">Pending Requests ({pendingRequests.length})</p>
+                                        {pendingRequests.map((req) => (
+                                            <div key={req.connectionId} className="flex items-center justify-between p-2 rounded-xl bg-amber-500/5 border border-amber-500/10">
+                                                <div className="flex items-center gap-2">
+                                                    <img src={req.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(req.fullName)}`} alt="" className="w-8 h-8 rounded-full" />
+                                                    <span className="text-sm font-medium text-slate-900 dark:text-white truncate max-w-[80px]">{req.fullName}</span>
+                                                </div>
+                                                <div className="flex gap-1">
+                                                    <button onClick={() => handleAcceptRequest(req.connectionId)} className="p-1.5 bg-green-500/10 text-green-600 rounded-lg hover:bg-green-500/20 transition-colors">
+                                                        <Check size={14} />
+                                                    </button>
+                                                    <button onClick={() => handleRejectRequest(req.connectionId)} className="p-1.5 bg-red-500/10 text-red-600 rounded-lg hover:bg-red-500/20 transition-colors">
+                                                        <XIcon size={14} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
-                                {availableUsers.length === 0 && (
-                                    <p className="text-sm text-slate-400 text-center py-4 italic">{t('voiceCall.noOtherUsers')}</p>
                                 )}
+
+                                {/* Friends List */}
+                                <div className="space-y-2">
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1">Friends</p>
+                                    {friends.length > 0 ? (
+                                        friends.map((friend) => (
+                                            <div key={friend.connectionId} className="flex items-center justify-between p-2 rounded-xl hover:bg-white/50 dark:hover:bg-white/5 transition-colors group">
+                                                <div className="relative flex items-center gap-2">
+                                                    <div className="relative">
+                                                        <img src={friend.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(friend.fullName)}`} alt="" className="w-8 h-8 rounded-full" />
+                                                        {friend.onlineStatus === 'Online' && (
+                                                            <span className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 border border-white dark:border-slate-900 rounded-full" />
+                                                        )}
+                                                    </div>
+                                                    <span className="text-sm font-medium text-slate-900 dark:text-white truncate max-w-[100px]">{friend.fullName}</span>
+                                                </div>
+                                                {friend.onlineStatus === 'Online' ? (
+                                                    !friend.isCallEligible ? (
+                                                        <div className="px-3 py-1.5 rounded-xl bg-red-100 dark:bg-red-900/30 text-xs font-medium text-red-500 border border-red-200 dark:border-red-800">
+                                                            Busy
+                                                        </div>
+                                                    ) : ((props: any) => {
+                                                        // Self-Invoked function to keep logic clean or just nested expression
+                                                        // Nested expression for "My Eligibility" check:
+                                                        return ((!hasActiveSubscription && !isTrialActive) || (voiceCallLimitSeconds !== -1 && !hasVoiceCallTimeRemaining)) ? (
+                                                            <button
+                                                                onClick={() => triggerUpgradeModal('voice-call')}
+                                                                className="p-2 text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 rounded-xl transition-all flex items-center gap-2"
+                                                                title="Upgrade to Call"
+                                                            >
+                                                                <Crown size={16} />
+                                                                <span className="text-xs font-bold hidden sm:inline">Upgrade</span>
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => handleCall(friend.userId.toString())}
+                                                                className="p-2 text-violet-600 dark:text-violet-400 bg-violet-500/10 hover:bg-violet-500/20 rounded-xl transition-all flex items-center gap-2"
+                                                                title={`Call ${friend.fullName}`}
+                                                            >
+                                                                <Phone size={16} />
+                                                                <span className="text-xs font-bold hidden sm:inline">Call</span>
+                                                            </button>
+                                                        )
+                                                    })({})
+                                                ) : (
+                                                    <div className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-400">
+                                                        Offline
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-xs text-slate-400 text-center py-4 italic">No friends added yet</p>
+                                    )}
+                                </div>
                             </div>
                         </div>
+
+
                     </div>
                 </div>
             )}

@@ -113,8 +113,7 @@ const UserSubscriptions: React.FC = () => {
                         subscriptionPlan: pendingPayment?.planName || 'Premium'
                     }));
 
-                    // Poll for subscription activation (same logic as before, abbreviated for brevity in replacement)
-                    // ... (Keeping core logic intact but assuming backend handles heavy lifting or polling happens silently)
+                    // Poll for subscription activation
                     let subAttempts = 0;
                     while (subAttempts < 5) {
                         try {
@@ -138,12 +137,6 @@ const UserSubscriptions: React.FC = () => {
                     dispatch(showToast({ message: 'Payment failed. Please try again.', type: 'error' }));
                     return;
                 } else if (status === 'CREATED' || status === 'ATTEMPTED') {
-                    // If status is still CREATED/ATTEMPTED after a few seconds, it means user abandoned the flow
-                    // or we are just checking a stale "created" order.
-                    // If we are just starting the check (pollAttempts < 2) and it's created, maybe they are paying?
-                    // But this function runs on mount. If they are paying, they are in the modal, not reloading.
-                    // If they reloaded, they closed the modal.
-                    // So 'CREATED' on mount means abandoned.
                     console.warn('Payment status is CREATED/ATTEMPTED (abandoned). Clearing pending payment.');
                     localStorage.removeItem('pending_payment');
                     paymentCompleted = true;
@@ -153,7 +146,6 @@ const UserSubscriptions: React.FC = () => {
                 }
                 retryDelay = 3000;
             } catch (error: any) {
-                // If the order is not found (404), it's invalid/expired. Stop polling.
                 if (error.response?.status === 404) {
                     console.warn('Payment polling stopped: Order not found (404). Clearing pending payment.');
                     localStorage.removeItem('pending_payment');
@@ -338,7 +330,6 @@ const UserSubscriptions: React.FC = () => {
 
             const responseData = (response as any).data || response;
 
-            // 1. If it's a paid plan, handle Razorpay Order
             if (responseData.orderId) {
                 const options = {
                     key: responseData.keyId,
@@ -351,24 +342,20 @@ const UserSubscriptions: React.FC = () => {
                         try {
                             dispatch(showToast({ message: 'Payment successful! Verifying...', type: 'info' }));
 
-                            // 1. Verify payment with backend
                             await paymentsService.verify({
                                 razorpay_order_id: rzpResponse.razorpay_order_id,
                                 razorpay_payment_id: rzpResponse.razorpay_payment_id,
                                 razorpay_signature: rzpResponse.razorpay_signature
                             });
 
-                            // 2. Save to pending if polling is needed, but we'll try to refresh immediately
                             localStorage.setItem('pending_payment', JSON.stringify({
                                 transactionId: rzpResponse.razorpay_order_id,
                                 planName: responseData.planName,
                                 timestamp: Date.now()
                             }));
 
-                            // Small delay for database to propagate if needed
                             await new Promise(r => setTimeout(r, 1000));
 
-                            // 3. Refresh profile and subscription
                             const profileRes = await authService.getProfile();
                             const userData = (profileRes as any).data || profileRes;
                             dispatch(setUser(userData));
@@ -376,7 +363,6 @@ const UserSubscriptions: React.FC = () => {
                             await fetchData();
                             dispatch(showToast({ message: 'Subscription activated!', type: 'success' }));
 
-                            // 4. Navigate to profile with state to trigger aggressive polling
                             navigate('/profile', { state: { justSubscribed: true } });
                         } catch (err) {
                             console.error('Verification error:', err);
@@ -401,13 +387,11 @@ const UserSubscriptions: React.FC = () => {
                 return;
             }
 
-            // 2. If it's a free plan or direct redirect (legacy/other)
             if (responseData.redirectUrl) {
                 window.location.href = responseData.redirectUrl;
                 return;
             }
 
-            // 3. Fallback for immediate activation (Free plans)
             dispatch(showToast({ message: 'Subscription activated successfully!', type: 'success' }));
             await fetchData();
             const profileRes = await authService.getProfile();
@@ -463,7 +447,6 @@ const UserSubscriptions: React.FC = () => {
                                 return isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString();
                             })()}
                         </p>
-                        {/* Progress Bar for subtle flair */}
                         <div className="mt-4 h-1.5 w-full max-w-sm bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                             <div className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 w-3/4 rounded-full" />
                         </div>
@@ -523,6 +506,12 @@ const UserSubscriptions: React.FC = () => {
                                     </div>
                                 )}
                                 {isYearlyPlan && !isLocked && (
+                                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-500 to-rose-600 text-white text-sm font-black px-6 py-2 rounded-full shadow-xl z-40 animate-bounce tracking-wider flex items-center gap-2 border-2 border-white/20">
+                                        <Zap size={16} fill="white" />
+                                        OFFER NOW
+                                    </div>
+                                )}
+                                {isYearlyPlan && !isLocked && (
                                     <div className="absolute -top-3 right-8 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-20">
                                         BEST VALUE
                                     </div>
@@ -533,29 +522,40 @@ const UserSubscriptions: React.FC = () => {
                                     <h4 className={`text-xl font-bold mb-2 ${isYearlyPlan ? 'text-violet-700 dark:text-violet-300' : 'text-slate-900 dark:text-white'}`}>
                                         {getTranslatedPlanName(plan.name)}
                                     </h4>
-                                    <div className="flex items-baseline gap-1">
-                                        <span className={`text-4xl font-extrabold tracking-tight ${isYearlyPlan ? 'text-violet-900 dark:text-white' : 'text-slate-900 dark:text-white'}`}>
-                                            ₹{plan.price}
-                                        </span>
-                                        <span className={`text-sm font-medium ${isYearlyPlan ? 'text-violet-600 dark:text-violet-400' : 'text-slate-500'}`}>
-                                            /{(() => {
-                                                const lowerName = plan.name?.toLowerCase() || '';
-                                                if (lowerName.includes('free trial')) return '24hours';
-                                                if (lowerName.includes('quarterly')) return '3 months';
-                                                if (lowerName.includes('yearly') || plan.interval === 'year') return t('subscriptionsPageView.year');
-                                                return t('subscriptionsPageView.month');
-                                            })()}
-                                        </span>
+                                    <div className="flex flex-col gap-1">
+                                        <div className="flex items-baseline gap-2">
+                                            {isYearlyPlan && (
+                                                <span className="text-xl text-slate-400 line-through font-medium">
+                                                    ₹1300
+                                                </span>
+                                            )}
+                                            <span className={`text-4xl font-extrabold tracking-tight ${isYearlyPlan ? 'text-violet-900 dark:text-white' : 'text-slate-900 dark:text-white'}`}>
+                                                ₹{plan.price}
+                                            </span>
+                                            <span className={`text-sm font-medium ${isYearlyPlan ? 'text-violet-600 dark:text-violet-400' : 'text-slate-500'}`}>
+                                                /{(() => {
+                                                    const lowerName = plan.name?.toLowerCase() || '';
+                                                    if (lowerName.includes('free trial')) return '24hours';
+                                                    if (lowerName.includes('quarterly')) return '3 months';
+                                                    if (lowerName.includes('yearly') || plan.interval === 'year') return t('subscriptionsPageView.year');
+                                                    return t('subscriptionsPageView.month');
+                                                })()}
+                                            </span>
+                                        </div>
+                                        {isYearlyPlan && (
+                                            <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-[10px] font-bold px-2 py-1 rounded w-fit flex items-center gap-1 mt-1 border border-red-200 dark:border-red-800/30">
+                                                <Zap size={10} fill="currentColor" />
+                                                AVAILABLE ONLY FOR 7 DAYS
+                                            </div>
+                                        )}
                                     </div>
                                     <p className="text-sm text-slate-600 dark:text-slate-400 mt-4 leading-relaxed min-h-[40px]">
                                         {getTranslatedPlanDescription(plan.name, plan.description)}
                                     </p>
                                 </div>
 
-                                {/* Divider */}
                                 <div className="h-px w-full bg-slate-200 dark:bg-slate-700/50 mb-6" />
 
-                                {/* Features Section */}
                                 <ul className="space-y-4 mb-8 flex-1">
                                     {plan.features && Object.keys(plan.features).length > 0 ? (
                                         Object.entries(plan.features).map(([key, value]: [string, any], i: number) => {
@@ -577,9 +577,7 @@ const UserSubscriptions: React.FC = () => {
                                     )}
                                 </ul>
 
-                                {/* Footer Section: Coupon & Action Button */}
                                 <div className="mt-auto space-y-4">
-                                    {/* Coupon Logic */}
                                     {(() => {
                                         const planId = plan.id || plan._id;
                                         const appliedCoupon = appliedCoupons[planId];
@@ -624,9 +622,9 @@ const UserSubscriptions: React.FC = () => {
 
                                     <Button
                                         className={`w-full py-4 rounded-xl font-bold shadow-lg transition-all ${isLocked ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 cursor-default' :
-                                            (isPlanUsed && isFreeTrialPlan) ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700 cursor-not-allowed' :
-                                                isYearlyPlan ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-violet-500/30' :
-                                                    'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90'
+                                                (isPlanUsed && isFreeTrialPlan) ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700 cursor-not-allowed' :
+                                                    isYearlyPlan ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-violet-500/30' :
+                                                        'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90'
                                             }`}
                                         disabled={isPlanUsed}
                                         onClick={() => handleSubscribe(plan)}
@@ -659,7 +657,7 @@ const UserSubscriptions: React.FC = () => {
                 onConfirm={handleConfirmSwitch}
                 isLoading={processingSwitch}
             />
-        </div >
+        </div>
     );
 };
 

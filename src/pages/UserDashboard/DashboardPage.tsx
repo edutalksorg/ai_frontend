@@ -23,7 +23,7 @@ const DashboardPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
     const tabParam = searchParams.get('tab') as TabType;
-    const [activeTab, setActiveTab] = useState<TabType>(tabParam || 'topics');
+    const [activeTab, setActiveTab] = useState<TabType>(tabParam || 'voice');
     const {
         isTrialActive,
         hasActiveSubscription,

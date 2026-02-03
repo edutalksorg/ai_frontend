@@ -1,21 +1,74 @@
-import React, { useState } from 'react';
-import { X, Star } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Star, UserPlus, Check } from 'lucide-react';
 import Button from '../Button';
 import { callsService } from '../../services/calls';
+import { connectionsService } from '../../services/connections';
 import { useDispatch } from 'react-redux';
 import { showToast } from '../../store/uiSlice';
 
 interface CallRatingModalProps {
     callId: string;
     partnerName: string;
+    partnerId: string;
     onClose: () => void;
 }
 
-const CallRatingModal: React.FC<CallRatingModalProps> = ({ callId, partnerName, onClose }) => {
+const CallRatingModal: React.FC<CallRatingModalProps> = ({ callId, partnerName, partnerId, onClose }) => {
     const dispatch = useDispatch();
     const [rating, setRating] = useState(0);
     const [hoveredRating, setHoveredRating] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSendingRequest, setIsSendingRequest] = useState(false);
+    const [requestSent, setRequestSent] = useState(false);
+    const [isAlreadyFriend, setIsAlreadyFriend] = useState(false);
+
+    useEffect(() => {
+        const checkFriendship = async () => {
+            if (!partnerId) return;
+            try {
+                const connections = await connectionsService.getConnections();
+                const isFriend = connections.friends.some(f => {
+                    const fId = (f.userId || (f as any).userid)?.toString();
+                    return fId && fId === partnerId.toString();
+                });
+                const isReceivedPending = connections.pendingRequests.some(f => {
+                    const fId = (f.userId || (f as any).userid)?.toString();
+                    return fId && fId === partnerId.toString();
+                });
+                const isSentPending = connections.sentRequests.some(f => {
+                    const fId = (f.userId || (f as any).userid)?.toString();
+                    return fId && fId === partnerId.toString();
+                });
+
+                if (isFriend || isReceivedPending || isSentPending) {
+                    setIsAlreadyFriend(true);
+                }
+                // Also check if we've already sent a request (might need a more robust check if the API supports it)
+                // For now, let's just focus on "is already a friend" as requested.
+            } catch (error) {
+                console.error('Failed to check friendship status:', error);
+            }
+        };
+        checkFriendship();
+    }, [partnerId]);
+
+    const handleAddFriend = async () => {
+        if (!partnerId) return;
+        try {
+            setIsSendingRequest(true);
+            await connectionsService.sendRequest(parseInt(partnerId, 10));
+            setRequestSent(true);
+            dispatch(showToast({ message: 'Friend request sent!', type: 'success' }));
+        } catch (error: any) {
+            console.error('Failed to send friend request:', error);
+            dispatch(showToast({
+                message: error?.response?.data?.message || 'Failed to send request',
+                type: 'error'
+            }));
+        } finally {
+            setIsSendingRequest(false);
+        }
+    };
 
     const handleSubmit = async () => {
         if (rating === 0) {
@@ -85,8 +138,8 @@ const CallRatingModal: React.FC<CallRatingModalProps> = ({ callId, partnerName, 
                                 <Star
                                     size={48}
                                     className={`transition-all ${star <= (hoveredRating || rating)
-                                            ? 'fill-yellow-400 text-yellow-400'
-                                            : 'fill-none text-slate-300 dark:text-slate-600'
+                                        ? 'fill-yellow-400 text-yellow-400'
+                                        : 'fill-none text-slate-300 dark:text-slate-600'
                                         }`}
                                 />
                             </button>
@@ -111,6 +164,31 @@ const CallRatingModal: React.FC<CallRatingModalProps> = ({ callId, partnerName, 
                         )}
                     </div>
                 </div>
+
+                {/* Friend Suggestion */}
+                {partnerId && !isAlreadyFriend && (
+                    <div className="mb-8 p-4 bg-violet-500/5 border border-violet-500/10 rounded-2xl flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-500">
+                                <UserPlus size={20} />
+                            </div>
+                            <div>
+                                <p className="text-sm font-bold text-slate-900 dark:text-white">Add as Friend?</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">Connect with {partnerName}</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={handleAddFriend}
+                            disabled={isSendingRequest || requestSent}
+                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${requestSent
+                                ? 'bg-green-500/10 text-green-600 border border-green-500/20'
+                                : 'bg-violet-600 text-white hover:bg-violet-500 shadow-lg shadow-violet-500/20 active:scale-95 disabled:opacity-50'
+                                }`}
+                        >
+                            {isSendingRequest ? 'Sending...' : requestSent ? <><Check size={14} /> Sent</> : 'Add Friend'}
+                        </button>
+                    </div>
+                )}
 
                 {/* Actions */}
                 <div className="flex gap-3">

@@ -138,10 +138,10 @@ const UserReferrals: React.FC = () => {
 
                 <div className="glass-panel p-6 rounded-2xl flex flex-col items-center text-center hover:scale-[1.02] transition-transform duration-300">
                     <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
-                        <Trophy size={32} />
+                        <Award size={32} />
                     </div>
-                    <h3 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-1">Tier 1</h3>
-                    <p className="text-sm font-bold text-slate-500 uppercase tracking-wide">{t('referrals.yourLevel')}</p>
+                    <h3 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-1">Coming Soon</h3>
+                    <p className="text-sm font-bold text-slate-500 uppercase tracking-wide">Rewards</p>
                 </div>
             </div>
 
