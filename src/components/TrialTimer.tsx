@@ -26,7 +26,7 @@ const TrialTimer: React.FC<TrialTimerProps> = ({
 
     useEffect(() => {
         // Don't show timer for paid subscribers (only show for free trial users)
-        if (!trialExpiresAt || hasActiveSubscription) {
+        if (!trialExpiresAt || (hasActiveSubscription && !isFreeTrial)) {
             return;
         }
 
@@ -80,7 +80,7 @@ const TrialTimer: React.FC<TrialTimerProps> = ({
     }, [trialExpiresAt, hasActiveSubscription, planName]);
 
     // Don't show timer for paid subscribers
-    if (hasActiveSubscription) {
+    if (hasActiveSubscription && !isFreeTrial) {
         return null;
     }
 

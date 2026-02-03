@@ -216,11 +216,11 @@ export interface Coupon {
 export interface CreateCouponRequest {
   code: string;
   description: string;
-  discountType: number; // 1 (Percentage) or 2 (Flat)
+  discountType: number | string; // 1 (Percentage) or 2 (Flat)
   discountValue: number;
   maxDiscountAmount?: number;
   minimumPurchaseAmount?: number;
-  applicableTo: number; // 1 (All), 2 (Quiz), 3 (Plan)
+  applicableTo: number | string; // 1 (All), 2 (Quiz), 3 (Plan)
   specificQuizIds?: string[];
   specificPlanIds?: string[];
   maxTotalUsage?: number;

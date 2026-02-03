@@ -43,12 +43,16 @@ const UserSubscriptions: React.FC = () => {
     const [showCouponInput, setShowCouponInput] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
-        fetchData();
-        checkPaymentStatus();
+        const init = async () => {
+            const sub = await fetchData();
+            checkPaymentStatus(sub);
+        };
+        init();
     }, []);
 
-    const checkPaymentStatus = async () => {
+    const checkPaymentStatus = async (fetchedSub: any = null) => {
         let transactionId = searchParams.get('transactionId');
+        const isUrlTransaction = !!transactionId;
         let pendingPayment: any = null;
 
         if (!transactionId) {
@@ -56,9 +60,16 @@ const UserSubscriptions: React.FC = () => {
             if (stored) {
                 try {
                     pendingPayment = JSON.parse(stored);
+                    const timestamp = pendingPayment.timestamp || 0;
+                    // Expire after 15 minutes (15 * 60 * 1000 ms)
+                    if (Date.now() - timestamp > 900000) {
+                        localStorage.removeItem('pending_payment');
+                        return;
+                    }
                     transactionId = pendingPayment.transactionId;
                 } catch (e) {
                     console.error('Failed to parse pending payment:', e);
+                    localStorage.removeItem('pending_payment');
                 }
             }
         } else {
@@ -69,6 +80,17 @@ const UserSubscriptions: React.FC = () => {
         }
 
         if (!transactionId) return;
+
+        // CRITICAL FIX: If we are relying on localStorage (not URL redirect) AND user is already active,
+        // ignore the pending payment. It's likely a stale attempt.
+        if (!isUrlTransaction && fetchedSub) {
+            const status = fetchedSub.status?.toLowerCase();
+            if (['active', 'trialing', 'succeeded', 'year'].includes(status)) {
+                console.log('User already active, ignoring stale pending payment');
+                localStorage.removeItem('pending_payment');
+                return;
+            }
+        }
 
         dispatch(showToast({ message: 'Verifying payment status...', type: 'info' }));
         let pollAttempts = 0;
@@ -115,18 +137,36 @@ const UserSubscriptions: React.FC = () => {
                     localStorage.removeItem('pending_payment');
                     dispatch(showToast({ message: 'Payment failed. Please try again.', type: 'error' }));
                     return;
+                } else if (status === 'CREATED' || status === 'ATTEMPTED') {
+                    // If status is still CREATED/ATTEMPTED after a few seconds, it means user abandoned the flow
+                    // or we are just checking a stale "created" order.
+                    // If we are just starting the check (pollAttempts < 2) and it's created, maybe they are paying?
+                    // But this function runs on mount. If they are paying, they are in the modal, not reloading.
+                    // If they reloaded, they closed the modal.
+                    // So 'CREATED' on mount means abandoned.
+                    console.warn('Payment status is CREATED/ATTEMPTED (abandoned). Clearing pending payment.');
+                    localStorage.removeItem('pending_payment');
+                    paymentCompleted = true;
+                    return;
                 } else {
                     await new Promise(resolve => setTimeout(resolve, retryDelay));
                 }
                 retryDelay = 3000;
             } catch (error: any) {
+                // If the order is not found (404), it's invalid/expired. Stop polling.
+                if (error.response?.status === 404) {
+                    console.warn('Payment polling stopped: Order not found (404). Clearing pending payment.');
+                    localStorage.removeItem('pending_payment');
+                    paymentCompleted = true; // Break loop
+                    return;
+                }
                 await new Promise(resolve => setTimeout(resolve, retryDelay));
             }
             pollAttempts++;
         }
     };
 
-    const fetchData = async () => {
+    const fetchData = async (): Promise<any | null> => {
         try {
             setLoading(true);
             const [plansRes, subRes] = await Promise.all([
@@ -135,9 +175,12 @@ const UserSubscriptions: React.FC = () => {
             ]);
             const planList = (plansRes as any)?.data || (Array.isArray(plansRes) ? plansRes : (plansRes as any)?.items) || [];
             setPlans(planList);
-            setCurrentSub((subRes as any)?.data || subRes);
+            const currentSubscription = (subRes as any)?.data || subRes;
+            setCurrentSub(currentSubscription);
+            return currentSubscription;
         } catch (error) {
             console.error('Failed to load subscriptions:', error);
+            return null;
         } finally {
             setLoading(false);
         }
@@ -413,7 +456,12 @@ const UserSubscriptions: React.FC = () => {
                             <span className={`inline-block w-2 h-2 rounded-full ${['active', 'trialing', 'succeeded', 'year'].includes(currentSub.status?.toLowerCase()) ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-red-500'} `} />
                             {['active', 'trialing', 'succeeded', 'year'].includes(currentSub.status?.toLowerCase()) ? t('subscriptionsPageView.active') : t('subscriptionsPageView.expired')}
                             <span className="opacity-50 mx-1">•</span>
-                            {t('subscriptionsPageView.renewsOn')} {new Date(currentSub.endDate || currentSub.renewalDate).toLocaleDateString()}
+                            {t('subscriptionsPageView.renewsOn')} {(() => {
+                                const dateStr = currentSub.endDate || currentSub.renewalDate || currentSub.enddate || currentSub.trialEndDate;
+                                if (!dateStr) return 'N/A';
+                                const date = new Date(dateStr);
+                                return isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString();
+                            })()}
                         </p>
                         {/* Progress Bar for subtle flair */}
                         <div className="mt-4 h-1.5 w-full max-w-sm bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">

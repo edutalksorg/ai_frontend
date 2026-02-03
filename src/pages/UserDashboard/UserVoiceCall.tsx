@@ -448,7 +448,7 @@ const UserVoiceCall: React.FC = () => {
                     ) : history.length > 0 ? (
                         <div className="divide-y divide-slate-200/50 dark:divide-white/5 flex-1 overflow-y-auto pr-2 custom-scrollbar">
                             {history.map((call) => {
-                                const startTime = call.initiatedAt || call.startTime;
+                                const startTime = call.initiatedAt || call.startTime || call.startedAt || call.startedat;
                                 const duration = call.durationSeconds !== undefined ? call.durationSeconds : call.duration;
                                 const isIncoming = call.isIncoming;
                                 const status = call.status || 'Unknown';
@@ -467,9 +467,19 @@ const UserVoiceCall: React.FC = () => {
                                                     {t('voiceCall.voiceCallLabel')}
                                                 </h4>
                                                 <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                                                    <span>{new Date(startTime?.endsWith('Z') ? startTime : `${startTime}Z`).toLocaleDateString()}</span>
+                                                    <span>{(() => {
+                                                        if (!startTime) return 'N/A';
+                                                        const dateStr = startTime.endsWith('Z') ? startTime : `${startTime}Z`;
+                                                        const date = new Date(dateStr);
+                                                        return isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString();
+                                                    })()}</span>
                                                     <span>•</span>
-                                                    <span>{new Date(startTime?.endsWith('Z') ? startTime : `${startTime}Z`).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                    <span>{(() => {
+                                                        if (!startTime) return 'N/A';
+                                                        const dateStr = startTime.endsWith('Z') ? startTime : `${startTime}Z`;
+                                                        const date = new Date(dateStr);
+                                                        return isNaN(date.getTime()) ? 'N/A' : date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                                    })()}</span>
                                                 </div>
                                             </div>
                                         </div>

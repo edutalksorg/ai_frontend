@@ -44,6 +44,17 @@ const AdminPaymentsPage: React.FC = () => {
   const [userTransactions, setUserTransactions] = useState<AdminPaymentTransaction[]>([]);
   const [isFetchingUser, setIsFetchingUser] = useState(false);
 
+  const formatDate = (dateString: string | undefined | null) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Invalid Date';
+      return date.toLocaleDateString();
+    } catch (e) {
+      return 'Error';
+    }
+  };
+
   useEffect(() => {
     fetchData();
     // Auto-refresh every 30 seconds
@@ -355,7 +366,7 @@ const AdminPaymentsPage: React.FC = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4 text-sm text-slate-500">
-                            {new Date(txn.createdAt).toLocaleDateString()}
+                            {formatDate(txn.createdAt)}
                           </td>
                           <td className="px-6 py-4 text-sm">
                             <button
@@ -797,7 +808,7 @@ const AdminPaymentsPage: React.FC = () => {
                   <div className="border-b border-slate-200 dark:border-slate-700 pb-3">
                     <label className="text-sm font-medium text-slate-500 dark:text-slate-400">Created At</label>
                     <p className="text-base text-slate-900 dark:text-white mt-1">
-                      {new Date(selectedTransaction.createdAt).toLocaleString()}
+                      {formatDate(selectedTransaction.createdAt)}
                     </p>
                   </div>
                   {selectedTransaction.completedAt && (

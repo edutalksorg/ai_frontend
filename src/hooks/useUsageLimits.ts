@@ -131,6 +131,9 @@ export const useUsageLimits = () => {
 
         if (hasActiveSubscription) return true;
 
+        // TRUST BACKEND: If status is active, trial is active regardless of local time check
+        if (status === 'active') return true;
+
         if (!user?.trialEndDate) return false;
 
         const expiresAt = new Date(user.trialEndDate);
