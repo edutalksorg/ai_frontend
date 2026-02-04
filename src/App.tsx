@@ -31,6 +31,7 @@ import RoleManagementPage from './pages/SuperAdminDashboard/RoleManagementPage';
 import RoleDefinitionsPage from './pages/SuperAdminDashboard/RoleDefinitionsPage';
 import AllUsersPage from './pages/SuperAdminDashboard/AllUsersPage';
 import AdminManagementPage from './pages/SuperAdminDashboard/AdminManagementPage';
+import VoiceRecordsPage from './pages/SuperAdminDashboard/VoiceRecordsPage';
 import DashboardPage from './pages/UserDashboard/DashboardPage';
 import ProfilePage from './pages/UserDashboard/ProfilePage';
 import InstructorProfilePage from './pages/InstructorDashboard/InstructorProfilePage';
@@ -446,6 +447,16 @@ function App() {
             <ProtectedRoute>
               <RoleBasedRoute allowedRoles={['superadmin']}>
                 <AdminManagementPage />
+              </RoleBasedRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/super-admin/voice-records"
+          element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={['superadmin']}>
+                <VoiceRecordsPage />
               </RoleBasedRoute>
             </ProtectedRoute>
           }

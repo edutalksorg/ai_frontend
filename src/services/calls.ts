@@ -97,6 +97,14 @@ export const callsService = {
   getRecording: async (callId: string) =>
     apiService.get(`/calls/${callId}/recording`),
 
+  uploadRecording: async (callId: string, blob: Blob) => {
+    const formData = new FormData();
+    formData.append('file', blob, 'recording.webm');
+    return apiService.post(`/calls/${callId}/recording`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+
   // Call Statistics
   getCallStats: async (params?: Record<string, any>) =>
     apiService.get('/calls/stats', { params }),

@@ -21,11 +21,16 @@ const CallRatingModal: React.FC<CallRatingModalProps> = ({ callId, partnerName, 
     const [isSendingRequest, setIsSendingRequest] = useState(false);
     const [requestSent, setRequestSent] = useState(false);
     const [isAlreadyFriend, setIsAlreadyFriend] = useState(false);
+    const [isCheckingFriendship, setIsCheckingFriendship] = useState(true);
 
     useEffect(() => {
         const checkFriendship = async () => {
-            if (!partnerId) return;
+            if (!partnerId) {
+                setIsCheckingFriendship(false);
+                return;
+            }
             try {
+                setIsCheckingFriendship(true);
                 const connections = await connectionsService.getConnections();
                 const isFriend = connections.friends.some(f => {
                     const fId = (f.userId || (f as any).userid)?.toString();
@@ -43,10 +48,10 @@ const CallRatingModal: React.FC<CallRatingModalProps> = ({ callId, partnerName, 
                 if (isFriend || isReceivedPending || isSentPending) {
                     setIsAlreadyFriend(true);
                 }
-                // Also check if we've already sent a request (might need a more robust check if the API supports it)
-                // For now, let's just focus on "is already a friend" as requested.
             } catch (error) {
                 console.error('Failed to check friendship status:', error);
+            } finally {
+                setIsCheckingFriendship(false);
             }
         };
         checkFriendship();
@@ -166,7 +171,7 @@ const CallRatingModal: React.FC<CallRatingModalProps> = ({ callId, partnerName, 
                 </div>
 
                 {/* Friend Suggestion */}
-                {partnerId && !isAlreadyFriend && (
+                {partnerId && !isCheckingFriendship && !isAlreadyFriend && (
                     <div className="mb-8 p-4 bg-violet-500/5 border border-violet-500/10 rounded-2xl flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-500">

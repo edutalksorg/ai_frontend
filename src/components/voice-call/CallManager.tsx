@@ -56,6 +56,7 @@ const CallManager: React.FC = () => {
     const isJoiningChannel = useRef<boolean>(false);
     const hasJoinedChannel = useRef<boolean>(false);
     const callStateRef = useRef(callState);
+    const currentCallRef = useRef<any>(null);
 
     // DEBUG: Log component mount
     useEffect(() => {
@@ -71,10 +72,16 @@ const CallManager: React.FC = () => {
         };
     }, []);
 
-    // Update ref when state changes
+    // Update refs when state changes
     useEffect(() => {
         callStateRef.current = callState;
     }, [callState]);
+
+    useEffect(() => {
+        if (currentCall) {
+            currentCallRef.current = currentCall;
+        }
+    }, [currentCall]);
 
     // Log state changes for debugging
     useEffect(() => {
@@ -176,21 +183,55 @@ const CallManager: React.FC = () => {
         }
     }, []); // Run only once on mount
 
-    // 2. Handle Cleanup on Call End
     useEffect(() => {
         if (callState === 'idle') {
             callLogger.debug('Call state is idle, cleaning up Agora resources');
 
-            if (hasJoinedChannel.current) {
-                // Agora Cleanup
-                agoraService.leaveChannel()
-                    .then(() => {
+            const finalizeRecording = async (callData: any) => {
+                try {
+                    // Stop recording and get blob
+                    const recordingBlob = await agoraService.stopRecording();
+
+                    if (recordingBlob && recordingBlob.size > 0 && callData) {
+                        callLogger.info('📤 Uploading call recording...', {
+                            size: recordingBlob.size,
+                            callId: callData.callId
+                        });
+
+                        // Upload to backend
+                        await callsService.uploadRecording(callData.callId, recordingBlob);
+                        callLogger.info('✅ Recording uploaded successfully');
+                    } else {
+                        callLogger.warning('⚠️ Recording blob is empty or null, skipping upload', {
+                            size: recordingBlob?.size,
+                            hasCallData: !!callData
+                        });
+                    }
+                } catch (error) {
+                    callLogger.error('❌ Failed to finalize/upload recording', error);
+                }
+            };
+
+            const runCleanup = async () => {
+                // Run finalize before leaving channel
+                if (currentCallRef.current) {
+                    await finalizeRecording(currentCallRef.current);
+                }
+
+                if (hasJoinedChannel.current) {
+                    // Agora Cleanup
+                    try {
+                        await agoraService.leaveChannel();
                         callLogger.info('✅ Left Agora channel');
                         hasJoinedChannel.current = false;
                         isJoiningChannel.current = false;
-                    })
-                    .catch(err => callLogger.error('Error leaving Agora channel', err));
-            }
+                    } catch (err) {
+                        callLogger.error('Error leaving Agora channel', err);
+                    }
+                }
+            };
+
+            runCleanup();
         }
     }, [callState]);
 
@@ -331,6 +372,19 @@ const CallManager: React.FC = () => {
                 isJoiningChannel.current = false;
                 callLogger.info('✅ Successfully joined Agora channel');
                 dispatch(setCallStatus('active'));
+
+                // Start Recording with a small delay to ensure tracks are ready
+                setTimeout(async () => {
+                    try {
+                        if (callStateRef.current === 'active' || callStateRef.current === 'connecting') {
+                            await agoraService.startRecording();
+                            callLogger.info('🎙️ Recording started after stabilization delay');
+                        }
+                    } catch (err) {
+                        callLogger.error('Failed to start recording', err);
+                    }
+                }, 1000);
+
 
             } catch (error: any) {
                 callLogger.error('❌ Failed to join Agora channel', error);

@@ -23,6 +23,15 @@ class AgoraService {
     private connectionAttempts: number = 0;
     private readonly MAX_CONNECTION_ATTEMPTS = 3;
 
+    // Recording properties
+    private audioContext: AudioContext | null = null;
+    private mediaRecorder: MediaRecorder | null = null;
+    private recordingDestination: MediaStreamAudioDestinationNode | null = null;
+    private recordedChunks: Blob[] = [];
+    private localStreamSource: MediaStreamAudioSourceNode | null = null;
+    private remoteStreamSources: Map<UID, MediaStreamAudioSourceNode> = new Map();
+
+
     // Event callbacks
     private onUserPublished: UserPublishedCallback | null = null;
     private onUserLeft: UserLeftCallback | null = null;
@@ -70,6 +79,12 @@ class AgoraService {
                     // Play remote audio
                     user.audioTrack?.play();
                     console.log('🔊 Playing remote audio');
+
+                    // Mix into recording if active
+                    if (this.audioContext && this.recordingDestination && user.audioTrack) {
+                        this.addRemoteTrackToRecording(user.uid, user.audioTrack);
+                    }
+
 
                     // Notify callback
                     if (this.onUserPublished) {
@@ -327,6 +342,153 @@ class AgoraService {
      */
     resetConnectionAttempts(): void {
         this.connectionAttempts = 0;
+    }
+
+    // ==========================================
+    // RECORDING IMPLEMENTATION
+    // ==========================================
+
+    private async initAudioContext() {
+        if (!this.audioContext) {
+            this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+            this.recordingDestination = this.audioContext.createMediaStreamDestination();
+        }
+        if (this.audioContext.state === 'suspended') {
+            await this.audioContext.resume();
+            console.log('🔊 AudioContext resumed');
+        }
+    }
+
+    /**
+     * Start recording the call (Local + Remote Audio)
+     */
+    async startRecording(): Promise<void> {
+        try {
+            console.log('🎙️ Starting call recording logic...');
+            await this.initAudioContext();
+            this.recordedChunks = [];
+
+            if (!this.recordingDestination) {
+                throw new Error('Recording destination not initialized');
+            }
+
+            console.log('🔊 AudioContext state:', this.audioContext?.state);
+
+            // 1. Add Local Audio
+            if (this.localAudioTrack) {
+                const localMediaStream = new MediaStream([this.localAudioTrack.getMediaStreamTrack()]);
+                this.localStreamSource = this.audioContext!.createMediaStreamSource(localMediaStream);
+                this.localStreamSource.connect(this.recordingDestination!);
+                console.log('✅ Local audio added to recording mix');
+            } else {
+                console.warn('⚠️ No local audio track found for recording');
+            }
+
+            // 2. Add Existing Remote Users
+            if (this.client) {
+                const remoteUsers = this.client.remoteUsers;
+                console.log(`🔍 Checking ${remoteUsers.length} existing remote users for recording`);
+                remoteUsers.forEach(user => {
+                    if (user.hasAudio && user.audioTrack) {
+                        this.addRemoteTrackToRecording(user.uid, user.audioTrack);
+                    }
+                });
+            }
+
+            // 3. Setup MediaRecorder
+            const mixedStream = this.recordingDestination.stream;
+            console.log(`📊 Mixed stream has ${mixedStream.getAudioTracks().length} tracks`);
+
+            // Check for supported mime types
+            const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+                ? 'audio/webm;codecs=opus'
+                : 'audio/webm';
+
+            console.log(`📼 Using MIME type for recording: ${mimeType}`);
+            this.mediaRecorder = new MediaRecorder(mixedStream, { mimeType });
+
+            this.mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    this.recordedChunks.push(event.data);
+                    console.log(`📥 Received recording chunk: ${event.data.size} bytes. Total chunks: ${this.recordedChunks.length}`);
+                }
+            };
+
+            this.mediaRecorder.onstart = () => console.log('🟢 MediaRecorder started');
+            this.mediaRecorder.onerror = (err) => console.error('🔴 MediaRecorder error:', err);
+
+            this.mediaRecorder.start(1000); // Collect chunks every second
+            console.log('✅ MediaRecorder.start() called');
+
+        } catch (error) {
+            console.error('❌ Failed to start recording:', error);
+        }
+    }
+
+    /**
+     * Stop recording and return the Blob
+     */
+    async stopRecording(): Promise<Blob | null> {
+        return new Promise((resolve) => {
+            if (!this.mediaRecorder || this.mediaRecorder.state === 'inactive') {
+                console.warn('⚠️ No active recording to stop');
+                resolve(null);
+                return;
+            }
+
+            console.log('⏹️ Stopping recording...');
+
+            this.mediaRecorder.onstop = () => {
+                const blob = new Blob(this.recordedChunks, { type: 'audio/webm' });
+                console.log(`✅ Recording finished. Size: ${blob.size} bytes`);
+
+                // Cleanup
+                this.cleanupRecording();
+                resolve(blob);
+            };
+
+            this.mediaRecorder.stop();
+        });
+    }
+
+    private addRemoteTrackToRecording(uid: UID, audioTrack: any) {
+        try {
+            if (!this.audioContext || !this.recordingDestination) return;
+
+            if (this.remoteStreamSources.has(uid)) {
+                console.log(`ℹ️ Remote user ${uid} already in mix`);
+                return;
+            }
+
+            const track = audioTrack.getMediaStreamTrack();
+            const stream = new MediaStream([track]);
+            const source = this.audioContext.createMediaStreamSource(stream);
+
+            source.connect(this.recordingDestination);
+            this.remoteStreamSources.set(uid, source);
+            console.log(`✅ Remote user ${uid} added to recording mix`);
+        } catch (error) {
+            console.error('❌ Failed to add remote track to recording:', error);
+        }
+    }
+
+    private cleanupRecording() {
+        this.recordedChunks = [];
+
+        // Disconnect sources
+        if (this.localStreamSource) {
+            this.localStreamSource.disconnect();
+            this.localStreamSource = null;
+        }
+
+        this.remoteStreamSources.forEach(source => source.disconnect());
+        this.remoteStreamSources.clear();
+
+        this.mediaRecorder = null;
+        // Keep AudioContext alive if needed, or close it? 
+        // Typically keep it for the session or close if desired.
+        // this.audioContext?.close(); 
+        // this.audioContext = null;
     }
 }
 

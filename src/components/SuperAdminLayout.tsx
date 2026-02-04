@@ -10,7 +10,8 @@ import {
     Users,
     Menu,
     X,
-    Bell
+    Bell,
+    Volume2
 } from 'lucide-react';
 import type { RootState, AppDispatch } from '../store';
 import { logout } from '../store/authSlice';
@@ -59,6 +60,7 @@ const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({ children }) => {
         { icon: <Key size={20} />, label: 'Permissions', path: '/super-admin/permissions' },
         { icon: <Users size={20} />, label: 'All Users', path: '/super-admin/users' },
         { icon: <Users size={20} />, label: 'Admins', path: '/super-admin/admins' },
+        { icon: <Volume2 size={20} />, label: 'Voice Records', path: '/super-admin/voice-records' },
         // Add more Super Admin specific items here
     ];
 
