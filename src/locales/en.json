@@ -26,7 +26,7 @@
   },
   "nav": {
     "dashboard": "Dashboard",
-    "topics": "Topics",
+    "topics": "Grammar",
     "quizzes": "Quizzes",
     "pronunciation": "AI Pronunciation",
     "voiceCalls": "Voice Calls",
@@ -46,7 +46,7 @@
     "welcomeBack": "Welcome back",
     "readyToLearn": "Ready to learn and improve your English today?",
     "stats": {
-      "topicsCreated": "Topics Created",
+      "topicsCreated": "Grammar Lessons Created",
       "quizzesCreated": "Quizzes Created",
       "totalEarnings": "Total Earnings",
       "studentsReached": "Students Reached"
@@ -60,9 +60,9 @@
         "cta": "Start Calling"
       },
       "slide2": {
-        "title": "Interactive Learning Topics",
-        "description": "Explore curated topics designed to enhance your language skills",
-        "cta": "Browse Topics"
+        "title": "Interactive Grammar Lessons",
+        "description": "Explore curated grammar lessons designed to enhance your language skills",
+        "cta": "Browse Grammar"
       },
       "slide3": {
         "title": "Test Your Knowledge",
@@ -263,40 +263,40 @@
     }
   },
   "topic": {
-    "title": "Topics",
-    "myTopics": "My Topics",
-    "createNew": "Create New Topic",
-    "createFirst": "Create First Topic",
-    "noTopics": "No topics available",
-    "noTopicsDesc": "No topics yet. Create your first topic to share knowledge!",
-    "dailyTopic": "Daily Topic",
-    "manageTopic": "Manage Topics",
+    "title": "Grammar",
+    "myTopics": "My Grammar Lessons",
+    "createNew": "Create New Lesson",
+    "createFirst": "Create First Lesson",
+    "noTopics": "No grammar lessons available",
+    "noTopicsDesc": "No grammar lessons yet. Create your first lesson to share knowledge!",
+    "dailyTopic": "Daily Grammar",
+    "manageTopic": "Manage Grammar",
     "published": "Published",
     "draft": "Draft"
   },
   "topicBrowser": {
-    "title": "Topics Path",
-    "topic": "Topic",
+    "title": "Grammar Path",
+    "topic": "Lesson",
     "of": "of",
     "progress": "Progress",
     "completed": "Completed",
     "current": "Current",
     "locked": "Locked",
-    "reviewTopic": "Review Topic",
+    "reviewTopic": "Review Lesson",
     "startLearning": "Start Learning",
     "review": "Review",
     "start": "Start",
     "courseComplete": "Course Complete",
-    "lockedDesc": "Locked • Complete previous topic",
-    "loading": "Loading topics...",
-    "noTopics": "No topics available."
+    "lockedDesc": "Locked • Complete previous lesson",
+    "loading": "Loading grammar lessons...",
+    "noTopics": "No grammar lessons available."
   },
   "topicDetails": {
-    "backToTopics": "Back to Topics",
-    "about": "About this Topic",
+    "backToTopics": "Back to Grammar",
+    "about": "About this Lesson",
     "markCompleted": "Mark as Completed & Continue",
-    "skipNext": "Skip to Next Topic",
-    "info": "Topic Information",
+    "skipNext": "Skip to Next Lesson",
+    "info": "Lesson Information",
     "level": "Level",
     "duration": "Duration",
     "category": "Category",
@@ -404,7 +404,7 @@
     "fluency": "Fluency",
     "overallScore": "Overall Score",
     "noParagraphs": "No paragraphs available for practice right now",
-    "checkDailyTopics": "Check Daily Topics",
+    "checkDailyTopics": "Check Daily Grammar",
     "unlocked": "Unlocked",
     "greatJob": "Great job! Accuracy",
     "nextUnlocked": "Next paragraph unlocked!",
@@ -567,8 +567,8 @@
         "description": "Perfect your pronunciation with AI-powered feedback and real-time analysis."
       },
       "dailyTopics": {
-        "title": "Daily Topics",
-        "description": "Learn new topics every day to improve your English vocabulary and grammar."
+        "title": "Daily Grammar",
+        "description": "Learn new grammar concepts every day to improve your English vocabulary and accuracy."
       },
       "voiceCalling": {
         "title": "Voice Calling",
@@ -581,7 +581,7 @@
     },
     "stats": {
       "activeLearners": "Active Learners",
-      "dailyTopics": "Daily Topics",
+      "dailyTopics": "Daily Grammar Lessons",
       "quizQuestions": "Quiz Questions"
     },
     "cta": {
@@ -618,7 +618,7 @@
     "features": {
       "unlimitedVoice": "Unlimited voice calls",
       "unlimitedPronunciation": "Unlimited pronunciation practice",
-      "allQuizzes": "Access to all quizzes and topics",
+      "allQuizzes": "Access to all quizzes and grammar lessons",
       "prioritySupport": "Priority AI support",
       "adFree": "Ad-free experience",
       "analytics": "Advanced analytics"

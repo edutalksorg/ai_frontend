@@ -1,11 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { Save, ArrowLeft, Image as ImageIcon, X } from 'lucide-react';
+import { Save, ArrowLeft, Image as ImageIcon, X, RefreshCw } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Button from '../../components/Button';
 import { topicsService } from '../../services/topics';
 import { showToast } from '../../store/uiSlice';
 import { useDispatch } from 'react-redux';
 import { DailyTopic } from '../../types';
+
+const TARGET_LANGUAGES = [
+    { code: 'hi', name: 'Hindi' },
+    { code: 'mr', name: 'Marathi' },
+    { code: 'gu', name: 'Gujarati' },
+    { code: 'bn', name: 'Bengali' },
+    { code: 'te', name: 'Telugu' },
+    { code: 'ta', name: 'Tamil' },
+    { code: 'ur', name: 'Urdu' },
+    { code: 'kn', name: 'Kannada' },
+    { code: 'or', name: 'Odia' },
+    { code: 'ml', name: 'Malayalam' },
+    { code: 'pa', name: 'Punjabi' },
+    { code: 'as', name: 'Assamese' },
+    { code: 'mai', name: 'Maithili' },
+    { code: 'sa', name: 'Sanskrit' }
+];
 
 const TopicEditor: React.FC = () => {
     const navigate = useNavigate();
@@ -14,6 +31,7 @@ const TopicEditor: React.FC = () => {
     const isEditMode = Boolean(id);
 
     const [loading, setLoading] = useState(false);
+    const [translating, setTranslating] = useState(false);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -24,7 +42,12 @@ const TopicEditor: React.FC = () => {
         estimatedTime: 15,
         status: 'draft', // 'draft' | 'published'
         vocabularyList: '', // We'll manage as string and split on submit
-        discussionPoints: '' // We'll manage as string and split on submit
+        discussionPoints: '', // We'll manage as string and split on submit
+        grammarData: {
+            originalSentence: '',
+            explanation: '',
+            translations: [] as { lang: string; text: string }[]
+        }
     });
 
     const [categories, setCategories] = useState<any[]>([]);
@@ -62,7 +85,8 @@ const TopicEditor: React.FC = () => {
                 estimatedTime: data.estimatedTime || 15,
                 status: data.status || 'draft',
                 vocabularyList: Array.isArray(data.vocabularyList) ? data.vocabularyList.join('\n') : '',
-                discussionPoints: Array.isArray(data.discussionPoints) ? data.discussionPoints.join('\n') : ''
+                discussionPoints: Array.isArray(data.discussionPoints) ? data.discussionPoints.join('\n') : '',
+                grammarData: data.grammarData || { originalSentence: '', explanation: '', translations: [] }
             });
         } catch (error) {
             console.error('Failed to load topic:', error);
@@ -116,6 +140,53 @@ const TopicEditor: React.FC = () => {
         }
     };
 
+    const handleAutoTranslate = async () => {
+        const text = formData.grammarData.originalSentence;
+        if (!text?.trim()) {
+            dispatch(showToast({ message: 'Please enter an English sentence first', type: 'error' }));
+            return;
+        }
+
+        setTranslating(true);
+        dispatch(showToast({ message: 'Auto-translating to all supported languages...', type: 'info' }));
+
+        const newTranslations = [...(formData.grammarData.translations || [])];
+
+        try {
+            // We'll process in chunks to be nice to the API
+            for (const lang of TARGET_LANGUAGES) {
+                // Skip if already exists? Or overwrite? User said "automatically it has to write", implying update.
+                // We'll try to translate.
+                try {
+                    const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|${lang.code}`);
+                    const data = await res.json();
+
+                    if (data.responseData && data.responseData.translatedText) {
+                        const idx = newTranslations.findIndex(t => t.lang === lang.code);
+                        if (idx >= 0) {
+                            newTranslations[idx].text = data.responseData.translatedText;
+                        } else {
+                            newTranslations.push({ lang: lang.code, text: data.responseData.translatedText });
+                        }
+                    }
+                } catch (err) {
+                    console.warn(`Translation failed for ${lang.code}`, err);
+                }
+            }
+
+            setFormData(prev => ({
+                ...prev,
+                grammarData: { ...prev.grammarData, translations: newTranslations }
+            }));
+            dispatch(showToast({ message: 'Auto-translation complete!', type: 'success' }));
+        } catch (error) {
+            console.error('Auto-translation error:', error);
+            dispatch(showToast({ message: 'Some translations failed', type: 'error' }));
+        } finally {
+            setTranslating(false);
+        }
+    };
+
     // ... (rest of handleSubmit remains, needs update for imageUrl) ...
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -129,10 +200,7 @@ const TopicEditor: React.FC = () => {
             dispatch(showToast({ message: 'Category is required', type: 'error' }));
             return;
         }
-        if (!formData.content?.trim()) {
-            dispatch(showToast({ message: 'Content is required', type: 'error' }));
-            return;
-        }
+
 
         // Prepare payload
         // Prepare payload
@@ -146,6 +214,7 @@ const TopicEditor: React.FC = () => {
             // Backend expects CategoryId, not categoryId (case sensitive?) or just mapped correctly
             CategoryId: formData.categoryId,
             ImageUrl: formData.imageUrl,
+            grammarData: formData.grammarData
             // Some backends are strict, let's send both to be safe or just the one required
             // The validation error said "The CategoryId field is required.", implying PascalCase or just missing field mapping
         };
@@ -179,7 +248,7 @@ const TopicEditor: React.FC = () => {
                         <ArrowLeft className="w-6 h-6 text-slate-600 dark:text-slate-400" />
                     </button>
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                        {isEditMode ? 'Edit Topic' : 'Create New Topic'}
+                        {isEditMode ? 'Edit Grammar Lesson' : 'Create New Grammar Lesson'}
                     </h1>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">
@@ -198,7 +267,7 @@ const TopicEditor: React.FC = () => {
                         leftIcon={<Save size={20} />}
                         className="w-full sm:w-auto"
                     >
-                        {loading ? 'Saving...' : 'Save Topic'}
+                        {loading ? 'Saving...' : 'Save Grammar Lesson'}
                     </Button>
                 </div>
             </div>
@@ -208,7 +277,7 @@ const TopicEditor: React.FC = () => {
                     <div className="grid gap-6">
                         <div>
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Topic Title
+                                Grammar Lesson Title
                             </label>
                             <input
                                 type="text"
@@ -269,60 +338,105 @@ const TopicEditor: React.FC = () => {
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Short Description
-                            </label>
-                            <textarea
-                                value={formData.description}
-                                onChange={(e) => handleInputChange('description', e.target.value)}
-                                rows={2}
-                                placeholder="Brief summary displayed in list view..."
-                                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Vocabulary List (One per line)
-                                </label>
-                                <textarea
-                                    value={formData.vocabularyList}
-                                    onChange={(e) => handleInputChange('vocabularyList', e.target.value)}
-                                    rows={5}
-                                    placeholder="Word: Definition&#10;Idiom: Meaning"
-                                    className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 font-sm"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Discussion Points (One per line)
-                                </label>
-                                <textarea
-                                    value={formData.discussionPoints}
-                                    onChange={(e) => handleInputChange('discussionPoints', e.target.value)}
-                                    rows={5}
-                                    placeholder="What do you think about...?&#10;How would you describe...?"
-                                    className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 font-sm"
-                                />
-                            </div>
-                        </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Content (Markdown supported)
-                            </label>
-                            <textarea
-                                value={formData.content}
-                                onChange={(e) => handleInputChange('content', e.target.value)}
-                                rows={15}
-                                placeholder="# Introduction\n\nStart writing your topic content here..."
-                                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                            />
-                            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                                You can use Markdown to format your content. Use # for headers, * for lists, etc.
-                            </p>
+                        {/* Grammar Exercise Section */}
+                        <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Grammar Jumble Exercise</h3>
+                            <div className="grid gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                        Original English Sentence (to be jumbled)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.grammarData?.originalSentence || ''}
+                                        onChange={(e) => setFormData(prev => ({
+                                            ...prev,
+                                            grammarData: { ...prev.grammarData, originalSentence: e.target.value }
+                                        }))}
+                                        placeholder="e.g. The cat sat on the mat"
+                                        className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    <div className="mt-2 flex justify-end">
+                                        <button
+                                            type="button"
+                                            onClick={handleAutoTranslate}
+                                            disabled={translating || !formData.grammarData?.originalSentence}
+                                            className="text-sm px-3 py-1 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-900/50 rounded-md transition-colors flex items-center gap-2"
+                                        >
+                                            {translating ? (
+                                                <>
+                                                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                                    Translating...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <RefreshCw size={14} />
+                                                    Auto-Translate to All Languages
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+
+
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                        Sentence Translations (e.g. Telugu translation of the sentence)
+                                    </label>
+                                    <p className="text-xs text-slate-500 mb-2">Supported Codes: te (Telugu), mr (Marathi), hi (Hindi), etc.</p>
+                                    {formData.grammarData?.translations?.map((trans, idx) => (
+                                        <div key={idx} className="flex gap-2 mb-2">
+                                            <input
+                                                type="text"
+                                                placeholder="Code (e.g. te)"
+                                                value={trans.lang}
+                                                onChange={(e) => {
+                                                    const newTrans = [...(formData.grammarData.translations || [])];
+                                                    newTrans[idx].lang = e.target.value;
+                                                    setFormData(prev => ({ ...prev, grammarData: { ...prev.grammarData, translations: newTrans } }));
+                                                }}
+                                                className="w-20 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                            />
+                                            <input
+                                                type="text"
+                                                placeholder="Translated Sentence (Prompt)"
+                                                value={trans.text}
+                                                onChange={(e) => {
+                                                    const newTrans = [...(formData.grammarData.translations || [])];
+                                                    newTrans[idx].text = e.target.value;
+                                                    setFormData(prev => ({ ...prev, grammarData: { ...prev.grammarData, translations: newTrans } }));
+                                                }}
+                                                className="flex-1 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const newTrans = formData.grammarData.translations.filter((_, i) => i !== idx);
+                                                    setFormData(prev => ({ ...prev, grammarData: { ...prev.grammarData, translations: newTrans } }));
+                                                }}
+                                                className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                                            >
+                                                <X size={18} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData(prev => ({
+                                            ...prev,
+                                            grammarData: {
+                                                ...prev.grammarData,
+                                                translations: [...(prev.grammarData.translations || []), { lang: '', text: '' }]
+                                            }
+                                        }))}
+                                        className="text-sm text-blue-500 hover:text-blue-600 font-medium"
+                                    >
+                                        + Add Translation
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

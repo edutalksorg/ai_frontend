@@ -5,6 +5,7 @@ import { Clock, BarChart, BookOpen, ArrowLeft, Star, CheckCircle, ArrowRight } f
 import { useTranslation } from 'react-i18next';
 import UserLayout from '../../components/UserLayout';
 import Button from '../../components/Button';
+import JumbleGame from '../../components/JumbleGame';
 import { topicsService } from '../../services/topics';
 import { showToast } from '../../store/uiSlice';
 
@@ -14,7 +15,7 @@ interface UserTopicDetailsPageProps {
 }
 
 const UserTopicDetailsPage: React.FC<UserTopicDetailsPageProps> = ({ topicId: propTopicId, onBack }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { id: paramId } = useParams<{ id: string }>();
     const id = propTopicId || paramId;
     const navigate = useNavigate();
@@ -151,99 +152,60 @@ const UserTopicDetailsPage: React.FC<UserTopicDetailsPageProps> = ({ topicId: pr
                 </button>
             </div>
 
-            {/* Topic Header - Glass Panel */}
-            <div className="glass-panel p-8 rounded-3xl mb-8 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
+            {/* Main Single Card Content */}
+            <div className="glass-panel p-6 md:p-8 rounded-3xl max-w-3xl mx-auto shadow-2xl border border-white/10 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
 
-                <div className="relative z-10">
-                    <div className="flex flex-wrap gap-2 mb-4">
-                        <span className="px-3 py-1 bg-gradient-to-r from-indigo-500 to-violet-500 text-white rounded-full text-xs font-bold uppercase tracking-wider shadow-lg shadow-indigo-500/30">
-                            {topic.category?.name || topic.category || 'General'}
-                        </span>
-                        <span className="px-3 py-1 glass-button text-slate-600 dark:text-slate-300 rounded-full text-xs font-bold uppercase tracking-wide">
-                            {topic.level || 'All Levels'}
-                        </span>
+                {/* Header Section */}
+                <div className="relative z-10 mb-8 text-center">
+                    <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-500">{topic.category?.name || topic.category || 'General'}</span>
+                        <span className="w-1 h-1 rounded-full bg-slate-400" />
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-500">{topic.level || 'All Levels'}</span>
                     </div>
 
-                    <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 dark:text-white mb-6 leading-tight">
+                    <h1 className="text-2xl md:text-4xl font-extrabold text-slate-900 dark:text-white mb-4">
                         {topic.title}
                     </h1>
-
-                    <div className="flex flex-wrap items-center gap-6 text-sm font-medium text-slate-500 dark:text-slate-400">
-                        <span className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-slate-700/50">
-                            <Clock size={16} className="text-indigo-500" />
-                            {topic.estimatedTime || '15 mins'}
-                        </span>
-                        <span className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-slate-700/50">
-                            <BarChart size={16} className="text-indigo-500" />
-                            {topic.views || 0} {t('topicDetails.views')}
-                        </span>
-                    </div>
                 </div>
-            </div>
 
-            {/* Topic Content - Glass Card */}
-            <div className="glass-card p-0 rounded-3xl overflow-hidden mb-8">
-                {topic.imageUrl && (
-                    <div className="relative w-full h-64 md:h-80 overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10" />
-                        <img
-                            src={topic.imageUrl}
-                            alt={topic.title}
-                            className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700"
+                {/* Main Content: Jumble Game */}
+                <div className="mb-8">
+                    {topic.grammarData && topic.grammarData.originalSentence ? (
+                        <JumbleGame
+                            originalSentence={topic.grammarData.originalSentence}
+                            explanation={topic.grammarData.explanation}
+                            translations={topic.grammarData.translations}
+                            currentLanguage={i18n.language}
                         />
-                    </div>
-                )}
-
-                <div className="p-8 md:p-10">
-                    <h2 className="text-2xl font-bold mb-6 text-slate-900 dark:text-white flex items-center gap-2">
-                        <BookOpen className="text-indigo-500" size={24} />
-                        {t('topicDetails.about')}
-                    </h2>
-
-                    <div className="prose dark:prose-invert prose-lg max-w-none text-slate-600 dark:text-slate-300 leading-relaxed">
-                        {topic.content || topic.description || t('topicDetails.noContent')}
-                    </div>
+                    ) : (
+                        <p className="text-center text-slate-500 italic">No exercise available for this lesson.</p>
+                    )}
                 </div>
-            </div>
 
-            {/* Info Metrics Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="glass-panel p-6 rounded-2xl text-center">
-                    <span className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">{t('topicDetails.level')}</span>
-                    <span className="text-lg font-bold text-slate-900 dark:text-white">{topic.level || 'All Levels'}</span>
-                </div>
-                <div className="glass-panel p-6 rounded-2xl text-center">
-                    <span className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">{t('topicDetails.duration')}</span>
-                    <span className="text-lg font-bold text-slate-900 dark:text-white">{topic.estimatedTime || '15 mins'}</span>
-                </div>
-                <div className="glass-panel p-6 rounded-2xl text-center">
-                    <span className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">{t('topicDetails.category')}</span>
-                    <span className="text-lg font-bold text-slate-900 dark:text-white">{topic.category?.name || topic.category || 'General'}</span>
-                </div>
-            </div>
-
-            {/* Navigation Actions */}
-            <div className="glass-panel p-6 rounded-3xl flex flex-col sm:flex-row justify-between items-center gap-4 sticky bottom-6 z-20 backdrop-blur-xl border-t border-white/20 shadow-2xl">
-                <Button
-                    onClick={handleMarkCompleted}
-                    className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white font-bold shadow-lg shadow-green-500/30 px-6 py-3 rounded-xl"
-                >
-                    <CheckCircle className="mr-2" size={20} />
-                    {t('topicDetails.markCompleted')}
-                </Button>
-
-                {nextTopicId && (
+                {/* Footer / Actions */}
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6 border-t border-slate-200 dark:border-slate-700">
                     <Button
-                        onClick={() => navigate(`/topics/${nextTopicId}`)}
-                        className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg shadow-indigo-500/30 px-6 py-3 rounded-xl group"
+                        onClick={handleMarkCompleted}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-3 rounded-xl shadow-lg shadow-indigo-500/20 w-full sm:w-auto flex items-center justify-center"
                     >
-                        {t('topicDetails.skipNext')}
-                        <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={20} />
+                        <CheckCircle className="mr-2" size={20} />
+                        {t('topicDetails.markCompleted')}
                     </Button>
-                )}
+
+                    {nextTopicId && (
+                        <Button
+                            onClick={() => navigate(`/topics/${nextTopicId}`)}
+                            variant="secondary"
+                            className="w-full sm:w-auto flex items-center justify-center"
+                        >
+                            {t('topicDetails.skipNext')}
+                            <ArrowRight className="ml-2" size={18} />
+                        </Button>
+                    )}
+                </div>
             </div>
-        </div>
+        </div >
     );
 
     if (onBack) return content;

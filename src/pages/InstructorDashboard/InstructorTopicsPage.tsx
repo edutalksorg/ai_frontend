@@ -78,8 +78,8 @@ const InstructorTopicsPage: React.FC = () => {
                             <ArrowLeft size={24} className="text-slate-600 dark:text-slate-400" />
                         </Button>
                         <div>
-                            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">My Topics</h1>
-                            <p className="text-slate-600 dark:text-slate-400">Manage your daily topics</p>
+                            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">My Grammar Lessons</h1>
+                            <p className="text-slate-600 dark:text-slate-400">Manage your grammar lessons</p>
                         </div>
                     </div>
                     <Button
@@ -88,24 +88,26 @@ const InstructorTopicsPage: React.FC = () => {
                         onClick={() => navigate('/instructor/topics/new')}
                         className="w-full md:w-auto"
                     >
-                        Create New Topic
+
+                        Create New Grammar Lesson
                     </Button>
                 </div>
 
                 {loading ? (
-                    <div className="text-center py-12 text-slate-500">Loading topics...</div>
+                    <div className="text-center py-12 text-slate-500">Loading grammar lessons...</div>
                 ) : topics.length === 0 ? (
                     <div className="text-center py-12">
                         <BookOpen className="w-16 h-16 text-slate-400 dark:text-slate-600 mx-auto mb-4 opacity-50" />
                         <p className="text-slate-600 dark:text-slate-400 mb-4">
-                            No topics yet. Create your first topic to get started!
+                            No grammar lessons yet. Create your first lesson to get started!
                         </p>
                         <Button
                             variant="primary"
                             leftIcon={<Plus size={20} />}
                             onClick={() => navigate('/instructor/topics/new')}
                         >
-                            Create First Topic
+
+                            Create First Grammar Lesson
                         </Button>
                     </div>
                 ) : (

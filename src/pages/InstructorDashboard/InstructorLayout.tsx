@@ -39,7 +39,7 @@ const InstructorLayout: React.FC<InstructorLayoutProps> = ({ children }) => {
 
     const menuItems = [
         { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/instructor-dashboard' },
-        { icon: <BookOpen size={20} />, label: 'Topics', path: '/instructor/topics' },
+        { icon: <BookOpen size={20} />, label: 'Grammar', path: '/instructor/topics' },
         { icon: <FileQuestion size={20} />, label: 'Quizzes', path: '/instructor/quizzes' },
         { icon: <Mic size={20} />, label: 'Pronunciation', path: '/instructor/pronunciation' },
         { icon: <Settings size={20} />, label: 'Settings', path: '/instructor/settings' },

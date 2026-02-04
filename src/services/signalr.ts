@@ -21,6 +21,7 @@ class SignalRService {
     private isConnecting = false;
     private subscriberCount = 0;
     private hubUrl: string | null = null;
+    private externalHandlers = new Map<string, ((...args: any[]) => void)[]>();
 
     public setToken(token: string) {
         this.token = token;
@@ -73,7 +74,10 @@ class SignalRService {
             });
 
             console.log('📝 Registering socket event handlers...');
+            console.log('📝 Registering socket event handlers...');
             this.registerHandlers();
+            this.registerExternalHandlers();
+            console.log('✅ Event handlers registered');
             console.log('✅ Event handlers registered');
 
             console.log('🔌 Attempting socket connection to:', rootUrl);
@@ -112,11 +116,43 @@ class SignalRService {
     }
 
     public onEvent(event: string, handler: (...args: any[]) => void) {
-        this.socket?.on(event, handler);
+        // Store handler to re-register on reconnect
+        if (!this.externalHandlers.has(event)) {
+            this.externalHandlers.set(event, []);
+        }
+        this.externalHandlers.get(event)?.push(handler);
+
+        // If socket instance exists, register immediately (Socket.io buffers events)
+        if (this.socket) {
+            this.socket.on(event, handler);
+        }
     }
 
     public offEvent(event: string) {
+        this.externalHandlers.delete(event);
         this.socket?.off(event);
+    }
+
+    private registerExternalHandlers() {
+        if (!this.socket) return;
+
+        console.log('Checking external handlers to register:', this.externalHandlers.size);
+        this.externalHandlers.forEach((handlers, event) => {
+            console.log(`Registering ${handlers.length} handlers for event: ${event}`);
+            handlers.forEach(handler => {
+                // Check if already listening to avoid duplicates if socket.io doesn't dedupe?
+                // actually socket.io allows multiple listeners. 
+                // We should be careful not to add same listener function twice if we track it.
+                // But since 'onEvent' adds to array and registers if connected,
+                // we only need this method when (re)connecting.
+                // But wait, if we call "onEvent" while connected, it adds to array AND socket.
+                // If we reconnect, we call this method. Perfect.
+                // Just ensuring we don't double register if we are just calling this manually? 
+                // This is called inside 'connect' -> 'socket.on("connect")'.
+                // So it's safe.
+                this.socket?.on(event, handler);
+            });
+        });
     }
 
     // --- Hub Methods ---
