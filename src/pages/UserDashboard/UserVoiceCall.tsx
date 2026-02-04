@@ -18,6 +18,7 @@ import { RootState } from '../../store';
 import { callLogger } from '../../utils/callLogger';
 import { connectionsService, FriendConnection } from '../../services/connections';
 import { UserCheck, UserPlus, Check, X as XIcon, Users } from 'lucide-react';
+import { signalRService } from '../../services/signalr';
 
 const UserVoiceCall: React.FC = () => {
     const { t, i18n } = useTranslation();
@@ -82,25 +83,46 @@ const UserVoiceCall: React.FC = () => {
 
     // Effect for Real-time listeners
     useEffect(() => {
-        import('../../services/signalr').then(({ signalRService }) => {
-            const handler = (data: any) => {
-                console.log('🔔 friend status update:', data);
-                setFriends(prev => prev.map(f => {
-                    if (String(f.userId) === String(data.userId)) {
-                        return { ...f, ...data };
-                    }
-                    return f;
-                }));
-            };
+        const handler = (data: any) => {
+            console.log('🔔 friend status update:', data);
+            setFriends(prev => prev.map(f => {
+                if (String(f.userId) === String(data.userId)) {
+                    return { ...f, ...data };
+                }
+                return f;
+            }));
+        };
 
-            signalRService.onEvent('UserEligibilityChanged', handler);
-            signalRService.onEvent('usereligibilitychanged', handler); // Lowercase fallback
+        signalRService.onEvent('UserEligibilityChanged', handler);
+        signalRService.onEvent('usereligibilitychanged', handler); // Lowercase fallback
 
-            return () => {
-                signalRService.offEvent('UserEligibilityChanged');
-                signalRService.offEvent('usereligibilitychanged');
-            };
+        // Friend Request Listeners
+        signalRService.onEvent('FriendRequestReceived', (data: any) => {
+            console.log('🔔 Friend Request Received:', data);
+            setPendingRequests(prev => {
+                // Avoid duplicates
+                if (prev.find(r => r.connectionId == data.connectionId)) return prev;
+                return [...prev, data];
+            });
+            dispatch(showToast({ message: `New friend request from ${data.fullName}`, type: 'info' }));
         });
+
+        signalRService.onEvent('FriendRequestAccepted', (data: any) => {
+            console.log('🔔 Friend Request Accepted:', data);
+            setFriends(prev => {
+                if (prev.find(f => f.connectionId == data.connectionId)) return prev;
+                // Add new friend to list, ensuring we have connectionId
+                return [...prev, data];
+            });
+            dispatch(showToast({ message: `${data.fullName} accepted your friend request!`, type: 'success' }));
+        });
+
+        return () => {
+            signalRService.offEvent('UserEligibilityChanged');
+            signalRService.offEvent('usereligibilitychanged');
+            signalRService.offEvent('FriendRequestReceived');
+            signalRService.offEvent('FriendRequestAccepted');
+        };
     }, []);
 
     const fetchConnections = async () => {
