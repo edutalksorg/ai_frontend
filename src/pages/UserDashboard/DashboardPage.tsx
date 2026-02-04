@@ -13,8 +13,10 @@ import UserTopicBrowser from './UserTopicBrowser';
 import UserQuizInterface from './UserQuizInterface';
 import UserVoiceCall from './UserVoiceCall';
 import UserPronunciation from './UserPronunciation';
-import DashboardCarousel from '../../components/DashboardCourosel';
+import DashboardCarousel, { Slide } from '../../components/DashboardCourosel';
 import { useUsageLimits } from '../../hooks/useUsageLimits';
+import { carouselService, CarouselItem } from '../../services/carouselService';
+import { getStorageUrl } from '../../services/api';
 
 type TabType = 'voice' | 'topics' | 'quizzes' | 'pronunciation' | 'wallet' | 'subscriptions' | 'referrals' | 'profile';
 
@@ -30,40 +32,59 @@ const DashboardPage: React.FC = () => {
         triggerUpgradeModal,
     } = useUsageLimits();
 
-    const carouselSlides = [
-        {
-            id: '1',
-            image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200&h=400&fit=crop',
-            title: t('dashboard.carousel.slide1.title'),
-            description: t('dashboard.carousel.slide1.description'),
-            ctaText: t('dashboard.carousel.slide1.cta'),
-            ctaLink: '/voice-calls'
-        },
-        {
-            id: '2',
-            image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&h=400&fit=crop',
-            title: t('dashboard.carousel.slide2.title'),
-            description: t('dashboard.carousel.slide2.description'),
-            ctaText: t('dashboard.carousel.slide2.cta'),
-            ctaLink: '/topics'
-        },
-        {
-            id: '3',
-            image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1200&h=400&fit=crop',
-            title: t('dashboard.carousel.slide3.title'),
-            description: t('dashboard.carousel.slide3.description'),
-            ctaText: t('dashboard.carousel.slide3.cta'),
-            ctaLink: '/quizzes'
-        },
-        {
-            id: '4',
-            image: 'https://images.unsplash.com/photo-1589903308904-1010c2294adc?w=1200&h=400&fit=crop',
-            title: t('dashboard.carousel.slide4.title'),
-            description: t('dashboard.carousel.slide4.description'),
-            ctaText: t('dashboard.carousel.slide4.cta'),
-            ctaLink: '/pronunciation'
-        }
-    ];
+    const [carouselSlides, setCarouselSlides] = useState<Slide[]>([]);
+
+    useEffect(() => {
+        const fetchCarousel = async () => {
+            try {
+                const items = await carouselService.getPublicItems();
+                if (items && items.length > 0) {
+                    setCarouselSlides(items.map((item: CarouselItem) => ({
+                        id: String(item.id),
+                        image: getStorageUrl(item.image_url || item.imageUrl || ''),
+                        title: item.title || '',
+                        description: item.description || '',
+                        ctaText: 'Learn More',
+                        ctaLink: item.redirect_url
+                    })));
+                } else {
+                    // Fallback to default if no items
+                    setCarouselSlides([
+                        {
+                            id: '1',
+                            image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200&h=400&fit=crop',
+                            title: t('dashboard.carousel.slide1.title'),
+                            description: t('dashboard.carousel.slide1.description'),
+                            ctaText: t('dashboard.carousel.slide1.cta'),
+                            ctaLink: '/voice-calls'
+                        },
+                        {
+                            id: '2',
+                            image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&h=400&fit=crop',
+                            title: t('dashboard.carousel.slide2.title'),
+                            description: t('dashboard.carousel.slide2.description'),
+                            ctaText: t('dashboard.carousel.slide2.cta'),
+                            ctaLink: '/topics'
+                        }
+                    ]);
+                }
+            } catch (error) {
+                console.error('Failed to load carousel', error);
+                // Fallback on error
+                setCarouselSlides([
+                    {
+                        id: '1',
+                        image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200&h=400&fit=crop',
+                        title: t('dashboard.carousel.slide1.title'),
+                        description: t('dashboard.carousel.slide1.description'),
+                        ctaText: t('dashboard.carousel.slide1.cta'),
+                        ctaLink: '/voice-calls'
+                    }
+                ]);
+            }
+        };
+        fetchCarousel();
+    }, [t]);
 
     useEffect(() => {
         if (tabParam && tabParam !== activeTab) {
@@ -97,7 +118,7 @@ const DashboardPage: React.FC = () => {
 
     return (
         <UserLayout>
-            <div className="max-w-7xl mx-auto relative max-w-full overflow-x-hidden">
+            <div className="w-full relative overflow-x-hidden">
                 {/* Header with Title */}
                 <div className="mb-8 pl-1">
                     <h1 className="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-violet-800 to-slate-900 dark:from-white dark:via-violet-200 dark:to-white mb-3">

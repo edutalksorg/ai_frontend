@@ -61,6 +61,18 @@ export const MODULE_DEFINITIONS: Record<string, ModuleDefinition> = {
         routes: ['/admin/settings'],
         backendModules: ['SystemManagement'],
     },
+    carousel: {
+        id: 'carousel',
+        name: 'Carousel Management',
+        routes: ['/admin/carousel'],
+        backendModules: ['CarouselManagement'],
+    },
+    footer: {
+        id: 'footer',
+        name: 'Footer Management',
+        routes: ['/admin/footer'],
+        backendModules: ['FooterManagement'],
+    },
 };
 
 interface UseAdminModulesReturn {

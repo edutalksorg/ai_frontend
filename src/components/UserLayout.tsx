@@ -208,7 +208,7 @@ const UserLayout: React.FC<UserLayoutProps> = ({ children, hideNavbar = false })
 
             {/* Main Content */}
             {/* Main Content */}
-            <main className="flex-1 w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-12 mt-4 animate-fadeIn user-select-none">
+            <main className="flex-1 w-full max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-12 mt-4 animate-fadeIn user-select-none">
                 {/* Mobile-only Trial Timer */}
                 {!isExplicitlyCancelled && !hasActiveSubscription && (
                     <div className="block sm:hidden mb-6">

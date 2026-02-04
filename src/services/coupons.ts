@@ -39,6 +39,12 @@ export const couponsService = {
     apiService.post<ValidateCouponResponse>('/coupons/validate', data),
 
   /**
+   * Get users who have used a specific coupon
+   */
+  getUsageUsers: async (id: string): Promise<any[]> =>
+    apiService.get<any[]>(`/admin/coupons/${id}/users`),
+
+  /**
    * Apply a coupon to an order
    */
   apply: async (data: ApplyCouponRequest): Promise<void> =>

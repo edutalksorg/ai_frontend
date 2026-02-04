@@ -1,9 +1,26 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Mic, BookOpen, Phone, CheckSquare, Rocket, Star, Zap, Twitter, Github, Linkedin, Instagram, Mail, ArrowRight } from 'lucide-react';
+import { Mic, BookOpen, Phone, CheckSquare, Rocket, Star, Zap, Facebook, Linkedin, Instagram, Mail, ArrowRight } from 'lucide-react';
 import Button from '../../components/Button';
 import { Logo } from '../../components/common/Logo';
+
+const AnimatedBanner: React.FC = () => {
+    return (
+        <div className="w-full max-w-5xl animate-in fade-in slide-in-from-top duration-1000">
+            <div className="relative group">
+                <div className="absolute -inset-2 bg-gradient-to-r from-blue-600/20 via-violet-600/20 to-indigo-600/20 rounded-[2.5rem] blur-2xl opacity-70"></div>
+                <div className="relative aspect-[512/384] md:aspect-video rounded-[2.5rem] overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] border border-white/10 bg-slate-900/50 backdrop-blur-sm">
+                    <img
+                        src="/hero-banner.gif"
+                        alt="EduTalks Animated Banner"
+                        className="w-full h-full object-cover"
+                    />
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const LandingPage: React.FC = () => {
     const { t } = useTranslation();
@@ -31,55 +48,60 @@ const LandingPage: React.FC = () => {
                 </div>
             </nav>
 
-            {/* Hero Section */}
-            {/* Hero Section */}
-            <section className="relative px-4 sm:px-6 lg:px-8 pt-24 pb-12 lg:pt-32 lg:pb-16 text-center overflow-hidden">
-                {/* Background Glow */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-500/20 rounded-full blur-[100px] -z-10"></div>
+            <section className="relative overflow-hidden pt-16 lg:pt-16 pb-20 flex items-center min-h-[80vh]">
+                <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 w-full">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-12 lg:gap-24 relative z-10">
+                        {/* Left Portion: Animated Hero Banner */}
+                        <div className="w-full lg:w-[55%] animate-in fade-in slide-in-from-left duration-1000">
+                            <div className="relative group w-full">
+                                <div className="absolute -inset-4 bg-gradient-to-r from-blue-600/30 via-indigo-600/30 to-violet-600/30 rounded-[3rem] blur-3xl opacity-40 group-hover:opacity-60 transition-opacity duration-1000"></div>
+                                <div className="relative w-full rounded-[2.5rem] overflow-hidden shadow-[0_40px_80px_-15px_rgba(0,0,0,0.6)] border border-white/10 bg-slate-900/50 backdrop-blur-md transform transition-transform duration-700 hover:scale-[1.01]">
+                                    <img
+                                        src="/hero-banner.gif"
+                                        alt="EduTalks Animated Banner"
+                                        className="w-full h-auto object-cover block"
+                                    />
+                                </div>
+                            </div>
+                        </div>
 
-                {/* Interactive Hero Avatars */}
-                {/* Interactive Hero Watermarks */}
-                <div className="hidden xl:block absolute top-1/2 -translate-y-1/2 left-20 w-48 h-48 animate-float pointer-events-none select-none z-0 opacity-20">
-                    <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-3xl transform scale-75"></div>
-                    <img src="/assets/welcome-globe.svg" alt="Global Community" className="w-full h-full relative z-10 drop-shadow-2xl" />
-                </div>
+                        {/* Right Portion: Welcome Component */}
+                        <div className="w-full lg:w-[40%] text-center lg:text-left space-y-10 animate-in fade-in slide-in-from-right duration-1000 delay-300">
+                            <div className="space-y-6">
+                                <h1 className="text-6xl sm:text-7xl lg:text-[5.5rem] font-extrabold tracking-tight leading-[1.02] text-white">
+                                    <span className="text-blue-500">Welcome to </span>
+                                    <span className="text-violet-500 block">EduTalks</span>
+                                </h1>
 
-                <div className="hidden xl:block absolute top-1/2 -translate-y-1/2 right-20 w-48 h-48 animate-float animation-delay-2000 pointer-events-none select-none z-0 opacity-15">
-                    <div className="absolute inset-0 bg-violet-500/20 rounded-full blur-3xl transform scale-75"></div>
-                    <img src="/assets/welcome-chat.svg" alt="Conversation" className="w-full h-full relative z-10 drop-shadow-2xl" />
-                </div>
+                                <div className="space-y-4">
+                                    <p className="text-2xl lg:text-3xl font-bold text-slate-100">
+                                        Master English. <br className="hidden lg:block" /> Connect with the World.
+                                    </p>
+                                    <p className="text-lg sm:text-xl text-slate-400 max-w-xl lg:mx-0 mx-auto leading-relaxed font-medium">
+                                        Learn English through real conversations, AI-powered feedback, and daily practice with learners worldwide.
+                                    </p>
+                                </div>
+                            </div>
 
-                <div className="max-w-4xl mx-auto space-y-8 relative z-10">
-                    <h1 className="text-5xl sm:text-7xl font-bold tracking-tight">
-                        <span className="text-blue-500">Welcome to </span>
-                        <span className="text-violet-600">EduTalks</span>
-                    </h1>
+                            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 sm:gap-6 pt-2">
+                                <Link to="/register" className="w-full sm:w-auto">
+                                    <button className="h-16 px-10 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-2xl text-xl transition-all shadow-2xl shadow-blue-500/40 w-full lg:w-[220px] transform hover:scale-105 active:scale-95">
+                                        Get Started
+                                    </button>
+                                </Link>
+                                <Link to="/login" className="w-full sm:w-auto">
+                                    <button className="h-16 px-10 bg-transparent border-2 border-slate-700 hover:border-blue-500 hover:bg-blue-500/10 text-white font-extrabold rounded-2xl text-xl transition-all w-full lg:w-[220px] transform hover:scale-105 active:scale-95">
+                                        Sign In
+                                    </button>
+                                </Link>
+                            </div>
 
-                    <p className="text-xl sm:text-2xl font-medium text-slate-300">
-                        Master English. Connect with the World.
-                    </p>
-
-                    <p className="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
-                        Learn English through real conversations, AI-powered feedback, and daily practice with learners worldwide.
-                    </p>
-
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8">
-                        <Link to="/register">
-                            <button className="px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg text-lg transition-all shadow-lg shadow-blue-500/25 w-full sm:w-auto">
-                                Get Started Free
-                            </button>
-                        </Link>
-                        <Link to="/login">
-                            <button className="px-8 py-3.5 bg-transparent border-2 border-blue-500 hover:bg-blue-500/10 text-white font-semibold rounded-lg text-lg transition-all w-full sm:w-auto">
-                                Already Have Account?
-                            </button>
-                        </Link>
+                            <div className="inline-flex items-center gap-4 text-base text-slate-400 font-bold bg-white/5 px-8 py-3 rounded-2xl border border-white/10 backdrop-blur-sm">
+                                <span className="text-2xl animate-bounce">🎁</span>
+                                <span>Get 24 hours of free trial</span>
+                            </div>
+                        </div>
                     </div>
-
-                    <p className="flex items-center justify-center gap-2 text-sm text-slate-400 font-medium pt-4">
-                        <span className="text-xl">🎁</span>
-                        Get 24 hours of free trial - No credit card required
-                    </p>
                 </div>
             </section>
 
@@ -358,10 +380,9 @@ const LandingPage: React.FC = () => {
                                 Master English visually and verbally. Connect with the world through real-time conversations and AI-powered pronunciation feedback.
                             </p>
                             <div className="flex gap-4">
-                                <a href="#" className="p-2 bg-slate-900 rounded-lg hover:bg-slate-800 hover:text-blue-400 transition-colors"><Twitter size={20} /></a>
-                                <a href="#" className="p-2 bg-slate-900 rounded-lg hover:bg-slate-800 hover:text-white transition-colors"><Github size={20} /></a>
-                                <a href="#" className="p-2 bg-slate-900 rounded-lg hover:bg-slate-800 hover:text-blue-600 transition-colors"><Linkedin size={20} /></a>
-                                <a href="#" className="p-2 bg-slate-900 rounded-lg hover:bg-slate-800 hover:text-pink-500 transition-colors"><Instagram size={20} /></a>
+                                <a href="https://www.facebook.com/people/Edutalks/61578676177087/" target="_blank" rel="noreferrer" className="p-2 bg-slate-900 rounded-lg hover:bg-slate-800 hover:text-blue-500 transition-colors"><Facebook size={20} /></a>
+                                <a href="https://www.linkedin.com/company/edutalks-pvt-ltd/posts/?feedView=all" target="_blank" rel="noreferrer" className="p-2 bg-slate-900 rounded-lg hover:bg-slate-800 hover:text-blue-600 transition-colors"><Linkedin size={20} /></a>
+                                <a href="https://www.instagram.com/edutalks_tech?igsh=MXZjcm5mcDB0MzNi" target="_blank" rel="noreferrer" className="p-2 bg-slate-900 rounded-lg hover:bg-slate-800 hover:text-pink-500 transition-colors"><Instagram size={20} /></a>
                             </div>
                         </div>
 
@@ -378,10 +399,9 @@ const LandingPage: React.FC = () => {
                         <div>
                             <h4 className="font-bold text-lg mb-6 flex items-center gap-2"><CheckSquare size={18} className="text-slate-500" /> Company</h4>
                             <ul className="space-y-4 text-slate-400">
-                                <li><a href="#" className="hover:text-indigo-400 transition-colors">About Us</a></li>
-                                <li><a href="#" className="hover:text-indigo-400 transition-colors">Success Stories</a></li>
-                                <li><a href="#" className="hover:text-indigo-400 transition-colors">Blog</a></li>
-                                <li><a href="#" className="hover:text-indigo-400 transition-colors">Careers</a></li>
+                                <li><Link to="/about" className="hover:text-indigo-400 transition-colors">About Us</Link></li>
+                                <li><Link to="/success-stories" className="hover:text-indigo-400 transition-colors">Success Stories</Link></li>
+                                <li><Link to="/blog" className="hover:text-indigo-400 transition-colors">Blog</Link></li>
                             </ul>
                         </div>
 
@@ -404,9 +424,9 @@ const LandingPage: React.FC = () => {
                     <div className="border-t border-slate-900 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-500 text-sm">
                         <p>{t('landing.footer.copyright')}</p>
                         <div className="flex gap-6">
-                            <a href="#" className="hover:text-slate-300 transition-colors">Privacy Policy</a>
-                            <a href="#" className="hover:text-slate-300 transition-colors">Terms of Service</a>
-                            <a href="#" className="hover:text-slate-300 transition-colors">Cookie Policy</a>
+                            <Link to="/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</Link>
+                            <Link to="/terms" className="hover:text-slate-300 transition-colors">Terms of Service</Link>
+                            <Link to="/cookie-policy" className="hover:text-slate-300 transition-colors">Cookie Policy</Link>
                         </div>
                     </div>
                 </div>

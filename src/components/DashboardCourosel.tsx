@@ -45,7 +45,7 @@ const DashboardCarousel: React.FC<DashboardCarouselProps> = ({
 
     return (
         <div
-            className="relative w-full max-w-full overflow-hidden rounded-xl md:rounded-2xl shadow-xl group h-[200px] sm:h-[240px] md:h-[280px] mb-6 scrollbar-hide"
+            className="relative w-full max-w-full overflow-hidden rounded-xl md:rounded-3xl shadow-xl group h-[220px] sm:h-[300px] md:h-[400px] mb-6 scrollbar-hide"
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
         >
@@ -54,35 +54,55 @@ const DashboardCarousel: React.FC<DashboardCarouselProps> = ({
                 className="flex transition-transform duration-700 ease-in-out h-full"
                 style={{ transform: `translateX(-${currentIndex * 100}%)` }}
             >
-                {slides.map((slide) => (
-                    <div
-                        key={slide.id}
-                        className="min-w-full h-full relative"
-                    >
-                        <img
-                            src={slide.image}
-                            alt={slide.title}
-                            className="w-full h-full object-cover"
-                        />
-                        {/* Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent flex flex-col justify-end p-4 sm:p-6 md:p-10">
-                            <div className={`transform transition-all duration-700 delay-100 ${currentIndex === slides.findIndex(s => s.id === slide.id) ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
-                                <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-1 md:mb-2 text-white drop-shadow-md">
-                                    {slide.title}
-                                </h2>
-                                <p className="text-sm sm:text-base md:text-lg text-slate-100 mb-2 md:mb-4 max-w-2xl drop-shadow-sm line-clamp-2">
-                                    {slide.description}
-                                </p>
-                                {slide.ctaText && (
-                                    <button className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1.5 md:px-6 md:py-2 rounded-lg md:rounded-xl font-semibold transition-all hover:scale-105 shadow-lg flex items-center gap-2 text-xs md:text-sm">
-                                        {slide.ctaText}
-                                        <ChevronRight size={16} />
-                                    </button>
-                                )}
+                {slides.map((slide) => {
+                    const hasLink = !!slide.ctaLink;
+                    const isExternal = slide.ctaLink?.startsWith('http');
+
+                    const SlideContent = () => (
+                        <div className="min-w-full h-full relative">
+                            <img
+                                src={slide.image}
+                                alt={slide.title}
+                                className="w-full h-full object-cover"
+                            />
+                            {/* Gradient Overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent flex flex-col justify-end p-4 sm:p-6 md:p-10">
+                                <div className={`transform transition-all duration-700 delay-100 ${currentIndex === slides.findIndex(s => s.id === slide.id) ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+                                    <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-1 md:mb-2 text-white drop-shadow-md">
+                                        {slide.title}
+                                    </h2>
+                                    <p className="text-sm sm:text-base md:text-lg text-slate-100 mb-2 md:mb-4 max-w-2xl drop-shadow-sm line-clamp-2">
+                                        {slide.description}
+                                    </p>
+                                    {slide.ctaText && (
+                                        <button className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1.5 md:px-6 md:py-2 rounded-lg md:rounded-xl font-semibold transition-all hover:scale-105 shadow-lg flex items-center gap-2 text-xs md:text-sm">
+                                            {slide.ctaText}
+                                            <ChevronRight size={16} />
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+
+                    return (
+                        <div key={slide.id} className={`min-w-full h-full relative ${hasLink ? 'cursor-pointer' : ''}`}>
+                            {hasLink ? (
+                                isExternal ? (
+                                    <a href={slide.ctaLink} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
+                                        <SlideContent />
+                                    </a>
+                                ) : (
+                                    <a href={slide.ctaLink} className="block w-full h-full">
+                                        <SlideContent />
+                                    </a>
+                                )
+                            ) : (
+                                <SlideContent />
+                            )}
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Navigation Buttons - Hidden on mobile, visible on hover on desktop */}

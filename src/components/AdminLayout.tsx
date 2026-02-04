@@ -61,6 +61,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         { icon: <DollarSign size={18} />, label: 'Payments', path: '/admin/payments', module: 'payments' },
         { icon: <Tag size={18} />, label: 'Coupons', path: '/admin/coupons', module: 'coupons' },
         { icon: <CreditCard size={18} />, label: 'Subscriptions', path: '/admin/subscriptions', module: 'subscriptions' },
+        { icon: <Shield size={18} />, label: 'Carousel', path: '/admin/carousel', module: 'carousel' },
+        { icon: <Shield size={18} />, label: 'Footer', path: '/admin/footer', module: 'footer' },
         { icon: <User size={18} />, label: 'Profile', path: '/admin/profile', module: null }, // Always visible
         { icon: <Settings size={18} />, label: 'Settings', path: '/admin/settings', module: null }, // Always visible
     ];

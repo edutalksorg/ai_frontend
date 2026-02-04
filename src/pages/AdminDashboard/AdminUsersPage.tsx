@@ -21,6 +21,10 @@ interface UserData {
     isApproved?: boolean;
     createdAt?: string;
     avatar?: string;
+    registrationMethod?: string;
+    registrationCode?: string;
+    referrerName?: string;
+    usedCouponCode?: string;
 }
 
 const AdminUsersPage: React.FC = () => {
@@ -135,7 +139,7 @@ const AdminUsersPage: React.FC = () => {
     }, [filterRole, filterPayment, searchTerm, users]);
 
     const downloadCSV = () => {
-        const headers = ['ID', 'Full Name', 'Email', 'Phone', 'Role', 'Status', 'Subscription', 'Plan', 'Joined Date'];
+        const headers = ['ID', 'Full Name', 'Email', 'Phone', 'Role', 'Status', 'Subscription', 'Plan', 'Source', 'Code', 'Joined Date'];
         const csvRows = [
             headers.join(','),
             ...filteredUsers.map(u => [
@@ -147,6 +151,8 @@ const AdminUsersPage: React.FC = () => {
                 String(u.role).toLowerCase().includes('admin') ? 'Approved' : (u.isApproved ? 'Approved' : 'Pending'),
                 u.subscriptionStatus || 'No Subscription',
                 u.planName || 'N/A',
+                u.registrationMethod || 'Organic',
+                u.registrationCode || 'N/A',
                 u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'
             ].join(','))
         ];
@@ -408,6 +414,9 @@ const AdminUsersPage: React.FC = () => {
                                         User
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        Source
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         Phone
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
@@ -448,6 +457,26 @@ const AdminUsersPage: React.FC = () => {
                                                     </div>
                                                 </div>
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {userData.registrationMethod === 'referral' ? (
+                                                <div className="flex flex-col">
+                                                    <span className="px-2 py-1 inline-flex items-center gap-1 text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400">
+                                                        Ref: {userData.registrationCode}
+                                                    </span>
+                                                    {userData.referrerName && (
+                                                        <span className="text-[10px] text-slate-500 mt-1 ml-1">
+                                                            by {userData.referrerName}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            ) : userData.registrationMethod === 'coupon' ? (
+                                                <span className="px-2 py-1 inline-flex items-center gap-1 text-xs leading-5 font-semibold rounded-full bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-400">
+                                                    Cpn: {userData.registrationCode}
+                                                </span>
+                                            ) : (
+                                                <span className="text-xs text-slate-400 dark:text-slate-500">Organic</span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="text-sm text-slate-900 dark:text-white">

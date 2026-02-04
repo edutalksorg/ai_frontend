@@ -22,6 +22,7 @@ import AdminReferralsPage from './pages/AdminDashboard/AdminReferralsPage';
 import AdminSettingsPage from './pages/AdminDashboard/AdminSettingsPage';
 import AdminCouponsPage from './pages/AdminDashboard/AdminCouponsPage';
 import AdminSubscriptionsPage from './pages/AdminDashboard/AdminSubscriptionsPage';
+import AdminCarouselPage from './pages/AdminDashboard/AdminCarouselPage';
 import UnauthorizedPage from './pages/AdminDashboard/UnauthorizedPage';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 
@@ -42,6 +43,11 @@ import QuizzesPage from './pages/UserDashboard/QuizzesPage';
 import AIPronunciationPage from './pages/UserDashboard/AIPronunciationPage';
 import UserTopicDetailsPage from './pages/UserDashboard/UserTopicDetailsPage';
 import UserQuizTakingPage from './pages/UserDashboard/UserQuizTakingPage';
+import PrivacyPolicyPage from './pages/legal/PrivacyPolicyPage';
+import TermsPage from './pages/legal/TermsPage';
+import CookiePolicyPage from './pages/legal/CookiePolicyPage';
+import ComingSoonPage from './pages/common/ComingSoonPage';
+import AdminFooterManagementPage from './pages/AdminDashboard/AdminFooterManagementPage';
 
 // ... (rest of imports)
 
@@ -256,8 +262,15 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/resend-confirmation" element={<ResendConfirmationPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/register" element={<RegisterPage />} /><Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/verify/:token" element={<VerifyEmailPage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+        <Route path="/about" element={<ComingSoonPage title="About Us" settingKey="footer_about" />} />
+        <Route path="/success-stories" element={<ComingSoonPage title="Success Stories" settingKey="footer_success" />} />
+        <Route path="/blog" element={<ComingSoonPage title="Blogs & Logs" settingKey="footer_blog" />} />
 
         {/* Admin Routes - Restricted to admin role */}
         {/* Redirect /admin to /admindashboard for consistency */}
@@ -345,6 +358,19 @@ function App() {
 
         />
         <Route
+          path="/admin/carousel"
+          element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={['admin']}>
+                <ProtectedAdminRoute requiredModule="carousel">
+                  <AdminCarouselPage />
+                </ProtectedAdminRoute>
+              </RoleBasedRoute>
+            </ProtectedRoute>
+          }
+
+        />
+        <Route
           path="/admin/referrals"
           element={
             <ProtectedRoute>
@@ -373,6 +399,30 @@ function App() {
               <RoleBasedRoute allowedRoles={['admin']}>
                 <ProtectedAdminRoute requiredModule="coupons">
                   <AdminCouponsPage />
+                </ProtectedAdminRoute>
+              </RoleBasedRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/carousel"
+          element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={['admin']}>
+                <ProtectedAdminRoute requiredModule="carousel">
+                  <AdminCarouselPage />
+                </ProtectedAdminRoute>
+              </RoleBasedRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/footer"
+          element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={['admin']}>
+                <ProtectedAdminRoute requiredModule="footer">
+                  <AdminFooterManagementPage />
                 </ProtectedAdminRoute>
               </RoleBasedRoute>
             </ProtectedRoute>

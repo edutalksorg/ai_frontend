@@ -35,6 +35,8 @@ const AdminDashboardPage: React.FC = () => {
     coupons: <Tag className="w-8 h-8" />,
     referrals: <Users className="w-8 h-8" />,
     analytics: <TrendingUp className="w-8 h-8" />,
+    carousel: <Tag className="w-8 h-8" />,
+    footer: <Shield className="w-8 h-8" />,
   };
 
   // Module colors
@@ -45,6 +47,8 @@ const AdminDashboardPage: React.FC = () => {
     coupons: { from: 'from-orange-500', to: 'to-amber-600', text: 'text-orange-600' },
     referrals: { from: 'from-pink-500', to: 'to-rose-600', text: 'text-pink-600' },
     analytics: { from: 'from-cyan-500', to: 'to-sky-600', text: 'text-cyan-600' },
+    carousel: { from: 'from-fuchsia-500', to: 'to-purple-600', text: 'text-fuchsia-600' },
+    footer: { from: 'from-indigo-500', to: 'to-blue-600', text: 'text-indigo-600' },
   };
 
   // Module routes
@@ -55,6 +59,8 @@ const AdminDashboardPage: React.FC = () => {
     coupons: '/admin/coupons',
     referrals: '/admin/referrals',
     analytics: '/admin/analytics',
+    carousel: '/admin/carousel',
+    footer: '/admin/footer',
   };
 
   // Module descriptions
@@ -65,6 +71,8 @@ const AdminDashboardPage: React.FC = () => {
     coupons: 'Create and manage discount coupons',
     referrals: 'Configure referral settings and rewards',
     analytics: 'View platform analytics and insights',
+    carousel: 'Manage dashboard sliding banners',
+    footer: 'Manage About Us, Success Stories, and Blogs',
   };
 
   return (

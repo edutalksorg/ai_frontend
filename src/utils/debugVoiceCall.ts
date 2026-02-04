@@ -62,6 +62,7 @@ const debugVoiceCall = {
 
         const mockPayload = {
             callId: Date.now().toString(),
+            callerId: 'test-caller-id',
             callerName: 'Test Caller',
             callerAvatar: 'https://via.placeholder.com/150',
             timestamp: new Date().toISOString(),

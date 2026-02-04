@@ -23,7 +23,14 @@ const getBaseUrl = () => {
   return '/api/v1';
 };
 
-const API_BASE_URL = getBaseUrl();
+export const API_BASE_URL = getBaseUrl();
+export const getStorageUrl = (path: string) => {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  // backend serves /uploads from root
+  const baseUrl = API_BASE_URL.replace('/api/v1', '');
+  return `${baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+};
 
 class ApiService {
   private api: AxiosInstance;

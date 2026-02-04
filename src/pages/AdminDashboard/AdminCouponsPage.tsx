@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit2, Trash2, Tag, Search, Filter, Calendar, TrendingUp, X, ArrowLeft, Check, Copy } from 'lucide-react';
+import { Plus, Edit2, Trash2, Tag, Search, Filter, Calendar, TrendingUp, X, ArrowLeft, Check, Copy, Eye, User } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import Button from '../../components/Button';
 import { couponsService } from '../../services/coupons';
@@ -20,6 +20,15 @@ interface QuizOption {
     title: string;
 }
 
+interface UsageUser {
+    id: number;
+    fullName: string;
+    email: string;
+    usedAt: string;
+    discountAmount: string;
+    orderId: string;
+}
+
 const AdminCouponsPage: React.FC = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -31,6 +40,12 @@ const AdminCouponsPage: React.FC = () => {
     const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
     const [creating, setCreating] = useState(false);
     const [updating, setUpdating] = useState(false);
+
+    // Usage Modal States
+    const [showUsageModal, setShowUsageModal] = useState(false);
+    const [usageUsers, setUsageUsers] = useState<UsageUser[]>([]);
+    const [usageLoading, setUsageLoading] = useState(false);
+    const [selectedCouponCode, setSelectedCouponCode] = useState('');
 
     // Data options for selection
     const [planOptions, setPlanOptions] = useState<PlanOption[]>([]);
@@ -93,6 +108,22 @@ const AdminCouponsPage: React.FC = () => {
             dispatch(showToast({ message: 'Failed to load coupons', type: 'error' }));
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleViewUsage = async (coupon: Coupon) => {
+        setSelectedCouponCode(coupon.code);
+        setShowUsageModal(true);
+        setUsageLoading(true);
+        try {
+            const res = await couponsService.getUsageUsers(coupon.id);
+            console.log('📊 Coupon Usage Response:', res);
+            setUsageUsers((res as any).data || (Array.isArray(res) ? res : []));
+        } catch (error) {
+            console.error('Failed to fetch usage:', error);
+            dispatch(showToast({ message: 'Failed to load usage details', type: 'error' }));
+        } finally {
+            setUsageLoading(false);
         }
     };
 
@@ -250,7 +281,7 @@ const AdminCouponsPage: React.FC = () => {
     };
 
     const handleDelete = async (id: string, code: string) => {
-        if (!window.confirm(`Are you sure you want to delete coupon "${code}"?`)) return;
+        if (!window.confirm(`Are you sure you want to delete coupon "${code}" ? `)) return;
 
         try {
             await couponsService.delete(id);
@@ -482,8 +513,8 @@ const AdminCouponsPage: React.FC = () => {
                                             </td>
                                             <td className="px-6 py-4 text-slate-600 dark:text-slate-300 font-semibold">
                                                 {coupon.discountType === 'Percentage' || coupon.discountType as any === 1
-                                                    ? `${coupon.discountValue}%`
-                                                    : `₹${coupon.discountValue}`} OFF
+                                                    ? `${coupon.discountValue}% `
+                                                    : `₹${coupon.discountValue} `} OFF
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className="inline-block px-2 py-1 text-xs font-medium rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
@@ -498,7 +529,7 @@ const AdminCouponsPage: React.FC = () => {
                                                     <div className="w-24 bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
                                                         <div
                                                             className="bg-green-500 h-full rounded-full"
-                                                            style={{ width: `${Math.min((coupon.currentUsageCount / coupon.maxTotalUsage) * 100, 100)}%` }}
+                                                            style={{ width: `${Math.min((coupon.currentUsageCount / coupon.maxTotalUsage) * 100, 100)}% ` }}
                                                         />
                                                     </div>
                                                     <span className="text-xs">{coupon.currentUsageCount}/{coupon.maxTotalUsage}</span>
@@ -511,12 +542,21 @@ const AdminCouponsPage: React.FC = () => {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${getStatusBadge(getActualStatus(coupon))}`}>
+                                                <span className={`inline - block px - 3 py - 1 text - xs font - medium rounded - full ${getStatusBadge(getActualStatus(coupon))} `}>
                                                     {getActualStatus(coupon)}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex items-center justify-end gap-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => handleViewUsage(coupon)}
+                                                        className="text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-900/20"
+                                                        title="View Usage"
+                                                    >
+                                                        <Eye size={16} />
+                                                    </Button>
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
@@ -776,6 +816,73 @@ const AdminCouponsPage: React.FC = () => {
                                         <Button type="button" variant="ghost" onClick={() => setShowEditModal(false)}>Cancel</Button>
                                     </div>
                                 </form>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Usage Modal */}
+                {showUsageModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white dark:bg-slate-900 rounded-xl max-w-3xl w-full border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto">
+                            <div className="p-6">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
+                                        Usage: <span className="text-blue-600">{selectedCouponCode}</span>
+                                    </h3>
+                                    <button
+                                        onClick={() => setShowUsageModal(false)}
+                                        className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                                    >
+                                        <X size={24} />
+                                    </button>
+                                </div>
+
+                                {usageLoading ? (
+                                    <div className="text-center py-12 text-slate-500">Loading usage details...</div>
+                                ) : usageUsers.length === 0 ? (
+                                    <div className="text-center py-12 text-slate-500">
+                                        No users have used this coupon yet.
+                                    </div>
+                                ) : (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left">
+                                            <thead className="bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-500 uppercase">
+                                                <tr>
+                                                    <th className="px-4 py-3">User</th>
+                                                    <th className="px-4 py-3">Date</th>
+                                                    <th className="px-4 py-3">Discount</th>
+                                                    <th className="px-4 py-3">Order ID</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                                {usageUsers.map((user, idx) => (
+                                                    <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                                        <td className="px-4 py-3">
+                                                            <div>
+                                                                <p className="font-medium text-slate-900 dark:text-white">{user.fullName}</p>
+                                                                <p className="text-xs text-slate-500">{user.email}</p>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">
+                                                            {new Date(user.usedAt).toLocaleString()}
+                                                        </td>
+                                                        <td className="px-4 py-3 font-medium text-green-600 dark:text-green-400">
+                                                            ₹{user.discountAmount}
+                                                        </td>
+                                                        <td className="px-4 py-3 text-xs font-mono text-slate-500 dark:text-slate-400">
+                                                            {user.orderId || '-'}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+
+                                <div className="mt-6 flex justify-end">
+                                    <Button onClick={() => setShowUsageModal(false)}>Close</Button>
+                                </div>
                             </div>
                         </div>
                     </div>
