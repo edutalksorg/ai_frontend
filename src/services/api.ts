@@ -2,29 +2,29 @@ import axios, { AxiosInstance, AxiosError, AxiosResponse } from 'axios';
 import { STORAGE_KEYS } from '../constants';
 
 const getBaseUrl = () => {
-  let envUrl = import.meta.env.VITE_API_BASE_URL;
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
 
-  // If env var is set, use it (prioritize over hardcoded defaults)
   if (envUrl) {
-    // Remove trailing slash if present to avoid double slashes like //api/v1
-    if (envUrl.endsWith('/')) {
-      envUrl = envUrl.slice(0, -1);
+    let url = envUrl;
+    // Remove trailing slash
+    if (url.endsWith('/')) {
+      url = url.slice(0, -1);
     }
 
-    // Check if the URL already ends with /api/v1
-    if (envUrl.endsWith('/api/v1')) return envUrl;
-    // Check if it ends with /api
-    if (envUrl.endsWith('/api')) return `${envUrl}/v1`;
-    // Otherwise append the full path
-    return `${envUrl}/api/v1`;
+    // Ensure it ends with /api/v1
+    if (url.endsWith('/api/v1')) return url;
+    if (url.endsWith('/api')) return `${url}/v1`;
+    return `${url}/api/v1`;
   }
 
-  // Fallback for development if no env var
+  // Fallback if no env var
+  // In development, we might use a proxy (see vite.config.ts) or hit the backend directly
   if (import.meta.env.DEV) {
+    // If you are running backend on a different port or machine, set VITE_API_BASE_URL in .env
     return 'http://localhost:5000/api/v1';
   }
 
-  // Fallback for production
+  // Production fallback to relative path
   return '/api/v1';
 };
 
