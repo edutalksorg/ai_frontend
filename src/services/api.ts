@@ -2,10 +2,15 @@ import axios, { AxiosInstance, AxiosError, AxiosResponse } from 'axios';
 import { STORAGE_KEYS } from '../constants';
 
 const getBaseUrl = () => {
-  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  let envUrl = import.meta.env.VITE_API_BASE_URL;
 
   // If env var is set, use it (prioritize over hardcoded defaults)
   if (envUrl) {
+    // Remove trailing slash if present to avoid double slashes like //api/v1
+    if (envUrl.endsWith('/')) {
+      envUrl = envUrl.slice(0, -1);
+    }
+
     // Check if the URL already ends with /api/v1
     if (envUrl.endsWith('/api/v1')) return envUrl;
     // Check if it ends with /api

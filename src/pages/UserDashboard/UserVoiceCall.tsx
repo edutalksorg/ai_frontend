@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Phone, User, Clock, History, RefreshCw, ArrowLeft, ChevronDown, Sparkles, Crown, AlertCircle } from 'lucide-react';
+import { Phone, User, Clock, History, RefreshCw, ArrowLeft, ChevronDown, Sparkles, Crown, AlertCircle, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import callsService from '../../services/calls';
 import Button from '../../components/Button';
@@ -115,6 +115,11 @@ const UserVoiceCall: React.FC = () => {
                 return [...prev, data];
             });
             dispatch(showToast({ message: `${data.fullName} accepted your friend request!`, type: 'success' }));
+        });
+
+        signalRService.onEvent('FriendshipRemoved', (data: any) => {
+            console.log('🔔 Friendship Removed:', data);
+            fetchConnections(); // Just refresh everything to be safe and clean
         });
 
         return () => {
@@ -558,39 +563,49 @@ const UserVoiceCall: React.FC = () => {
                                                     </div>
                                                     <span className="text-sm font-medium text-slate-900 dark:text-white truncate max-w-[100px]">{friend.fullName}</span>
                                                 </div>
-                                                {friend.onlineStatus === 'Online' ? (
-                                                    !friend.isCallEligible ? (
-                                                        <div className="px-3 py-1.5 rounded-xl bg-red-100 dark:bg-red-900/30 text-xs font-medium text-red-500 border border-red-200 dark:border-red-800">
-                                                            Busy
+                                                <div className="flex items-center gap-2">
+                                                    {friend.onlineStatus === 'Online' ? (
+                                                        !friend.isCallEligible ? (
+                                                            <div className="px-3 py-1.5 rounded-xl bg-red-100 dark:bg-red-900/30 text-xs font-medium text-red-500 border border-red-200 dark:border-red-800">
+                                                                Busy
+                                                            </div>
+                                                        ) : ((props: any) => {
+                                                            return ((!hasActiveSubscription && !isTrialActive) || (voiceCallLimitSeconds !== -1 && !hasVoiceCallTimeRemaining)) ? (
+                                                                <button
+                                                                    onClick={() => triggerUpgradeModal('voice-call')}
+                                                                    className="p-2 text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 rounded-xl transition-all flex items-center gap-2"
+                                                                    title="Upgrade to Call"
+                                                                >
+                                                                    <Crown size={16} />
+                                                                    <span className="text-xs font-bold hidden sm:inline">Upgrade</span>
+                                                                </button>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => handleCall(friend.userId.toString())}
+                                                                    className="p-2 text-violet-600 dark:text-violet-400 bg-violet-500/10 hover:bg-violet-500/20 rounded-xl transition-all flex items-center gap-2"
+                                                                    title={`Call ${friend.fullName}`}
+                                                                >
+                                                                    <Phone size={16} />
+                                                                    <span className="text-xs font-bold hidden sm:inline">Call</span>
+                                                                </button>
+                                                            )
+                                                        })({})
+                                                    ) : (
+                                                        <div className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-400">
+                                                            Offline
                                                         </div>
-                                                    ) : ((props: any) => {
-                                                        // Self-Invoked function to keep logic clean or just nested expression
-                                                        // Nested expression for "My Eligibility" check:
-                                                        return ((!hasActiveSubscription && !isTrialActive) || (voiceCallLimitSeconds !== -1 && !hasVoiceCallTimeRemaining)) ? (
-                                                            <button
-                                                                onClick={() => triggerUpgradeModal('voice-call')}
-                                                                className="p-2 text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 rounded-xl transition-all flex items-center gap-2"
-                                                                title="Upgrade to Call"
-                                                            >
-                                                                <Crown size={16} />
-                                                                <span className="text-xs font-bold hidden sm:inline">Upgrade</span>
-                                                            </button>
-                                                        ) : (
-                                                            <button
-                                                                onClick={() => handleCall(friend.userId.toString())}
-                                                                className="p-2 text-violet-600 dark:text-violet-400 bg-violet-500/10 hover:bg-violet-500/20 rounded-xl transition-all flex items-center gap-2"
-                                                                title={`Call ${friend.fullName}`}
-                                                            >
-                                                                <Phone size={16} />
-                                                                <span className="text-xs font-bold hidden sm:inline">Call</span>
-                                                            </button>
-                                                        )
-                                                    })({})
-                                                ) : (
-                                                    <div className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-400">
-                                                        Offline
-                                                    </div>
-                                                )}
+                                                    )}
+
+                                                    {/* Unfriend Button */}
+                                                    <button
+                                                        onClick={() => handleRejectRequest(friend.connectionId)}
+                                                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all flex items-center gap-2"
+                                                        title="Unfriend"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                        <span className="text-xs font-bold hidden sm:inline">Unfriend</span>
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))
                                     ) : (
