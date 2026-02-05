@@ -250,6 +250,9 @@ const UserVoiceCall: React.FC = () => {
                 // Force status to connecting
                 dispatch(setCallStatus('ringing' as any));
                 dispatch(showToast({ message: t('voiceCall.connecting'), type: 'success' }));
+            } else if (callData && callData.success === false) {
+                // Handle business logic failure (e.g. no users found)
+                dispatch(showToast({ message: callData.message || t('voiceCall.noUsersAvailable'), type: 'info' }));
             } else {
                 dispatch(showToast({ message: t('voiceCall.finding'), type: 'info' }));
             }
