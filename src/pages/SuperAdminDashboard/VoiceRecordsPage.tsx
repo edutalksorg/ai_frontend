@@ -53,7 +53,7 @@ const VoiceRecordsPage: React.FC = () => {
         const url = record.recordingUrl || record.recording_url;
         if (!url) return;
 
-        const apiUrl = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:5000' : '');
+        const apiUrl = import.meta.env.VITE_API_BASE_URL;
         const fullUrl = url.startsWith('http') ? url : `${apiUrl}${url}`;
 
         const link = document.createElement('a');
@@ -175,7 +175,7 @@ const VoiceRecordsPage: React.FC = () => {
                                                             className="h-8 w-48"
                                                             src={(record.recordingUrl || (record as any).recording_url).startsWith('http')
                                                                 ? (record.recordingUrl || (record as any).recording_url)
-                                                                : `${import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:5000' : '')}${record.recordingUrl || (record as any).recording_url}`}
+                                                                : `${import.meta.env.VITE_API_BASE_URL}${record.recordingUrl || (record as any).recording_url}`}
                                                         />
                                                     ) : (
                                                         <button

@@ -113,7 +113,7 @@ const CallManager: React.FC = () => {
         console.log('🔌 CallManager: Initiating SignalR connection...');
         signalRService.setToken(token);
 
-        const apiUrl = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:5000' : 'https://edutalks-backend.lemonfield-c795bfef.centralindia.azurecontainerapps.io');
+        const apiUrl = import.meta.env.VITE_API_BASE_URL;
         const rootUrl = apiUrl.replace(/\/api.*$/, '');
         const HUB_URL = `${rootUrl}/hubs/call-signaling`;
 

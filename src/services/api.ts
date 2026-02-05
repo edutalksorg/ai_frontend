@@ -21,7 +21,7 @@ const getBaseUrl = () => {
   // In development, we might use a proxy (see vite.config.ts) or hit the backend directly
   if (import.meta.env.DEV) {
     // If you are running backend on a different port or machine, set VITE_API_BASE_URL in .env
-    return 'http://localhost:5000/api/v1';
+    return '/api/v1'; // Default to proxy path
   }
 
   // Production fallback to relative path

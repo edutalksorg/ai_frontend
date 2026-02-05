@@ -7,7 +7,7 @@ import AgoraRTC, {
 
 // Agora Configuration
 // App ID should be set via environment variable for security
-const AGORA_APP_ID = import.meta.env.VITE_AGORA_APP_ID || '3a2e9a0f5c924ca9b460555916dbaae5';
+const AGORA_APP_ID = import.meta.env.VITE_AGORA_APP_ID;
 
 // Event callback types
 type UserPublishedCallback = (user: IAgoraRTCRemoteUser) => void;
