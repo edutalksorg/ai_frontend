@@ -34,13 +34,17 @@ export const useUsageLimits = () => {
     const isActiveStatus = status === 'active' || status === 'trialing' || status === 'succeeded';
     const isPaidPlan = ['basic', 'premium', 'yearly', 'pro', 'monthly', 'annual', 'month', 'year', 'quarterly', 'quarter'].some(p => plan.includes(p));
 
+    // Temporal check for expiration
+    const expiryDate = user?.trialEndDate ? new Date(user.trialEndDate) : null;
+    const isPastExpiry = expiryDate ? new Date() >= expiryDate : true;
+
     // STRICT: If status is explicitly cancelled, we treat it as revoked access immediately 
     // (per user request: "if he cancels before 24hrs also it has to locked")
-    const isExplicitlyCancelled = status === 'cancelled' || status === 'expired' || status === 'past_due';
+    const isExplicitlyCancelled = status === 'cancelled' || status === 'expired' || status === 'past_due' || isPastExpiry;
 
     // User has active subscription if:
     // 1. They are admin/instructor, OR
-    // 2. They have an active status AND a paid plan AND not cancelled
+    // 2. They have an active status AND a paid plan AND not cancelled/expired
     const hasActiveSubscription = (
         (user?.role === 'admin' || user?.role === 'instructor') ||
         (isActiveStatus && isPaidPlan && !isExplicitlyCancelled)
@@ -50,7 +54,8 @@ export const useUsageLimits = () => {
         hasActiveSubscription,
         isActiveStatus,
         isPaidPlan,
-        isExplicitlyCancelled
+        isExplicitlyCancelled,
+        isPastExpiry
     });
 
     const isFreeTrial = plan.includes('free') || plan.includes('trial') || !!(user as any)?.subscription?.isFreeTrial;
@@ -134,13 +139,13 @@ export const useUsageLimits = () => {
 
     // Trial validity check
     const isTrialActive = () => {
-        // If explicitly cancelled, trial is dead.
-        if (isExplicitlyCancelled) return false;
+        // If explicitly cancelled or past expiry, trial is dead.
+        if (isExplicitlyCancelled || isPastExpiry) return false;
 
         if (hasActiveSubscription) return true;
 
-        // TRUST BACKEND: If status is active, trial is active regardless of local time check
-        if (status === 'active') return true;
+        // Trust backend BUT still check expiry
+        if (status === 'active' && !isPastExpiry) return true;
 
         if (!user?.trialEndDate) return false;
 

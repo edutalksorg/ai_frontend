@@ -44,7 +44,7 @@ const DashboardPage: React.FC = () => {
                         image: getStorageUrl(item.image_url || item.imageUrl || ''),
                         title: item.title || '',
                         description: item.description || '',
-                        ctaText: 'Learn More',
+                        ctaText: t('dashboard.carousel.learnMore'),
                         ctaLink: item.redirect_url
                     })));
                 } else {

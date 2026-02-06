@@ -72,7 +72,7 @@ const UserPronunciation: React.FC = () => {
             setParagraphs(items);
         } catch (error) {
             console.error("Failed to fetch paragraphs", error);
-            dispatch(showToast({ message: 'Failed to load specific paragraphs', type: 'error' }));
+            dispatch(showToast({ message: t('pronunciation.loadError'), type: 'error' }));
         } finally {
             setLoading(false);
         }
@@ -119,7 +119,7 @@ const UserPronunciation: React.FC = () => {
             }
             setPracticeComplete(true);
         } else {
-            dispatch(showToast({ message: t('pronunciation.accuracy') + `: ${accuracy.toFixed(1)}%. ` + "Try to get over 70% to unlock the next one!", type: 'info' }));
+            dispatch(showToast({ message: t('pronunciation.accuracy') + `: ${accuracy.toFixed(1)}%. ` + t('pronunciation.tryBetter'), type: 'info' }));
             setPracticeComplete(false);
         }
     };
@@ -273,7 +273,7 @@ const UserPronunciation: React.FC = () => {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className={`text-sm font-medium truncate ${isActive ? 'text-white' : 'text-slate-700 dark:text-slate-200'}`}>
-                                                        {para.title || `Paragraph ${index + 1}`}
+                                                        {para.title || t('pronunciation.paragraphLabel', { index: index + 1 })}
                                                     </p>
                                                     <p className={`text-xs truncate ${isActive ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'}`}>
                                                         {(para.content || "").substring(0, 40)}...
@@ -331,7 +331,7 @@ const UserPronunciation: React.FC = () => {
                         </div>
                         <h4 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">{t('pronunciation.noParagraphs')}</h4>
                         <p className="text-slate-500 dark:text-slate-400 mb-10 max-w-md mx-auto leading-relaxed">
-                            No pronunciation exercises are available right now. Check out our daily topics for more practice material!
+                            {t('pronunciation.noParagraphsDesc')}
                         </p>
                         <Button
                             variant="outline"

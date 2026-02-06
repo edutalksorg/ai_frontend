@@ -84,7 +84,7 @@ const UserWallet: React.FC = () => {
             setReferralEarnings(Number(referralData?.totalEarnings || 0));
         } catch (error) {
             console.error('Failed to load wallet:', error);
-            dispatch(showToast({ message: 'Failed to load wallet info', type: 'error' }));
+            dispatch(showToast({ message: t('wallet.loadError'), type: 'error' }));
         } finally {
             setLoading(false);
         }
@@ -99,7 +99,7 @@ const UserWallet: React.FC = () => {
         const amount = parseFloat(formData.get('amount') as string);
 
         if (amount <= 0) {
-            dispatch(showToast({ message: 'Invalid amount', type: 'error' }));
+            dispatch(showToast({ message: t('wallet.invalidAmount'), type: 'error' }));
             return;
         }
 
@@ -119,12 +119,12 @@ const UserWallet: React.FC = () => {
                 currency: 'INR',
                 bankDetails
             });
-            dispatch(showToast({ message: 'Withdrawal requested successfully', type: 'success' }));
+            dispatch(showToast({ message: t('wallet.withdrawSuccess'), type: 'success' }));
             setShowWithdraw(false);
             fetchWalletData();
         } catch (error) {
             console.error('Withdrawal failed:', error);
-            dispatch(showToast({ message: 'Withdrawal failed', type: 'error' }));
+            dispatch(showToast({ message: t('wallet.withdrawError'), type: 'error' }));
         } finally {
             setWithdrawLoading(false);
         }
@@ -301,25 +301,25 @@ const UserWallet: React.FC = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">{t('wallet.bankName')}</label>
-                                <input name="bankName" required className="glass-input w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50" placeholder="e.g. HDFC Bank" />
+                                <input name="bankName" required className="glass-input w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50" placeholder={t('wallet.bankNamePlaceholder')} />
                             </div>
                             <div className="space-y-2">
                                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">{t('wallet.ifsc')}</label>
-                                <input name="ifsc" required className="glass-input w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 uppercase" placeholder="HDFC0001234" />
+                                <input name="ifsc" required className="glass-input w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 uppercase" placeholder={t('wallet.ifscPlaceholder')} />
                             </div>
                             <div className="space-y-2">
                                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">{t('wallet.accountNumber')}</label>
-                                <input name="accountNumber" required className="glass-input w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50" placeholder="0000000000" />
+                                <input name="accountNumber" required className="glass-input w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50" placeholder={t('wallet.accountNumberPlaceholder')} />
                             </div>
                             <div className="space-y-2">
                                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">{t('wallet.accountHolder')}</label>
-                                <input name="accountHolderName" required className="glass-input w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50" placeholder="Name as per bank records" />
+                                <input name="accountHolderName" required className="glass-input w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50" placeholder={t('wallet.accountHolderPlaceholder')} />
                             </div>
                         </div>
 
                         <div className="space-y-2">
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">{t('wallet.upi')}</label>
-                            <input name="upi" className="glass-input w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50" placeholder="username@upi (Optional)" />
+                            <input name="upi" className="glass-input w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50" placeholder={t('wallet.upiPlaceholder')} />
                         </div>
 
                         <div className="flex gap-3 pt-2">
@@ -370,7 +370,7 @@ const UserWallet: React.FC = () => {
                                                 </div>
                                                 {tx.failureReason && (
                                                     <p className="text-xs text-red-600 dark:text-red-400 mt-1 font-medium bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded inline-block">
-                                                        Error: {tx.failureReason}
+                                                        {t('wallet.error')}: {tx.failureReason}
                                                     </p>
                                                 )}
                                             </div>
@@ -388,7 +388,7 @@ const UserWallet: React.FC = () => {
                                 <CreditCard className="w-8 h-8 text-slate-400" />
                             </div>
                             <p className="font-medium">{t('wallet.noTransactions')}</p>
-                            <p className="text-sm mt-1">Transactions will appear here once you start earning or spending.</p>
+                            <p className="text-sm mt-1">{t('wallet.noTransactionsDesc')}</p>
                         </div>
                     )}
                 </div>

@@ -235,7 +235,7 @@ const UserProfile: React.FC = () => {
                             <p className="text-lg text-slate-500 dark:text-slate-400 font-medium">{profile.email}</p>
                             <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-2">
                                 <span className="px-4 py-1.5 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 rounded-full text-sm font-bold border border-slate-200 dark:border-white/10 uppercase tracking-wide">
-                                    {profile.role || 'User'}
+                                    {profile.role || t('profilePage.userRole')}
                                 </span>
                                 {profile.isVerified && (
                                     <span className="flex items-center gap-1.5 px-4 py-1.5 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full text-sm font-bold border border-green-500/20 uppercase tracking-wide">
@@ -267,19 +267,34 @@ const UserProfile: React.FC = () => {
                             </div>
 
                             <div>
-                                <p className="text-white/80 text-sm font-bold uppercase tracking-wider mb-1">Current Plan</p>
+                                <p className="text-white/80 text-sm font-bold uppercase tracking-wider mb-1">{t('profilePage.currentPlanLabel')}</p>
                                 <p className="text-3xl font-extrabold tracking-tight">
                                     {getTranslatedPlanName(currentSubscription?.plan?.name || currentSubscription?.planName) || t('profilePage.noActivePlan')}
                                 </p>
                             </div>
 
                             <div className="flex items-center gap-3">
-                                <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-bold ${['active', 'trialing', 'succeeded', 'year'].includes(currentSubscription?.status?.toLowerCase() || '')
-                                    ? 'bg-green-400 text-slate-900'
-                                    : 'bg-red-400 text-slate-900'
-                                    }`}>
-                                    <span className={`w-2 h-2 rounded-full ${['active', 'trialing', 'succeeded', 'year'].includes(currentSubscription?.status?.toLowerCase() || '') ? 'bg-slate-900' : 'bg-white'}`} />
-                                    {['active', 'trialing', 'succeeded', 'year'].includes(currentSubscription?.status?.toLowerCase() || '') ? t('profilePage.active') : t('profilePage.noActivePlan')}
+                                <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-bold ${(() => {
+                                    const status = currentSubscription?.status?.toLowerCase() || '';
+                                    const isActive = ['active', 'trialing', 'succeeded', 'year'].includes(status);
+                                    const expiryDate = currentSubscription?.endDate || currentSubscription?.renewalDate;
+                                    const isExpired = expiryDate ? new Date() > new Date(expiryDate) : false;
+                                    return (isActive && !isExpired) ? 'bg-green-400 text-slate-900' : 'bg-red-400 text-slate-900';
+                                })()}`}>
+                                    <span className={`w-2 h-2 rounded-full ${(() => {
+                                        const status = currentSubscription?.status?.toLowerCase() || '';
+                                        const isActive = ['active', 'trialing', 'succeeded', 'year'].includes(status);
+                                        const expiryDate = currentSubscription?.endDate || currentSubscription?.renewalDate;
+                                        const isExpired = expiryDate ? new Date() > new Date(expiryDate) : false;
+                                        return (isActive && !isExpired) ? 'bg-slate-900' : 'bg-white';
+                                    })()}`} />
+                                    {(() => {
+                                        const status = currentSubscription?.status?.toLowerCase() || '';
+                                        const isActive = ['active', 'trialing', 'succeeded', 'year'].includes(status);
+                                        const expiryDate = currentSubscription?.endDate || currentSubscription?.renewalDate;
+                                        const isExpired = expiryDate ? new Date() > new Date(expiryDate) : false;
+                                        return (isActive && !isExpired) ? t('profilePage.active') : (isExpired ? t('profilePage.expired') || 'Expired' : t('profilePage.noActivePlan'));
+                                    })()}
                                 </span>
                                 {currentSubscription && (
                                     <span className="text-white/70 text-sm font-medium">
@@ -306,7 +321,7 @@ const UserProfile: React.FC = () => {
                                 <User className="text-indigo-500" size={24} />
                                 {t('profilePage.personalInfo')}
                             </h3>
-                            <p className="text-slate-500 text-sm">Update your personal details here.</p>
+                            <p className="text-slate-500 text-sm">{t('profilePage.personalInfoDesc')}</p>
                         </div>
 
                         {!isEditing && (

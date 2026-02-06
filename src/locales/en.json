@@ -57,7 +57,8 @@
       "slide1": {
         "title": "Master English with Voice Calls",
         "description": "Practice real conversations with native speakers and improve your fluency",
-        "cta": "Start Calling"
+        "cta": "Start Calling",
+        "learnMore": "Learn More"
       },
       "slide2": {
         "title": "Interactive Grammar Lessons",
@@ -110,7 +111,11 @@
     "confirmPassword": "Confirm Password",
     "coupons": "Coupons",
     "updateSuccess": "Profile updated successfully!",
-    "updateError": "Failed to update profile"
+    "updateError": "Failed to update profile",
+    "userRole": "USER",
+    "currentPlanLabel": "Current Plan",
+    "personalInfoDesc": "Update your personal details here.",
+    "myAccount": "My Account"
   },
   "referrals": {
     "title": "My Referrals",
@@ -135,14 +140,23 @@
     "completed": "Completed",
     "noReferrals": "No referrals yet. Share your link!",
     "loading": "Loading referral program...",
-    "errorLoad": "Failed to load referral data"
+    "errorLoad": "Failed to load referral data",
+    "comingSoon": "Coming Soon",
+    "rewards": "REWARDS",
+    "converted": "Converted"
   },
   "couponsPage": {
+    "title": "Coupons & Offers",
+    "subtitle": "Manage and redeem your promo codes",
     "howToUse": "How to Use Coupons",
+    "howToUseDesc": "Follow these simple steps to apply your promotional codes and get discounts on subscriptions.",
     "step1": "Enter your coupon code in the field above to validate it",
     "step2": "Apply valid coupons during checkout to get discounts on quizzes and plans",
     "step3": "Each coupon has specific terms and conditions",
     "step4": "Contact support if you have any questions about coupons",
+    "checkoutInfo": "Coupons are applied directly at the checkout page when purchasing a subscription plan.",
+    "noCoupons": "No Active Coupons",
+    "noCouponsDesc": "You don't have any saved coupons at the moment. Keep an eye out for special promotions!",
     "enterCode": "Please enter a coupon code",
     "validMessage": "Coupon \"{{code}}\" is valid!",
     "invalidMessage": "Invalid or expired coupon code"
@@ -190,6 +204,7 @@
   },
   "wallet": {
     "myWallet": "My Wallet",
+    "manageFinances": "Manage your referral earnings and withdrawals",
     "availableBalance": "Available Balance",
     "totalBalance": "Total Balance",
     "frozenAmount": "Frozen Amount",
@@ -211,12 +226,23 @@
     "submitRequest": "Submit Request",
     "recentTransactions": "Recent Transactions",
     "noTransactions": "No recent transactions",
+    "noTransactionsDesc": "Transactions will appear here once you start earning or spending.",
     "completed": "Completed",
     "pending": "Pending",
     "failed": "Failed",
     "cancelled": "Cancelled",
     "subscriptionPaymentFor": "Subscription payment for {{plan}}",
-    "referralReward": "Referral reward"
+    "referralReward": "Referral reward",
+    "loadError": "Failed to load wallet info",
+    "invalidAmount": "Invalid amount",
+    "withdrawSuccess": "Withdrawal requested successfully",
+    "withdrawError": "Withdrawal failed",
+    "bankNamePlaceholder": "e.g. HDFC Bank",
+    "ifscPlaceholder": "HDFC0001234",
+    "accountNumberPlaceholder": "0000000000",
+    "accountHolderPlaceholder": "Name as per bank records",
+    "upiPlaceholder": "username@upi (Optional)",
+    "error": "Error"
   },
   "quiz": {
     "title": "Quizzes",
@@ -389,7 +415,20 @@
     "pending": "Pending",
     "failed": "Failed",
     "ringing": "Ringing",
-    "declined": "Declined"
+    "upgradeToPro": "Upgrade to Pro",
+    "connections": "Connections",
+    "pendingRequests": "Pending Requests ({{count}})",
+    "friends": "Friends",
+    "noFriends": "No friends added yet",
+    "upgrade": "Upgrade",
+    "call": "Call",
+    "unfriend": "Unfriend",
+    "declined": "Declined",
+    "friendRequestReceived": "New friend request from {{name}}",
+    "friendRequestAccepted": "{{name}} accepted your friend request!",
+    "requestAccepted": "Friend request accepted!",
+    "requestRejected": "Friend request rejected",
+    "noUsersAvailable": "No users available at the moment. Please try again later."
   },
   "pronunciation": {
     "title": "AI Pronunciation Practice",
@@ -403,14 +442,17 @@
     "accuracy": "Accuracy",
     "fluency": "Fluency",
     "overallScore": "Overall Score",
+    "loadError": "Failed to load paragraphs. Please try again later.",
     "noParagraphs": "No paragraphs available for practice right now",
+    "noParagraphsDesc": "No pronunciation exercises are available right now. Check out our daily topics for more practice material!",
     "checkDailyTopics": "Check Daily Grammar",
     "unlocked": "Unlocked",
     "greatJob": "Great job! Accuracy",
     "nextUnlocked": "Next paragraph unlocked!",
-    "tryReach": "Try again to reach 75%!",
+    "tryBetter": "Try to get over 70% to unlock the next one!",
     "masterSkills": "Master your speaking skills",
     "paragraph": "Paragraph",
+    "paragraphLabel": "Paragraph {{index}}",
     "courseContent": "Course Content",
     "page": "Page",
     "trialEnded": "Trial Ended",

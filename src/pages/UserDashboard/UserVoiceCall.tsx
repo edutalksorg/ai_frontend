@@ -104,7 +104,7 @@ const UserVoiceCall: React.FC = () => {
                 if (prev.find(r => r.connectionId == data.connectionId)) return prev;
                 return [...prev, data];
             });
-            dispatch(showToast({ message: `New friend request from ${data.fullName}`, type: 'info' }));
+            dispatch(showToast({ message: t('voiceCall.friendRequestReceived', { name: data.fullName }), type: 'info' }));
         });
 
         signalRService.onEvent('FriendRequestAccepted', (data: any) => {
@@ -114,7 +114,7 @@ const UserVoiceCall: React.FC = () => {
                 // Add new friend to list, ensuring we have connectionId
                 return [...prev, data];
             });
-            dispatch(showToast({ message: `${data.fullName} accepted your friend request!`, type: 'success' }));
+            dispatch(showToast({ message: t('voiceCall.friendRequestAccepted', { name: data.fullName }), type: 'success' }));
         });
 
         signalRService.onEvent('FriendshipRemoved', (data: any) => {
@@ -146,7 +146,7 @@ const UserVoiceCall: React.FC = () => {
     const handleAcceptRequest = async (connectionId: number) => {
         try {
             await connectionsService.acceptRequest(connectionId);
-            dispatch(showToast({ message: 'Friend request accepted!', type: 'success' }));
+            dispatch(showToast({ message: t('voiceCall.requestAccepted'), type: 'success' }));
             fetchConnections();
         } catch (error: any) {
             dispatch(showToast({ message: error?.response?.data?.message || 'Failed to accept', type: 'error' }));
@@ -156,7 +156,7 @@ const UserVoiceCall: React.FC = () => {
     const handleRejectRequest = async (connectionId: number) => {
         try {
             await connectionsService.rejectRequest(connectionId);
-            dispatch(showToast({ message: 'Friend request rejected', type: 'info' }));
+            dispatch(showToast({ message: t('voiceCall.requestRejected'), type: 'info' }));
             fetchConnections();
         } catch (error: any) {
             dispatch(showToast({ message: error?.response?.data?.message || 'Failed to reject', type: 'error' }));
@@ -506,7 +506,7 @@ const UserVoiceCall: React.FC = () => {
                                         >
                                             <div className="flex items-center gap-2">
                                                 <Crown size={16} className="text-amber-500 group-hover:scale-110 transition-transform" />
-                                                <span className="text-sm font-bold text-amber-600 dark:text-amber-400">Upgrade to Pro</span>
+                                                <span className="text-sm font-bold text-amber-600 dark:text-amber-400">{t('voiceCall.upgradeToPro')}</span>
                                             </div>
                                             <ChevronDown size={14} className="text-amber-500 -rotate-90" />
                                         </button>
@@ -520,7 +520,7 @@ const UserVoiceCall: React.FC = () => {
                             <div className="flex items-center justify-between mb-4">
                                 <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400 flex items-center gap-2">
                                     <Users size={14} />
-                                    Connections
+                                    {t('voiceCall.connections')}
                                 </h4>
                                 <button onClick={fetchConnections} className="p-1 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-slate-400">
                                     <RefreshCw size={12} className={isLoadingConnections ? 'animate-spin' : ''} />
@@ -531,7 +531,7 @@ const UserVoiceCall: React.FC = () => {
                                 {/* Pending Requests */}
                                 {pendingRequests.length > 0 && (
                                     <div className="space-y-2">
-                                        <p className="text-[10px] font-bold uppercase tracking-wider text-amber-500 px-1">Pending Requests ({pendingRequests.length})</p>
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-amber-500 px-1">{t('voiceCall.pendingRequests', { count: pendingRequests.length })}</p>
                                         {pendingRequests.map((req) => (
                                             <div key={req.connectionId} className="flex items-center justify-between p-2 rounded-xl bg-amber-500/5 border border-amber-500/10">
                                                 <div className="flex items-center gap-2">
@@ -553,7 +553,7 @@ const UserVoiceCall: React.FC = () => {
 
                                 {/* Friends List */}
                                 <div className="space-y-2">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1">Friends</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1">{t('voiceCall.friends')}</p>
                                     {friends.length > 0 ? (
                                         friends.map((friend) => (
                                             <div key={friend.connectionId} className="flex items-center justify-between p-2 rounded-xl hover:bg-white/50 dark:hover:bg-white/5 transition-colors group">
@@ -570,32 +570,32 @@ const UserVoiceCall: React.FC = () => {
                                                     {friend.onlineStatus === 'Online' ? (
                                                         !friend.isCallEligible ? (
                                                             <div className="px-3 py-1.5 rounded-xl bg-red-100 dark:bg-red-900/30 text-xs font-medium text-red-500 border border-red-200 dark:border-red-800">
-                                                                Busy
+                                                                {t('voiceCall.busy')}
                                                             </div>
                                                         ) : ((props: any) => {
                                                             return ((!hasActiveSubscription && !isTrialActive) || (voiceCallLimitSeconds !== -1 && !hasVoiceCallTimeRemaining)) ? (
                                                                 <button
                                                                     onClick={() => triggerUpgradeModal('voice-call')}
                                                                     className="p-2 text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 rounded-xl transition-all flex items-center gap-2"
-                                                                    title="Upgrade to Call"
+                                                                    title={t('voiceCall.upgrade')}
                                                                 >
                                                                     <Crown size={16} />
-                                                                    <span className="text-xs font-bold hidden sm:inline">Upgrade</span>
+                                                                    <span className="text-xs font-bold hidden sm:inline">{t('voiceCall.upgrade')}</span>
                                                                 </button>
                                                             ) : (
                                                                 <button
                                                                     onClick={() => handleCall(friend.userId.toString())}
                                                                     className="p-2 text-violet-600 dark:text-violet-400 bg-violet-500/10 hover:bg-violet-500/20 rounded-xl transition-all flex items-center gap-2"
-                                                                    title={`Call ${friend.fullName}`}
+                                                                    title={`${t('voiceCall.call')} ${friend.fullName}`}
                                                                 >
                                                                     <Phone size={16} />
-                                                                    <span className="text-xs font-bold hidden sm:inline">Call</span>
+                                                                    <span className="text-xs font-bold hidden sm:inline">{t('voiceCall.call')}</span>
                                                                 </button>
                                                             )
                                                         })({})
                                                     ) : (
                                                         <div className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-400">
-                                                            Offline
+                                                            {t('voiceCall.offline')}
                                                         </div>
                                                     )}
 
@@ -603,16 +603,16 @@ const UserVoiceCall: React.FC = () => {
                                                     <button
                                                         onClick={() => handleRejectRequest(friend.connectionId)}
                                                         className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all flex items-center gap-2"
-                                                        title="Unfriend"
+                                                        title={t('voiceCall.unfriend')}
                                                     >
                                                         <Trash2 size={16} />
-                                                        <span className="text-xs font-bold hidden sm:inline">Unfriend</span>
+                                                        <span className="text-xs font-bold hidden sm:inline">{t('voiceCall.unfriend')}</span>
                                                     </button>
                                                 </div>
                                             </div>
                                         ))
                                     ) : (
-                                        <p className="text-xs text-slate-400 text-center py-4 italic">No friends added yet</p>
+                                        <p className="text-xs text-slate-400 text-center py-4 italic">{t('voiceCall.noFriends')}</p>
                                     )}
                                 </div>
                             </div>

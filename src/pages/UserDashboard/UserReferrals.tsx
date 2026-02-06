@@ -140,8 +140,8 @@ const UserReferrals: React.FC = () => {
                     <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
                         <Award size={32} />
                     </div>
-                    <h3 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-1">Coming Soon</h3>
-                    <p className="text-sm font-bold text-slate-500 uppercase tracking-wide">Rewards</p>
+                    <h3 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-1">{t('referrals.comingSoon')}</h3>
+                    <p className="text-sm font-bold text-slate-500 uppercase tracking-wide">{t('referrals.rewards')}</p>
                 </div>
             </div>
 
@@ -169,7 +169,7 @@ const UserReferrals: React.FC = () => {
                                 history.map((item, i) => (
                                     <tr key={i} className="text-xs sm:text-sm hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                                         <td className="py-3 px-2 sm:py-4 sm:px-6 font-bold text-slate-900 dark:text-white truncate max-w-[80px] sm:max-w-none">
-                                            <div>{item.refereeName || 'Anonymous User'}</div>
+                                            <div>{item.refereeName || t('referrals.anonymousUser')}</div>
                                             <div className="text-[10px] text-slate-500 font-normal sm:hidden">{new Date(item.createdAt).toLocaleDateString()}</div>
                                         </td>
                                         <td className="hidden sm:table-cell py-3 px-2 sm:py-4 sm:px-6 text-slate-500 font-medium whitespace-nowrap">{new Date(item.createdAt).toLocaleDateString()}</td>
