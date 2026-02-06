@@ -197,7 +197,7 @@ const UserQuizInterface: React.FC = () => {
                                         <div className={`flex flex-wrap items-center gap-6 mb-8 text-sm font-medium ${isLocked ? 'text-slate-400' : 'text-slate-500 dark:text-slate-400'}`}>
                                             <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700/50">
                                                 <Clock className="w-4 h-4" />
-                                                <span>{quiz.timeLimit || 10} {t('common.mins')}</span>
+                                                <span>{quiz.timeLimitMinutes || quiz.duration || 10} {t('common.mins')}</span>
                                             </div>
                                             <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700/50">
                                                 <Award className="w-4 h-4" />

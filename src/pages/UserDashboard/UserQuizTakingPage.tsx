@@ -98,7 +98,9 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
         if (!quiz) return;
         setStartedAt(new Date().toISOString());
         setHasStarted(true);
-        setTimeLeft((quiz.timeLimit || 10) * 60);
+        // Use timeLimitMinutes (new) or duration (legacy)
+        const limit = quiz.timeLimitMinutes || quiz.duration || quiz.timeLimit || 10;
+        setTimeLeft(limit * 60);
         setTimerActive(true);
     };
 
@@ -307,7 +309,9 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
                             <div className="flex justify-center gap-4 mb-10">
                                 <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700/50">
                                     <Clock className="w-5 h-5 text-indigo-500" />
-                                    <span className="font-bold text-slate-700 dark:text-slate-300">{quiz.timeLimit || 10} {t('quizTaking.min')}</span>
+                                    <span className="font-bold text-slate-700 dark:text-slate-300">
+                                        {quiz.timeLimitMinutes || quiz.duration || 10} {t('quizTaking.min')}
+                                    </span>
                                 </div>
                                 <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700/50">
                                     <CheckSquare className="w-5 h-5 text-indigo-500" />
@@ -373,7 +377,7 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
                     <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl -mr-10 -mt-10" />
 
                     <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white mb-8 leading-normal relative z-10">
-                        {currentQuestion?.questionText}
+                        {currentQuestion?.questionText || currentQuestion?.question}
                     </h2>
 
                     <div className="space-y-4 relative z-10">

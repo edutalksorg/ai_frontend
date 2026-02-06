@@ -25,7 +25,7 @@ const QuizEditor: React.FC = () => {
 
     const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState<any[]>([]);
-    const [formData, setFormData] = useState<Partial<Quiz> & { categoryId?: string, duration?: number }>({
+    const [formData, setFormData] = useState<Partial<Quiz> & { categoryId?: string, duration?: number, isPublished?: boolean }>({
         title: '',
         description: '',
         difficulty: 'Beginner',
@@ -70,28 +70,21 @@ const QuizEditor: React.FC = () => {
             setLoading(true);
             const res = await quizzesService.getById(quizId);
             const data = (res as any)?.data || res;
-            // Normalize questions to match our internal state structure
-            const questions = (data.questions || []).map((q: any) => ({
-                id: q.id || q._id,
-                type: q.type || 'MultipleChoice',
-                // Backend returns questionText, we use question internally
-                question: q.question || q.questionText || q.QuestionText || '',
-                options: q.options || ['', '', '', ''],
-                // specific logic if correctAnswer is returned as string value instead of index
-                correctAnswer: typeof q.correctAnswer === 'number' ? q.correctAnswer : 0,
-                explanation: q.explanation || ''
-            }));
 
+            // The backend now returns CamelCase aliases (e.g., categoryId, isPublished)
+            // We still provide fallbacks just in case, but the logic is much simpler.
             setFormData({
                 ...data,
-                questions: questions,
-                categoryId: data.categoryId || data.category,
-                duration: data.duration || data.timeLimitMinutes || 20,
-                timeLimitMinutes: data.timeLimitMinutes || data.duration || 20,
-                maxAttempts: data.maxAttempts || 2,
+                title: data.title || '',
+                description: data.description || '',
+                questions: data.questions || [],
+                categoryId: data.categoryId || data.categoryid || '',
+                duration: data.duration ?? 20,
+                timeLimitMinutes: data.timeLimitMinutes ?? data.duration ?? 20,
+                maxAttempts: data.maxAttempts ?? 2,
                 randomizeQuestions: data.randomizeQuestions ?? true,
                 showCorrectAnswers: data.showCorrectAnswers ?? true,
-                publishImmediately: data.publishImmediately ?? true,
+                publishImmediately: data.isPublished ?? true, // maps to publish state
                 prerequisiteQuizId: data.prerequisiteQuizId || null
             });
         } catch (error) {
@@ -162,89 +155,21 @@ const QuizEditor: React.FC = () => {
             setLoading(true);
 
             // Construct payload clean and compatible with backend
-            // Construct payload clean and compatible with backend
-            // Construct payload with multiple casing variations to ensure backend compatibility
-            const mappedQuestions = formData.questions?.map(q => ({
-                // Try all likely variations for the question text
-                questionText: q.question, // MATCH FOUND IN UserQuizTakingPage.tsx
-                QuestionText: q.question,
-                Question: q.question,
-                question: q.question,
-                Type: q.type || 'MultipleChoice',
-                type: q.type || 'MultipleChoice',
-                text: q.question, // Potential fallback
-
-                // Options
-                Options: q.options,
-                options: q.options,
-
-                // Correct Answer
-                CorrectAnswer: q.options[q.correctAnswer] || q.options[0],
-                correctAnswer: q.options[q.correctAnswer] || q.options[0],
-
-                // Explanation
-                Explanation: q.explanation,
-                explanation: q.explanation,
-
-                // IDs
-                Id: (q.id && q.id.length > 20) ? q.id : undefined,
-                id: (q.id && q.id.length > 20) ? q.id : undefined,
-
-                // Quiz Link
-                QuizId: id,
-                quizId: id
-            }));
-
+            // We use standard CamelCase which the updated backend now handles explicitly.
             const quizData = {
-                // IDs
-                Id: id,
-                id: id,
-                QuizId: id, // Try this too just in case 
-
-                // Basic Info
-                Title: formData.title,
                 title: formData.title,
-
-                Description: formData.description,
                 description: formData.description,
-
-                Difficulty: formData.difficulty,
                 difficulty: formData.difficulty,
-
-                PassingScore: formData.passingScore,
                 passingScore: formData.passingScore,
-
-                TotalQuestions: formData.questions?.length || 0,
-                totalQuestions: formData.questions?.length || 0,
-
-                CategoryId: formData.categoryId,
                 categoryId: formData.categoryId,
-
-                Duration: (formData as any).duration || 30,
-                duration: (formData as any).duration || 30,
-
-                // Questions
-                Questions: mappedQuestions,
-                questions: mappedQuestions,
-
-                // New Fields matching User Request
-                TimeLimitMinutes: (formData as any).timeLimitMinutes || (formData as any).duration || 20,
-                timeLimitMinutes: (formData as any).timeLimitMinutes || (formData as any).duration || 20,
-
-                RandomizeQuestions: (formData as any).randomizeQuestions,
-                randomizeQuestions: (formData as any).randomizeQuestions,
-
-                MaxAttempts: (formData as any).maxAttempts,
-                maxAttempts: (formData as any).maxAttempts,
-
-                ShowCorrectAnswers: (formData as any).showCorrectAnswers,
-                showCorrectAnswers: (formData as any).showCorrectAnswers,
-
-                PublishImmediately: (formData as any).publishImmediately,
-                publishImmediately: (formData as any).publishImmediately,
-
-                PrerequisiteQuizId: (formData as any).prerequisiteQuizId,
-                prerequisiteQuizId: (formData as any).prerequisiteQuizId
+                duration: formData.duration || 30,
+                questions: formData.questions,
+                timeLimitMinutes: formData.timeLimitMinutes || formData.duration || 20,
+                randomizeQuestions: formData.randomizeQuestions,
+                maxAttempts: formData.maxAttempts,
+                showCorrectAnswers: formData.showCorrectAnswers,
+                isPublished: isEditMode ? formData.isPublished : formData.publishImmediately,
+                prerequisiteQuizId: formData.prerequisiteQuizId
             };
 
             if (isEditMode && id) {
@@ -259,19 +184,6 @@ const QuizEditor: React.FC = () => {
             console.error('Failed to save quiz:', error);
             const data = error?.response?.data;
             let message = data?.message || 'Failed to save quiz';
-
-            if (data?.errors) {
-                if (Array.isArray(data.errors)) {
-                    message = data.errors.map((e: any) => e.message || e).join(', ');
-                } else {
-                    message = JSON.stringify(data.errors);
-                }
-            } else if (data?.messages) {
-                message = Array.isArray(data.messages) ? data.messages.join(', ') : data.messages;
-            } else if (typeof data === 'string') {
-                message = data;
-            }
-
             dispatch(showToast({ message, type: 'error' }));
         } finally {
             setLoading(false);

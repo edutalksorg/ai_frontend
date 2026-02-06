@@ -102,6 +102,7 @@ export interface Quiz {
   showCorrectAnswers?: boolean;
   prerequisiteQuizId?: string | null;
   publishImmediately?: boolean;
+  isPublished?: boolean;
 }
 
 export interface QuizAttempt {
