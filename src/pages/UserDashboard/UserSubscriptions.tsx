@@ -213,12 +213,6 @@ const UserSubscriptions: React.FC = () => {
         try {
             setProcessingSwitch(true);
             setSwitchModalOpen(false);
-            dispatch(showToast({ message: 'Canceling current subscription...', type: 'info' }));
-            await subscriptionsService.cancel({
-                subscriptionId: currentSub?.subscriptionId || currentSub?.id,
-                reason: 'Switching to ' + pendingPlan.name
-            });
-            await new Promise(resolve => setTimeout(resolve, 2000));
             dispatch(showToast({ message: 'Processing new subscription...', type: 'info' }));
             await processSubscription(pendingPlan);
         } catch (error: any) {
@@ -451,18 +445,7 @@ const UserSubscriptions: React.FC = () => {
                             <div className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 w-3/4 rounded-full" />
                         </div>
                     </div>
-                    <div className="relative z-10 w-full sm:w-auto flex flex-col sm:flex-row gap-3">
-                        {['active', 'trialing', 'succeeded', 'year'].includes(currentSub.status?.toLowerCase()) && (
-                            <Button
-                                onClick={handleManualCancel}
-                                isLoading={processingSwitch}
-                                className="w-full sm:w-auto !bg-red-500/10 hover:!bg-red-500/20 !border-red-500/30 !text-red-500 shadow-sm"
-                            >
-                                {t('common.cancel')}
-                            </Button>
-                        )}
-                        <Button className="w-full sm:w-auto glass-button !bg-white/5 hover:!bg-white/10 !border-white/20 !text-slate-900 dark:!text-white shadow-lg">{t('subscriptionsPageView.manageSubscription')}</Button>
-                    </div>
+                    {/* Buttons removed per user request */}
                 </div>
             )}
 
@@ -509,11 +492,6 @@ const UserSubscriptions: React.FC = () => {
                                     <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-500 to-rose-600 text-white text-sm font-black px-6 py-2 rounded-full shadow-xl z-40 animate-bounce tracking-wider flex items-center gap-2 border-2 border-white/20">
                                         <Zap size={16} fill="white" />
                                         OFFER NOW
-                                    </div>
-                                )}
-                                {isYearlyPlan && !isLocked && (
-                                    <div className="absolute -top-3 right-8 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-20">
-                                        BEST VALUE
                                     </div>
                                 )}
 
@@ -622,9 +600,9 @@ const UserSubscriptions: React.FC = () => {
 
                                     <Button
                                         className={`w-full py-4 rounded-xl font-bold shadow-lg transition-all ${isLocked ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 cursor-default' :
-                                                (isPlanUsed && isFreeTrialPlan) ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700 cursor-not-allowed' :
-                                                    isYearlyPlan ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-violet-500/30' :
-                                                        'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90'
+                                            (isPlanUsed && isFreeTrialPlan) ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700 cursor-not-allowed' :
+                                                isYearlyPlan ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-violet-500/30' :
+                                                    'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90'
                                             }`}
                                         disabled={isPlanUsed}
                                         onClick={() => handleSubscribe(plan)}
