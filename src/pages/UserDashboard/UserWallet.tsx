@@ -196,6 +196,13 @@ const UserWallet: React.FC = () => {
         <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4 mb-4">
+                <button
+                    onClick={() => navigate('/dashboard')}
+                    className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors group"
+                    title={t('common.back')}
+                >
+                    <ArrowLeft className="w-6 h-6 text-slate-500 group-hover:text-indigo-500" />
+                </button>
                 <div className="p-3 bg-indigo-500/10 rounded-xl">
                     <Wallet className="w-6 h-6 text-indigo-500" />
                 </div>

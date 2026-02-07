@@ -58,6 +58,13 @@ const UserReferrals: React.FC = () => {
         <div className="space-y-8">
             {/* Header */}
             <div className="flex items-center gap-4">
+                <button
+                    onClick={() => navigate('/dashboard')}
+                    className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors group"
+                    title={t('common.back')}
+                >
+                    <ArrowLeft className="w-6 h-6 text-slate-500 group-hover:text-blue-500" />
+                </button>
                 <div className="p-3 bg-blue-500/10 rounded-xl">
                     <Users className="w-6 h-6 text-blue-500" />
                 </div>

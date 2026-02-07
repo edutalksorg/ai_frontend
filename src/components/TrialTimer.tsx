@@ -3,6 +3,7 @@ import { Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
+import { useTranslation } from 'react-i18next';
 
 interface TrialTimerProps {
     trialExpiresAt: string | null;
@@ -19,6 +20,7 @@ const TrialTimer: React.FC<TrialTimerProps> = ({
     onUpgrade,
     planName
 }) => {
+    const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const { isLoading } = useSelector((state: RootState) => state.auth);
     const [timeRemaining, setTimeRemaining] = useState<string>('');
@@ -37,7 +39,7 @@ const TrialTimer: React.FC<TrialTimerProps> = ({
 
             if (diffMs <= 0) {
                 setIsExpired(true);
-                setTimeRemaining('Trial Expired');
+                setTimeRemaining(t('trialTimer.expired'));
                 return;
             }
 
@@ -55,9 +57,9 @@ const TrialTimer: React.FC<TrialTimerProps> = ({
                 const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 
                 if (days > 0) {
-                    setTimeRemaining(`${days} day${days !== 1 ? 's' : ''}`);
+                    setTimeRemaining(t('trialTimer.day', { count: days }));
                 } else {
-                    setTimeRemaining(`${hours} hour${hours !== 1 ? 's' : ''}`);
+                    setTimeRemaining(t('trialTimer.hour', { count: hours }));
                 }
             } else {
                 // For free trial, show hours/minutes/seconds countdown
@@ -65,7 +67,7 @@ const TrialTimer: React.FC<TrialTimerProps> = ({
                 const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
 
-                setTimeRemaining(`${hours}h ${minutes}m ${seconds}s`);
+                setTimeRemaining(`${hours}${t('trialTimer.h')} ${minutes}${t('trialTimer.m')} ${seconds}${t('trialTimer.s')}`);
             }
             setIsExpired(false);
         };
@@ -77,7 +79,7 @@ const TrialTimer: React.FC<TrialTimerProps> = ({
         const interval = setInterval(calculateTimeRemaining, 1000);
 
         return () => clearInterval(interval);
-    }, [trialExpiresAt, hasActiveSubscription, planName]);
+    }, [trialExpiresAt, hasActiveSubscription, planName, t]);
 
     // Don't show timer for paid subscribers
     if (hasActiveSubscription && !isFreeTrial) {
@@ -113,6 +115,8 @@ const TrialTimer: React.FC<TrialTimerProps> = ({
         }
     }
 
+    const localizedDate = new Date(trialExpiresAt).toLocaleDateString(i18n.language === 'te' ? 'te-IN' : 'en-US', { day: 'numeric', month: 'short' });
+
     return (
         <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-opacity-10 dark:bg-opacity-20 whitespace-nowrap flex-shrink-0 ${isExpired
             ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
@@ -121,7 +125,7 @@ const TrialTimer: React.FC<TrialTimerProps> = ({
             <Clock className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0" />
             <div className="flex flex-col">
                 <span className="text-xs font-medium text-red-900 dark:text-red-200">
-                    {isExpired ? 'Trial Expired' : `${planName || 'Free Trial'}: Expires ${new Date(trialExpiresAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}`}
+                    {isExpired ? t('trialTimer.expired') : `${planName || t('trialTimer.freeTrial')}: ${t('trialTimer.expires')} ${localizedDate}`}
                 </span>
                 <span className="text-xs tabular-nums text-red-700 dark:text-red-300">
                     {isExpired ? (
@@ -129,10 +133,10 @@ const TrialTimer: React.FC<TrialTimerProps> = ({
                             onClick={() => navigate('/subscriptions')}
                             className="text-red-600 dark:text-red-400 hover:underline font-semibold"
                         >
-                            Upgrade to Pro
+                            {t('trialTimer.upgrade')}
                         </button>
                     ) : (
-                        `Ends in: ${timeRemaining}`
+                        `${t('trialTimer.endsIn')}: ${timeRemaining}`
                     )}
                 </span>
             </div>

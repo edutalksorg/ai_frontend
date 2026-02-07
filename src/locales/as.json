@@ -486,44 +486,83 @@
     },
     "subscriptionsPageView": {
         "title": "মোৰ চাবস্ক্ৰিপচন",
-        "currentPlan": "বৰ্তমানৰ প্লেন",
+        "subtitle": "আপোনাৰ শিকিব পৰা ক্ষমতা আৰু অসীমিত ভয়েচ কল আনলক কৰিবলৈ প্ৰ'লৈ আপগ্ৰেড কৰক",
+        "currentPlan": "বৰ্তমানৰ আঁচনি",
+        "currentPlanBadge": "বৰ্তমানৰ আঁচনি",
         "freeTrial": "বিনামূলীয়া ট্ৰায়েল",
-        "active": "সক্ৰিয়",
-        "expired": "ম্যাদ শেষ",
-        "renewsOn": "নৱীকৰণৰ তাৰিখ",
+        "active": "চলতি",
+        "expired": "ম্যাদ উকলিছে",
+        "renewsOn": "নবীকৰণ হ'ব",
         "manageSubscription": "চাবস্ক্ৰিপচন পৰিচালনা কৰক",
-        "availablePlans": "উপলব্ধ প্লেনসমূহ",
-        "popularPlan": "জনপ্ৰিয় প্লেন",
-        "activePlan": "সক্ৰিয় প্লেন",
-        "noFeatures": "কোনো সুবিধা তালিকাভুক্ত নাই",
-        "haveCoupon": "কুপন কোড আছেনে?",
-        "hideCoupon": "কুপন লুকাওক",
-        "enterCode": "কোড দিয়ক",
+        "availablePlans": "উপলব্ধ আঁচনিসমূহ",
+        "popularPlan": "জনপ্ৰিয় আঁচনি",
+        "activePlan": "সক্ৰিয় আঁচনি",
+        "offerNow": "এতিয়া অফাৰ",
+        "only7Days": "দিনটোত মাত্ৰ ₹৭",
+        "day24h": "২৪ ঘণ্টা প্ৰ' এক্সেচ",
+        "month3": "৩ মহীয়া এক্সেচ",
+        "noFeatures": "কোনো বৈশিষ্ট্য তালিকাভুক্ত কৰা নাই",
+        "haveCoupon": "কুপন ক'ড আছে নেকি?",
+        "hideCoupon": "কুপন লুকুৱাওক",
+        "enterCode": "ক'ড দিয়ক",
+        "enterCodePlaceholder": "ইয়াত ক'ড দিয়ক",
         "apply": "প্ৰয়োগ কৰক",
-        "couponRemoved": "কুপন আঁতৰোৱা হ\u0027ল",
-        "loading": "প্লেনসমূহ লোড হৈ আছে...",
+        "couponRemoved": "কুপন আঁতৰোৱা হৈছে",
+        "loading": "আঁচনিসমূহ লোড হৈ আছে...",
         "month": "মাহ",
         "year": "বছৰ",
-        "planUsed": "প্লেন ব্যৱহাৰ কৰা হ\u0027ল",
-        "choosePlan": "পৰিকল্পনা বাছনি কৰক",
+        "planUsed": "আঁচনি ব্যৱহাৰ কৰা হ’ল",
+        "choosePlan": "আঁচনি বাছনি কৰক",
+        "renewPlan": "আঁচনি নবীকৰণ কৰক",
         "plans": {
             "freeTrial": {
-                "name": "বিনামূলীয়া পৰীক্ষা",
-                "description": "সীমিত বৈশিষ্ট্য সহ ২৪-ঘণ্টীয়া পৰীক্ষা"
+                "name": "বিনামূলীয়া ট্ৰায়েল",
+                "description": "সীমিত বৈশিষ্ট্যৰ সৈতে ২৪ ঘণ্টাৰ ট্ৰায়েল"
             },
             "monthlyPlan": {
-                "name": "মাহিলী পৰিকল্পনা",
-                "description": "সকলো বৈশিষ্ট্যলৈ সম্পূৰ্ণ প্ৰৱেশাধিকাৰ - মাহিলী বিল"
+                "name": "মাহেকীয়া আঁচনি",
+                "description": "সকলো বৈশিষ্ট্যৰ পূৰ্ণ প্ৰৱেশ - মাহেকীয়া বিল"
             },
             "quarterlyPlan": {
-                "name": "ত্রৈমাসিক পৰিকল্পনা",
-                "description": "সকলো বৈশিষ্ট্যলৈ সম্পূৰ্ণ প্ৰৱেশাধিকাৰ - প্ৰতি ৩ মাহৰ মূৰে মূৰে বিল"
+                "name": "তিনিমহীয়া আঁচনি",
+                "description": "সকলো বৈশিষ্ট্যৰ পূৰ্ণ প্ৰৱেশ - প্ৰতি ৩ মাহত বিল"
             },
             "yearlyPlan": {
-                "name": "বাৰ্ষিক পৰিকল্পনা",
-                "description": "সকলো বৈশিষ্ট্যলৈ সম্পূৰ্ণ প্ৰৱেশাধিকাৰ - বাৰ্ষিক বিল"
+                "name": "বছৰেকীয়া আঁচনি",
+                "description": "সকলো বৈশিষ্ট্যৰ পূৰ্ণ প্ৰৱেশ - বছৰেকীয়া বিল"
             }
+        },
+        "messages": {
+            "verifyingPayment": "পেমেন্টৰ স্থিতি পৰীক্ষা কৰি থকা হৈছে...",
+            "paymentSuccess": "পেমেন্ট সফল হ'ল! চাবস্ক্ৰিপচন সক্ৰিয় কৰা হৈছে...",
+            "paymentFailed": "পেমেন্ট বিফল হ'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।",
+            "processingSubscription": "নতুন চাবস্ক্ৰিপচন প্ৰচেছ কৰি থকা হৈছে...",
+            "enterCoupon": "অনুগ্ৰহ কৰি কুপন ক'ড এটা দিয়ক",
+            "couponApplied": "কুপন প্ৰয়োগ কৰা হ’ল! আপুনি ₹{{amount}} ৰাহি কৰিলে",
+            "invalidCoupon": "অবৈধ কুপন",
+            "expiredCoupon": "অবৈধ বা ম্যাদ উকলি যোৱা কুপন ক'ড",
+            "cancelingSubscription": "চাবস্ক্ৰিপচন বাতিল কৰি থকা হৈছে...",
+            "cancelSuccess": "চাবস্ক্ৰিপচন সফলতাৰে বাতিল কৰা হ’ল",
+            "initiatingSubscription": "চাবস্ক্ৰিপচন আৰম্ভ কৰি থকা হৈছে...",
+            "verifying": "পেমেন্ট সফল হ'ল! পৰীক্ষা কৰি থকা হৈছে...",
+            "activated": "চাবস্ক্ৰিপচন সক্ৰিয় হ’ল!",
+            "verificationFailed": "পৰীক্ষণ বিফল হৈছে, অনুগ্ৰহ কৰি সমৰ্থনৰ সৈতে যোগাযোগ কৰক।",
+            "activatedSuccess": "চাবস্ক্ৰিপচন সফলতাৰে সক্ৰিয় কৰা হ’ল!"
         }
+    },
+    "trialTimer": {
+        "expires": "ম্যাদ ওৰ পৰিব",
+        "endsIn": "শেষ হ’ব",
+        "expired": "ট্ৰায়েল শেষ হ'ল",
+        "upgrade": "প্ৰ'লৈ আপগ্ৰেড কৰক",
+        "day": "{{count}} দিন",
+        "day_plural": "{{count}} দিন",
+        "hour": "{{count}} ঘণ্টা",
+        "hour_plural": "{{count}} ঘণ্টা",
+        "freeTrial": "বিনামূলীয়া ট্ৰায়েল",
+        "h": "ঘ",
+        "m": "মি",
+        "s": "ছে"
     },
     "landing": {
         "features": {
@@ -640,12 +679,18 @@
         }
     },
     "upgradeModal": {
-        "title": "Upgrade to Pro",
-        "subtitle": "Unlock your full potential",
+        "title": "প্ৰ'লৈ আপগ্ৰেড কৰক",
+        "subtitle": "আপোনাৰ পূৰ্ণ সম্ভাৱনা আনলক কৰক",
+        "switchTitle": "চাবস্ক্ৰিপচন সলনি কৰক",
+        "confirmChanges": "অনুগ্ৰহ কৰি আপোনাৰ সলনিসমূহ নিশ্চিত কৰক",
+        "currentPlan": "বৰ্তমানৰ আঁচনি",
+        "newPlan": "নতুন আঁচনি",
+        "switchDesc": "{{newPlan}} চাবস্ক্ৰাইব কৰিবলৈ, আমি প্ৰথমে আপোনাৰ বৰ্তমানৰ {{currentPlan}} চাবস্ক্ৰিপচন বাতিল কৰিব লাগিব। আপুনি নিশ্চিত কৰিলে এই কামটো স্বয়ংক্ৰিয়ভাৱে হ'ব।",
+        "confirmSwitch": "নিশ্চিত কৰক আৰু সলনি কৰক",
         "reasons": {
-            "voiceCall": "You've used your daily 5 minutes of voice calls.",
-            "pronunciation": "Your 24-hour pronunciation access has expired.",
-            "general": "Unlock unlimited access to all features."
+            "voiceCall": "আপুনি আপোনাৰ দৈনিক ৫ মিনিটৰ ভয়েচ কল ব্যৱহাৰ কৰিছে।",
+            "pronunciation": "আপোনাৰ ২৪ ঘণ্টাৰ উচ্চাৰণ এক্সেচ সমাপ্ত হৈছে।",
+            "general": "সকলো বৈশিষ্ট্যৰ অসীমিত প্ৰৱেশ আনলক কৰক।"
         },
         "featuresTitle": "Pro Features",
         "features": {

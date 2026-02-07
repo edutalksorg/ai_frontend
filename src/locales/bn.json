@@ -305,7 +305,9 @@
     },
     "subscriptionsPageView": {
         "title": "আমার সাবস্ক্রিপশন",
+        "subtitle": "আপনার শেখার সম্ভাবনা এবং সীমাহীন ভয়েস কল আনলক করতে প্রো-তে আপগ্রেড করুন",
         "currentPlan": "বর্তমান প্ল্যান",
+        "currentPlanBadge": "বর্তমান প্ল্যান",
         "freeTrial": "ফ্রি ট্রায়াল",
         "active": "সক্রিয়",
         "expired": "মেয়াদ উত্তীর্ণ",
@@ -314,10 +316,15 @@
         "availablePlans": "উপলব্ধ প্ল্যান",
         "popularPlan": "জনপ্রিয় প্ল্যান",
         "activePlan": "সক্রিয় প্ল্যান",
+        "offerNow": "এখন অফার",
+        "only7Days": "প্রতিদিন মাত্র ₹৭",
+        "day24h": "২৪ ঘন্টা প্রো অ্যাক্সেস",
+        "month3": "৩ মাসের অ্যাক্সেস",
         "noFeatures": "কোন বৈশিষ্ট্য তালিকাভুক্ত নেই",
         "haveCoupon": "কুপন কোড আছে?",
         "hideCoupon": "কুপন লুকান",
         "enterCode": "কোড লিখুন",
+        "enterCodePlaceholder": "এখানে কোড লিখুন",
         "apply": "প্রয়োগ করুন",
         "couponRemoved": "কুপন সরানো হয়েছে",
         "loading": "প্ল্যান লোড হচ্ছে...",
@@ -325,6 +332,7 @@
         "year": "বছর",
         "planUsed": "ব্যবহৃত প্ল্যান",
         "choosePlan": "প্ল্যান চয়ন করুন",
+        "renewPlan": "প্ল্যান রিনিউ করুন",
         "plans": {
             "freeTrial": {
                 "name": "বিনামূল্যে ট্রায়াল",
@@ -342,7 +350,38 @@
                 "name": "বার্ষিক পরিকল্পনা",
                 "description": "সমস্ত বৈশিষ্ট্যে সম্পূর্ণ অ্যাক্সেস - বার্ষিক বিল"
             }
+        },
+        "messages": {
+            "verifyingPayment": "পেমেন্ট স্ট্যাটাস যাচাই করা হচ্ছে...",
+            "paymentSuccess": "পেমেন্ট সফল! সাবস্ক্রিপশন সক্রিয় করা হচ্ছে...",
+            "paymentFailed": "পেমেন্ট ব্যর্থ হয়েছে। আবার চেষ্টা করুন।",
+            "processingSubscription": "নতুন সাবস্ক্রিপশন প্রসেস করা হচ্ছে...",
+            "enterCoupon": "অনুগ্রহ করে একটি কুপন কোড লিখুন",
+            "couponApplied": "কুপন প্রয়োগ করা হয়েছে! আপনি ₹{{amount}} সাশ্রয় করেছেন",
+            "invalidCoupon": "অকার্যকর কুপন",
+            "expiredCoupon": "অকার্যকর বা মেয়াদোত্তীর্ণ কুপন কোড",
+            "cancelingSubscription": "সাবস্ক্রিপশন বাতিল করা হচ্ছে...",
+            "cancelSuccess": "সাবস্ক্রিপশন সফলভাবে বাতিল করা হয়েছে",
+            "initiatingSubscription": "সাবস্ক্রিপশন শুরু করা হচ্ছে...",
+            "verifying": "পেমেন্ট সফল! যাচাই করা হচ্ছে...",
+            "activated": "সাবস্ক্রিপশন সক্রিয়!",
+            "verificationFailed": "যাচাইকরণ ব্যর্থ হয়েছে, অনুগ্রহ করে সাপোর্টের সাথে যোগাযোগ করুন।",
+            "activatedSuccess": "সাবস্ক্রিপশন সফলভাবে সক্রিয় হয়েছে!"
         }
+    },
+    "trialTimer": {
+        "expires": "মেয়াদ শেষ হবে",
+        "endsIn": "শেষ হবে",
+        "expired": "ট্রায়াল শেষ",
+        "upgrade": "প্রো-তে আপগ্রেড করুন",
+        "day": "{{count}} দিন",
+        "day_plural": "{{count}} দিন",
+        "hour": "{{count}} ঘন্টা",
+        "hour_plural": "{{count}} ঘন্টা",
+        "freeTrial": "ফ্রি ট্রায়াল",
+        "h": "ঘ",
+        "m": "মি",
+        "s": "সে"
     },
     "auth": {
         "login": "লগইন",
@@ -643,12 +682,18 @@
         }
     },
     "upgradeModal": {
-        "title": "Upgrade to Pro",
-        "subtitle": "Unlock your full potential",
+        "title": "প্রো-তে আপগ্রেড করুন",
+        "subtitle": "আপনার পূর্ণ সম্ভাবনা আনলক করুন",
+        "switchTitle": "সাবস্ক্রিপশন পরিবর্তন করুন",
+        "confirmChanges": "আপনার পরিবর্তনগুলি নিশ্চিত করুন",
+        "currentPlan": "বর্তমান প্ল্যান",
+        "newPlan": "নতুন প্ল্যান",
+        "switchDesc": "{{newPlan}} সাবস্ক্রাইব করতে, আমাদের প্রথমে আপনার বর্তমান {{currentPlan}} সাবস্ক্রিপশন বাতিল করতে হবে। আপনি নিশ্চিত করলে এটি স্বয়ংক্রিয়ভাবে ঘটবে।",
+        "confirmSwitch": "নিশ্চিত করুন এবং পরিবর্তন করুন",
         "reasons": {
-            "voiceCall": "You've used your daily 5 minutes of voice calls.",
-            "pronunciation": "Your 24-hour pronunciation access has expired.",
-            "general": "Unlock unlimited access to all features."
+            "voiceCall": "আপনি আপনার প্রতিদিনের ৫ মিনিটের ভয়েস কল ব্যবহার করেছেন।",
+            "pronunciation": "আপনার ২৪ ঘন্টার উচ্চারণ অ্যাক্সেস শেষ হয়ে গেছে।",
+            "general": "সব বৈশিষ্ট্যে সীমাহীন অ্যাক্সেস আনলক করুন।"
         },
         "featuresTitle": "Pro Features",
         "features": {

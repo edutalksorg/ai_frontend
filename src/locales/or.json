@@ -488,45 +488,84 @@
         "errorLoad": "ରେଫରାଲ୍ ଡାଟା ଲୋଡ୍ କରିବାରେ ବିଫଳ"
     },
     "subscriptionsPageView": {
-        "title": "ମୋ ସବସ୍କ୍ରିପସନ୍",
-        "currentPlan": "ବର୍ତ୍ତମାନର ଯୋଜନା",
-        "freeTrial": "ମାଗଣା ଟ୍ରାଏଲ୍",
+        "title": "ମୋର ସବସ୍କ୍ରିପସନ୍",
+        "subtitle": "ଆପଣଙ୍କର ଶିକ୍ଷଣ କ୍ଷମତା ଏବଂ ଅସୀମିତ ଭଏସ୍ କଲ୍ ଅନଲକ୍ କରିବାକୁ ପ୍ରୋ କୁ ଅପଗ୍ରେଡ୍ କରନ୍ତୁ",
+        "currentPlan": "ସାମ୍ପ୍ରତିକ ଯୋଜନା",
+        "currentPlanBadge": "ସାମ୍ପ୍ରତିକ ଯୋଜନା",
+        "freeTrial": "ମାଗଣା ପରୀକ୍ଷା",
         "active": "ସକ୍ରିୟ",
-        "expired": "ମ୍ୟାଦ ସମାପ୍ତ",
-        "renewsOn": "ନବୀକରଣ ତାରିଖ",
+        "expired": "ସମାପ୍ତ",
+        "renewsOn": "ନବୀକରଣ ହେବ",
         "manageSubscription": "ସବସ୍କ୍ରିପସନ୍ ପରିଚାଳନା କରନ୍ତୁ",
         "availablePlans": "ଉପଲବ୍ଧ ଯୋଜନା",
-        "popularPlan": "ଜନପ୍ରିୟ ଯୋଜନା",
+        "popularPlan": "ଲୋକପ୍ରିୟ ଯୋଜନା",
         "activePlan": "ସକ୍ରିୟ ଯୋଜନା",
-        "noFeatures": "କୌଣସି ଫିଚର ତାଲିକାଭୁକ୍ତ ନାହିଁ",
-        "haveCoupon": "କୁପନ୍ କୋଡ୍ ଅଛି କି?",
-        "hideCoupon": "କୁପନ୍ ଲୁଚାନ୍ତୁ",
+        "offerNow": "ବର୍ତ୍ତମାନ ଅଫର୍",
+        "only7Days": "ଦିନକୁ ମାତ୍ର ₹୭",
+        "day24h": "୨୪ ଘଣ୍ଟା ପ୍ରୋ ଆକ୍ସେସ୍",
+        "month3": "୩ ମାସର ଆକ୍ସେସ୍",
+        "noFeatures": "କୌଣସି ବୈଶିଷ୍ଟ୍ୟ ତାଲିକାଭୁକ୍ତ ନାହିଁ",
+        "haveCoupon": "କୂପନ୍ କୋଡ୍ ଅଛି କି?",
+        "hideCoupon": "କୂପନ୍ ଲୁଚାନ୍ତୁ",
         "enterCode": "କୋଡ୍ ଦିଅନ୍ତୁ",
+        "enterCodePlaceholder": "ଏଠାରେ କୋଡ୍ ଦିଅନ୍ତୁ",
         "apply": "ପ୍ରୟୋଗ କରନ୍ତୁ",
-        "couponRemoved": "କୁପନ୍ ହଟାଗଲା",
-        "loading": "ଯୋଜନା ଲୋଡ୍ ହେଉଛି...",
+        "couponRemoved": "କୂପନ୍ ହଟାଯାଇଛି",
+        "loading": "ଯୋଜନାଗୁଡିକ ଲୋଡ୍ ହେଉଛି...",
         "month": "ମାସ",
         "year": "ବର୍ଷ",
-        "planUsed": "ଯୋଜନା ବ୍ୟବହୃତ ହୋଇଛି",
+        "planUsed": "ଯୋଜନା ବ୍ୟବହୃତ",
         "choosePlan": "ଯୋଜନା ବାଛନ୍ତୁ",
+        "renewPlan": "ଯୋଜନା ନବୀକରଣ କରନ୍ତୁ",
         "plans": {
             "freeTrial": {
-                "name": "ମାଗଣା ଟ୍ରାଏଲ୍",
-                "description": "ସୀମିତ ଫିଚର ସହିତ ୨୪-ଘଣ୍ଟା ଟ୍ରାଏଲ୍"
+                "name": "ମାଗଣା ପରୀକ୍ଷା",
+                "description": "ସୀମିତ ବୈଶିଷ୍ଟ୍ୟ ସହିତ ୨୪ ଘଣ୍ଟାର ପରୀକ୍ଷା"
             },
             "monthlyPlan": {
                 "name": "ମାସିକ ଯୋଜନା",
-                "description": "ସମସ୍ତ ଫିଚରକୁ ପୂର୍ଣ୍ଣ ଆକ୍ସେସ୍ - ମାସିକ ବିଲ୍"
+                "description": "ସମସ୍ତ ବୈଶିଷ୍ଟ୍ୟରେ ପୂର୍ଣ୍ଣ ପ୍ରବେଶ - ମାସିକ ବିଲ୍"
             },
             "quarterlyPlan": {
                 "name": "ତ୍ରୈମାସିକ ଯୋଜନା",
-                "description": "ସମସ୍ତ ଫିଚରକୁ ପୂର୍ଣ୍ଣ ଆକ୍ସେସ୍ - ପ୍ରତି ୩ ମାସରେ ବିଲ୍"
+                "description": "ସମସ୍ତ ବୈଶିଷ୍ଟ୍ୟରେ ପୂର୍ଣ୍ଣ ପ୍ରବେଶ - ପ୍ରତି ୩ ମାସରେ ବିଲ୍"
             },
             "yearlyPlan": {
                 "name": "ବାର୍ଷିକ ଯୋଜନା",
-                "description": "ସମସ୍ତ ଫିଚରକୁ ପୂର୍ଣ୍ଣ ଆକ୍ସେସ୍ - ବାର୍ଷିକ ବିଲ୍"
+                "description": "ସମସ୍ତ ବୈଶିଷ୍ଟ୍ୟରେ ପୂର୍ଣ୍ଣ ପ୍ରବେଶ - ବାର୍ଷିକ ବିଲ୍"
             }
+        },
+        "messages": {
+            "verifyingPayment": "ପେମେଣ୍ଟ ସ୍ଥିତି ଯାଞ୍ଚ କରାଯାଉଛି...",
+            "paymentSuccess": "ପେମେଣ୍ଟ ସଫଳ! ସବସ୍କ୍ରିପସନ୍ ସକ୍ରିୟ କରାଯାଉଛି...",
+            "paymentFailed": "ପେମେଣ୍ଟ ବିଫଳ | ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ |",
+            "processingSubscription": "ନୂତନ ସବସ୍କ୍ରିପସନ୍ ପ୍ରକ୍ରିୟାକରଣ କରାଯାଉଛି...",
+            "enterCoupon": "ଦୟାକରି ଏକ କୂପନ୍ କୋଡ୍ ଦିଅନ୍ତୁ",
+            "couponApplied": "କୂପନ୍ ପ୍ରୟୋଗ କରାଗଲା! ଆପଣ ₹{{amount}} ସଞ୍ଚୟ କଲେ",
+            "invalidCoupon": "ଅବୈଧ କୂପନ୍",
+            "expiredCoupon": "ଅବୈଧ କିମ୍ବା ଅବଧି ସମାପ୍ତ କୂପନ୍ କୋଡ୍",
+            "cancelingSubscription": "ସବସ୍କ୍ରିପସନ୍ ବାତିଲ୍ କରାଯାଉଛି...",
+            "cancelSuccess": "ସବସ୍କ୍ରିପସନ୍ ସଫଳତାର ସହିତ ବାତିଲ୍ ହେଲା",
+            "initiatingSubscription": "ସବସ୍କ୍ରିପସନ୍ ଆରମ୍ଭ କରାଯାଉଛି...",
+            "verifying": "ପେମେଣ୍ଟ ସଫଳ! ଯାଞ୍ચ କରାଯାଉଛି...",
+            "activated": "ସବସ୍କ୍ରିପସନ୍ ସକ୍ରିୟ!",
+            "verificationFailed": "ଯାଞ୍ચ ବିଫଳ ହେଲା, ଦୟାକରି ସହାୟତା ସହିତ ଯୋଗାଯୋଗ କରନ୍ତୁ |",
+            "activatedSuccess": "ସବସ୍କ୍ରିପସନ୍ ସଫଳତାର ସହିତ ସକ୍ରିୟ ହେଲା!"
         }
+    },
+    "trialTimer": {
+        "expires": "ଅବଧି ସମାପ୍ତ ହେବ",
+        "endsIn": "ଶେଷ ହେବ",
+        "expired": "ପରୀକ୍ଷା ସମାପ୍ତ",
+        "upgrade": "ପ୍ରୋ କୁ ଅପଗ୍ରେଡ୍ କରନ୍ତୁ",
+        "day": "{{count}} ଦିନ",
+        "day_plural": "{{count}} ଦିନ",
+        "hour": "{{count}} ଘଣ୍ଟା",
+        "hour_plural": "{{count}} ଘଣ୍ଟା",
+        "freeTrial": "ମାଗଣା ପରୀକ୍ଷା",
+        "h": "ଘ",
+        "m": "ମି",
+        "s": "ସେ"
     },
     "landing": {
         "features": {
@@ -643,12 +682,18 @@
         }
     },
     "upgradeModal": {
-        "title": "Upgrade to Pro",
-        "subtitle": "Unlock your full potential",
+        "title": "ପ୍ରୋ କୁ ଅପଗ୍ରେଡ୍ କରନ୍ତୁ",
+        "subtitle": "ଆପଣଙ୍କର ପୂର୍ଣ୍ଣ ସାମର୍ଥ୍ୟକୁ ଅନଲକ୍ କରନ୍ତୁ",
+        "switchTitle": "ସବସ୍କ୍ରିପସନ୍ ପରିବର୍ତ୍ତନ କରନ୍ତୁ",
+        "confirmChanges": "ଦୟାକରି ଆପଣଙ୍କର ପରିବର୍ତ୍ତନଗୁଡିକ ନିଶ୍ଚିତ କରନ୍ତୁ",
+        "currentPlan": "ସାମ୍ପ୍ରତିକ ଯୋଜନା",
+        "newPlan": "ନୂତନ ଯୋଜନା",
+        "switchDesc": "{{newPlan}} କୁ ସବସ୍କ୍ରାଇବ୍ କରିବାକୁ, ଆମକୁ ପ୍ରଥମେ ଆପଣଙ୍କର ବର୍ତ୍ତମାନର {{currentPlan}} ସବସ୍କ୍ରିପସନ୍ ବାତିଲ୍ କରିବାକୁ ପଡିବ | ଆପଣ ନିଶ୍ଚିତ କଲେ ଏହି କାର୍ଯ୍ୟ ସ୍ୱୟଂଚାଳିତ ଭାବରେ ହେବ |",
+        "confirmSwitch": "ନିଶ୍ଚିତ କରନ୍ତୁ ଏବଂ ପରିବର୍ତ୍ତନ କରନ୍ତୁ",
         "reasons": {
-            "voiceCall": "You've used your daily 5 minutes of voice calls.",
-            "pronunciation": "Your 24-hour pronunciation access has expired.",
-            "general": "Unlock unlimited access to all features."
+            "voiceCall": "ଆପଣ ଆପଣଙ୍କର ଦୈନିକ ୫ ମିନିଟର ଭଏସ୍ କଲ୍ ବ୍ୟବହାର କରିଛନ୍ତି |",
+            "pronunciation": "ଆପଣଙ୍କର ୨୪ ଘଣ୍ଟିଆ ଉଚ୍ଚାରଣ ପ୍ରବେଶ ସମାପ୍ତ ହୋଇଛି |",
+            "general": "ସମସ୍ତ ବୈଶିଷ୍ଟ୍ୟରେ ଅସୀମିତ ପ୍ରବେଶ ଅନଲକ୍ କରନ୍ତୁ |"
         },
         "featuresTitle": "Pro Features",
         "features": {

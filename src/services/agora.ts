@@ -4,6 +4,7 @@ import AgoraRTC, {
     IMicrophoneAudioTrack,
     UID
 } from 'agora-rtc-sdk-ng';
+import { AIDenoiserExtension, IAIDenoiserProcessor } from 'agora-extension-ai-denoiser';
 
 // Agora Configuration
 // App ID should be set via environment variable for security
@@ -22,6 +23,10 @@ class AgoraService {
     private isConnected: boolean = false;
     private connectionAttempts: number = 0;
     private readonly MAX_CONNECTION_ATTEMPTS = 3;
+
+    // AI Denoiser extension
+    private denoiserExtension: AIDenoiserExtension | null = null;
+    private denoiserProcessor: IAIDenoiserProcessor | null = null;
 
     // Recording properties
     private audioContext: AudioContext | null = null;
@@ -53,6 +58,23 @@ class AgoraService {
             mode: 'rtc',
             codec: 'vp8'
         });
+
+        // Initialize and Register AI Denoiser
+        try {
+            console.log('🛡️ Initializing AI Denoiser extension...');
+            this.denoiserExtension = new AIDenoiserExtension({
+                assetsPath: '/wasm/denoiser'
+            });
+            AgoraRTC.registerExtensions([this.denoiserExtension]);
+
+            this.denoiserProcessor = this.denoiserExtension.createProcessor();
+
+            // Enable by default
+            await this.denoiserProcessor.enable();
+            console.log('✅ AI Denoiser initialized and enabled');
+        } catch (error) {
+            console.error('❌ Failed to initialize AI Denoiser:', error);
+        }
 
         // Set up event listeners
         this.setupEventListeners();
@@ -204,9 +226,23 @@ class AgoraService {
             // Create microphone audio track
             this.localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack({
                 encoderConfig: 'speech_standard', // Optimized for voice
+                AEC: true,  // Acoustic Echo Cancellation
+                ANS: true,  // Automatic Noise Suppression
+                AGC: true,  // Automatic Gain Control
             });
 
             console.log('✅ Local audio track created');
+
+            // Pipe through denoiser if available
+            if (this.denoiserProcessor) {
+                try {
+                    console.log('🛡️ Piping audio through AI Denoiser...');
+                    this.localAudioTrack.pipe(this.denoiserProcessor).pipe(this.localAudioTrack.processorDestination);
+                    console.log('✅ Audio piped through AI Denoiser');
+                } catch (error) {
+                    console.error('❌ Failed to pipe audio through denoiser:', error);
+                }
+            }
 
             // Publish to channel
             await this.client!.publish([this.localAudioTrack]);

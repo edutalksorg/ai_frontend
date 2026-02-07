@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { AlertTriangle, ArrowRight, X } from 'lucide-react';
 import Button from './Button';
+import { useTranslation } from 'react-i18next';
 
 interface SwitchPlanModalProps {
     isOpen: boolean;
@@ -19,6 +20,7 @@ const SwitchPlanModal: React.FC<SwitchPlanModalProps> = ({
     onConfirm,
     isLoading
 }) => {
+    const { t } = useTranslation();
     if (!isOpen) return null;
 
     return (
@@ -30,8 +32,8 @@ const SwitchPlanModal: React.FC<SwitchPlanModalProps> = ({
                             <AlertTriangle size={24} />
                         </div>
                         <div>
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Switch Subscription</h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Please confirm your changes</p>
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('upgradeModal.switchTitle')}</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t('upgradeModal.confirmChanges')}</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="text-slate-400 hover:text-slate-500">
@@ -42,19 +44,19 @@ const SwitchPlanModal: React.FC<SwitchPlanModalProps> = ({
                 <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
                     <div className="flex items-center justify-between text-sm">
                         <div className="flex flex-col">
-                            <span className="text-slate-500 mb-1">Current Plan</span>
+                            <span className="text-slate-500 mb-1">{t('upgradeModal.currentPlan')}</span>
                             <span className="font-semibold text-slate-900 dark:text-white line-through decoration-red-500 decoration-2">{currentPlanName}</span>
                         </div>
                         <ArrowRight size={16} className="text-slate-400" />
                         <div className="flex flex-col text-right">
-                            <span className="text-slate-500 mb-1">New Plan</span>
+                            <span className="text-slate-500 mb-1">{t('upgradeModal.newPlan')}</span>
                             <span className="font-semibold text-blue-600 dark:text-blue-400">{newPlanName}</span>
                         </div>
                     </div>
                 </div>
 
                 <p className="text-slate-600 dark:text-slate-300 text-sm mb-6 leading-relaxed">
-                    To subscribe to the <strong>{newPlanName}</strong>, we need to cancel your current <strong>{currentPlanName}</strong> subscription first. This action happens automatically when you confirm.
+                    {t('upgradeModal.switchDesc', { newPlan: newPlanName, currentPlan: currentPlanName })}
                 </p>
 
                 <div className="flex gap-3">
@@ -64,7 +66,7 @@ const SwitchPlanModal: React.FC<SwitchPlanModalProps> = ({
                         onClick={onClose}
                         disabled={isLoading}
                     >
-                        Cancel
+                        {t('common.cancel')}
                     </Button>
                     <Button
                         variant="primary"
@@ -72,7 +74,7 @@ const SwitchPlanModal: React.FC<SwitchPlanModalProps> = ({
                         onClick={onConfirm}
                         isLoading={isLoading}
                     >
-                        Confirm & Switch
+                        {t('upgradeModal.confirmSwitch')}
                     </Button>
                 </div>
             </div>

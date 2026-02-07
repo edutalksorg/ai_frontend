@@ -114,8 +114,7 @@
     "updateError": "Failed to update profile",
     "userRole": "USER",
     "currentPlanLabel": "Current Plan",
-    "personalInfoDesc": "Update your personal details here.",
-    "myAccount": "My Account"
+    "personalInfoDesc": "Update your personal details here."
   },
   "referrals": {
     "title": "My Referrals",
@@ -163,6 +162,7 @@
   },
   "subscriptionsPageView": {
     "title": "My Subscriptions",
+    "subtitle": "Choose the perfect plan for your journey",
     "currentPlan": "Current Plan",
     "freeTrial": "Free Trial",
     "active": "Active",
@@ -172,10 +172,15 @@
     "availablePlans": "Available Plans",
     "popularPlan": "Popular Plan",
     "activePlan": "Active Plan",
+    "currentPlanBadge": "Current Plan",
+    "offerNow": "OFFER NOW",
+    "only7Days": "AVAILABLE ONLY FOR 7 DAYS",
+    "day24h": "24hours",
+    "month3": "3 months",
     "noFeatures": "No features listed",
     "haveCoupon": "Have a coupon code?",
     "hideCoupon": "Hide coupon",
-    "enterCode": "Enter code",
+    "enterCodePlaceholder": "Coupon Code",
     "apply": "Apply",
     "couponRemoved": "Coupon removed",
     "loading": "Loading plans...",
@@ -183,6 +188,7 @@
     "year": "year",
     "planUsed": "Plan Used",
     "choosePlan": "Choose Plan",
+    "renewPlan": "Renew Plan",
     "plans": {
       "freeTrial": {
         "name": "Free Trial",
@@ -200,6 +206,23 @@
         "name": "Yearly Plan",
         "description": "Full access to all features - billed annually"
       }
+    },
+    "messages": {
+      "verifyingPayment": "Verifying payment status...",
+      "paymentSuccess": "Payment successful! Activating subscription...",
+      "paymentFailed": "Payment failed. Please try again.",
+      "processingSubscription": "Processing new subscription...",
+      "enterCoupon": "Please enter a coupon code",
+      "couponApplied": "Coupon applied! You save ₹{{amount}}",
+      "invalidCoupon": "Invalid coupon",
+      "expiredCoupon": "Invalid or expired coupon code",
+      "cancelingSubscription": "Canceling subscription...",
+      "cancelSuccess": "Subscription cancelled successfully",
+      "initiatingSubscription": "Initiating subscription...",
+      "verifying": "Payment successful! Verifying...",
+      "activated": "Subscription activated!",
+      "verificationFailed": "Verification failed, please contact support.",
+      "activatedSuccess": "Subscription activated successfully!"
     }
   },
   "wallet": {
@@ -504,6 +527,20 @@
     "noActivePlan": "No Active Plan",
     "planExpired": "Plan Expired"
   },
+  "trialTimer": {
+    "expires": "Expires",
+    "endsIn": "Ends in",
+    "expired": "Trial Expired",
+    "upgrade": "Upgrade to Pro",
+    "day": "{{count}} day",
+    "day_plural": "{{count}} days",
+    "hour": "{{count}} hour",
+    "hour_plural": "{{count}} hours",
+    "freeTrial": "Free Trial",
+    "h": "h",
+    "m": "m",
+    "s": "s"
+  },
   "auth": {
     "login": "Login",
     "signup": "Sign Up",
@@ -651,6 +688,12 @@
   "upgradeModal": {
     "title": "Upgrade to Pro",
     "subtitle": "Unlock your full potential",
+    "switchTitle": "Switch Subscription",
+    "confirmChanges": "Please confirm your changes",
+    "currentPlan": "Current Plan",
+    "newPlan": "New Plan",
+    "switchDesc": "To subscribe to the {{newPlan}}, we need to cancel your current {{currentPlan}} subscription first. This action happens automatically when you confirm.",
+    "confirmSwitch": "Confirm & Switch",
     "reasons": {
       "voiceCall": "You've used your daily 5 minutes of voice calls.",
       "pronunciation": "Your 24-hour pronunciation access has expired.",

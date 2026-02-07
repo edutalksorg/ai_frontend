@@ -488,43 +488,68 @@
     },
     "subscriptionsPageView": {
         "title": "मम सदस्यताः",
+        "subtitle": "स्वस्य शिक्षणक्षमतां असीमितं वाक्सम्भाषणं च उद्घाटयितुं प्रो-स्तरे उन्नयनं कुर्वन्तु",
         "currentPlan": "वर्तमानयोजना",
+        "currentPlanBadge": "वर्तमानयोजना",
         "freeTrial": "निःशुल्कपरीक्षणम्",
         "active": "सक्रियम्",
         "expired": "समाप्तम्",
-        "renewsOn": "नवीकरण-तिथिः",
-        "manageSubscription": "प्रबन्धयतु",
+        "renewsOn": "नवीकरणं भविष्यति",
+        "manageSubscription": "सदस्यतां प्रबन्धयन्तु",
         "availablePlans": "उपलब्धयोजनाः",
-        "popularPlan": "लोकप्रिययोजना",
-        "activePlan": "सक्रिययोजना",
-        "noFeatures": "विशेषताः नास्ति",
-        "haveCoupon": "कूपनं अस्ति वा?",
-        "hideCoupon": "गोपयतु",
-        "enterCode": "कूटं लिखतु",
+        "popularPlan": "प्रसिद्धा योजना",
+        "activePlan": "सक्रिया योजना",
+        "offerNow": "अधुना उपलम्भः",
+        "only7Days": "दिने केवलं ₹७",
+        "day24h": "२४ घण्टा प्रो-प्रवेशः",
+        "month3": "३ मासपर्यन्तं प्रवेशः",
+        "noFeatures": "कापि विशेषता न सूचिता",
+        "haveCoupon": "कूपन-सङ्केतः अस्ति वा?",
+        "hideCoupon": "कूपनं गोपयन्तु",
+        "enterCode": "सङ्केतं लिखन्तु",
+        "enterCodePlaceholder": "अत्र सङ्केतं लिखन्तु",
         "apply": "प्रयुज्यताम्",
-        "couponRemoved": "कूपनम् अपसारितम्",
-        "loading": "योजनाः दृश्यन्ते...",
+        "couponRemoved": "कूपनं निष्कासितम्",
+        "loading": "योजनाः आगच्छन्ति...",
         "month": "मासः",
-        "year": "वर्षः",
-        "planUsed": "योजना प्रयुक्ता",
-        "choosePlan": "योजनां चिनुत",
+        "year": "वर्षम्",
+        "planUsed": "योजना उपयुक्ता",
+        "choosePlan": "योजनां चिनोतु",
+        "renewPlan": "योजनां नवीकरोतु",
         "plans": {
             "freeTrial": {
-                "name": "निःशुल्क परीक्षणम्",
-                "description": "सीमितवैशिष्ट्यैः सह २४-होराणां परीक्षणम्"
+                "name": "निःशुल्कपरीक्षणम्",
+                "description": "सीमितविशेषताभिः सह २४ घण्टापरीक्षणम्"
             },
             "monthlyPlan": {
-                "name": "मासिक योजना",
-                "description": "सर्वासु सुविधासु पूर्णः प्रवेशः - मासिकं देयकम्"
+                "name": "मासिकयोजना",
+                "description": "सर्वासु विशेषतासु पूर्णप्रवेशः - मासिकं शुल्कम्"
             },
             "quarterlyPlan": {
-                "name": "त्रैमासिक योजना",
-                "description": "सर्वासु सुविधासु पूर्णः प्रवेशः - प्रतिमासत्रये देयकम्"
+                "name": "त्रैमासिकयोजना",
+                "description": "सर्वासु विशेषतासु पूर्णप्रवेशः - प्रति ३ मासे शुल्कम्"
             },
             "yearlyPlan": {
-                "name": "वार्षिक योजना",
-                "description": "सर्वासु सुविधासु पूर्णः प्रवेशः - वार्षिकं देयकम्"
+                "name": "वार्षिकयोजना",
+                "description": "सर्वासु विशेषतासु पूर्णप्रवेशः - वार्षिकं शुल्कम्"
             }
+        },
+        "messages": {
+            "verifyingPayment": "भुगतानस्थितिः परीक्ष्यते...",
+            "paymentSuccess": "भुगतानं सफलम्! सदस्यता सक्रिया क्रियते...",
+            "paymentFailed": "भुगतानं विफलं जातम्। पुनः प्रयतस्व।",
+            "processingSubscription": "नवीना सदस्यता संसाध्यते...",
+            "enterCoupon": "कृपया कूपन-सङ्केतं लिखन्तु",
+            "couponApplied": "कूपनं प्रयुक्तम्! भवतः ₹{{amount}} रक्षिताः",
+            "invalidCoupon": "अमान्यं कूपनम्",
+            "expiredCoupon": "अमान्यः वा समाप्तः वा कूपन-सङ्केतः",
+            "cancelingSubscription": "सदस्यता निरस्यते...",
+            "cancelSuccess": "सदस्यता सफलतापूर्वकं निरस्ता",
+            "initiatingSubscription": "सदस्यता आरभ्यते...",
+            "verifying": "भुगतानं सफलम्! परीक्ष्यते...",
+            "activated": "सदस्यता सक्रिया!",
+            "verificationFailed": "परीक्षणं विफलं जातम्, कृपया सहयोगं पृच्छन्तु।",
+            "activatedSuccess": "सदस्यता सफलतापूर्वकं सक्रिया जाता!"
         }
     },
     "landing": {
@@ -642,12 +667,18 @@
         }
     },
     "upgradeModal": {
-        "title": "Upgrade to Pro",
-        "subtitle": "Unlock your full potential",
+        "title": "प्रो-स्तरे उन्नयनं कुर्वन्तु",
+        "subtitle": "स्वस्य पूर्णक्षमतां उद्घाटयन्तु",
+        "switchTitle": "सदस्यतां परिवर्तयन्तु",
+        "confirmChanges": "कृपया स्वपरिवर्तनानि पुष्टीकुर्वन्तु",
+        "currentPlan": "वर्तमानयोजना",
+        "newPlan": "नवीना योजना",
+        "switchDesc": "{{newPlan}} प्राप्तुं पूर्वं भवतः वर्तमानयोजना {{currentPlan}} निरसनीयम्। भवतः पुष्ट्या एतत् स्वयं भविष्यति।",
+        "confirmSwitch": "पुष्टिं कृत्वा परिवर्तयन्तु",
         "reasons": {
-            "voiceCall": "You've used your daily 5 minutes of voice calls.",
-            "pronunciation": "Your 24-hour pronunciation access has expired.",
-            "general": "Unlock unlimited access to all features."
+            "voiceCall": "भवतः प्रतिदिनं ५ निमेषं वाक्सम्भाषणं समाप्तम्।",
+            "pronunciation": "भवतः २४ होराणां उच्चारण-प्रवेशः समाप्तः।",
+            "general": "सर्वासु विशेषतासु असीमितप्रवेशं उद्घाटयन्तु।"
         },
         "featuresTitle": "Pro Features",
         "features": {

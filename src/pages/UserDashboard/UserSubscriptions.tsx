@@ -92,7 +92,7 @@ const UserSubscriptions: React.FC = () => {
             }
         }
 
-        dispatch(showToast({ message: 'Verifying payment status...', type: 'info' }));
+        dispatch(showToast({ message: t('subscriptionsPageView.messages.verifyingPayment'), type: 'info' }));
         let pollAttempts = 0;
         const maxPollAttempts = 60;
         let retryDelay = 3000;
@@ -106,7 +106,7 @@ const UserSubscriptions: React.FC = () => {
 
                 if (status === 'COMPLETED' || status === 'SUCCESS') {
                     paymentCompleted = true;
-                    dispatch(showToast({ message: 'Payment successful! Activating subscription...', type: 'success' }));
+                    dispatch(showToast({ message: t('subscriptionsPageView.messages.paymentSuccess'), type: 'success' }));
                     localStorage.removeItem('pending_payment');
                     dispatch(updateUserSubscription({
                         subscriptionStatus: 'active',
@@ -134,7 +134,7 @@ const UserSubscriptions: React.FC = () => {
                 } else if (status === 'FAILED') {
                     paymentCompleted = true;
                     localStorage.removeItem('pending_payment');
-                    dispatch(showToast({ message: 'Payment failed. Please try again.', type: 'error' }));
+                    dispatch(showToast({ message: t('subscriptionsPageView.messages.paymentFailed'), type: 'error' }));
                     return;
                 } else if (status === 'CREATED' || status === 'ATTEMPTED') {
                     console.warn('Payment status is CREATED/ATTEMPTED (abandoned). Clearing pending payment.');
@@ -213,7 +213,7 @@ const UserSubscriptions: React.FC = () => {
         try {
             setProcessingSwitch(true);
             setSwitchModalOpen(false);
-            dispatch(showToast({ message: 'Processing new subscription...', type: 'info' }));
+            dispatch(showToast({ message: t('subscriptionsPageView.messages.processingSubscription'), type: 'info' }));
             await processSubscription(pendingPlan);
         } catch (error: any) {
             const errorMsg = error.response?.data?.messages?.[0] || 'Failed to switch plan';
@@ -226,7 +226,7 @@ const UserSubscriptions: React.FC = () => {
 
     const validateAndApplyCoupon = async (plan: any, code: string) => {
         if (!code.trim()) {
-            dispatch(showToast({ message: 'Please enter a coupon code', type: 'warning' }));
+            dispatch(showToast({ message: t('subscriptionsPageView.messages.enterCoupon'), type: 'warning' }));
             return;
         }
         const planId = plan.id || plan._id;
@@ -250,13 +250,13 @@ const UserSubscriptions: React.FC = () => {
                     discountType: 'FixedAmount',
                 };
                 setAppliedCoupons(prev => ({ ...prev, [planId]: couponInfo }));
-                dispatch(showToast({ message: `Coupon applied! You save ₹${couponData.discountAmount} `, type: 'success' }));
+                dispatch(showToast({ message: t('subscriptionsPageView.messages.couponApplied', { amount: couponData.discountAmount }), type: 'success' }));
                 setCouponCode('');
             } else {
-                dispatch(showToast({ message: 'Invalid coupon', type: 'error' }));
+                dispatch(showToast({ message: t('subscriptionsPageView.messages.invalidCoupon'), type: 'error' }));
             }
         } catch (error: any) {
-            const errorMsg = error.response?.data?.messages?.[0] || 'Invalid or expired coupon code';
+            const errorMsg = error.response?.data?.messages?.[0] || t('subscriptionsPageView.messages.expiredCoupon');
             dispatch(showToast({ message: errorMsg, type: 'error' }));
         } finally {
             setValidatingCoupon(prev => ({ ...prev, [planId]: false }));
@@ -269,7 +269,7 @@ const UserSubscriptions: React.FC = () => {
             delete updated[planId];
             return updated;
         });
-        dispatch(showToast({ message: 'Coupon removed', type: 'info' }));
+        dispatch(showToast({ message: t('subscriptionsPageView.couponRemoved'), type: 'info' }));
     };
 
     const toggleCouponInput = (planId: string) => {
@@ -282,12 +282,12 @@ const UserSubscriptions: React.FC = () => {
 
         try {
             setProcessingSwitch(true);
-            dispatch(showToast({ message: 'Canceling subscription...', type: 'info' }));
+            dispatch(showToast({ message: t('subscriptionsPageView.messages.cancelingSubscription'), type: 'info' }));
             await subscriptionsService.cancel({
                 subscriptionId: currentSub?.subscriptionId || currentSub?.id,
                 reason: 'User cancelled manually'
             });
-            dispatch(showToast({ message: 'Subscription cancelled successfully', type: 'success' }));
+            dispatch(showToast({ message: t('subscriptionsPageView.messages.cancelSuccess'), type: 'success' }));
             await fetchData();
         } catch (error: any) {
             const errorMsg = error.response?.data?.messages?.[0] || 'Failed to cancel subscription';
@@ -312,7 +312,7 @@ const UserSubscriptions: React.FC = () => {
 
     const processSubscription = async (plan: any) => {
         try {
-            dispatch(showToast({ message: 'Initiating subscription...', type: 'info' }));
+            dispatch(showToast({ message: t('subscriptionsPageView.messages.initiatingSubscription'), type: 'info' }));
             const planId = plan.id || plan._id;
             const appliedCoupon = appliedCoupons[planId];
 
@@ -334,7 +334,7 @@ const UserSubscriptions: React.FC = () => {
                     order_id: responseData.orderId,
                     handler: async function (rzpResponse: any) {
                         try {
-                            dispatch(showToast({ message: 'Payment successful! Verifying...', type: 'info' }));
+                            dispatch(showToast({ message: t('subscriptionsPageView.messages.verifying'), type: 'info' }));
 
                             await paymentsService.verify({
                                 razorpay_order_id: rzpResponse.razorpay_order_id,
@@ -355,12 +355,12 @@ const UserSubscriptions: React.FC = () => {
                             dispatch(setUser(userData));
 
                             await fetchData();
-                            dispatch(showToast({ message: 'Subscription activated!', type: 'success' }));
+                            dispatch(showToast({ message: t('subscriptionsPageView.messages.activated'), type: 'success' }));
 
                             navigate('/profile', { state: { justSubscribed: true } });
                         } catch (err) {
                             console.error('Verification error:', err);
-                            dispatch(showToast({ message: 'Verification failed, please contact support.', type: 'error' }));
+                            dispatch(showToast({ message: t('subscriptionsPageView.messages.verificationFailed'), type: 'error' }));
                         }
                     },
                     prefill: {
@@ -386,7 +386,7 @@ const UserSubscriptions: React.FC = () => {
                 return;
             }
 
-            dispatch(showToast({ message: 'Subscription activated successfully!', type: 'success' }));
+            dispatch(showToast({ message: t('subscriptionsPageView.messages.activatedSuccess'), type: 'success' }));
             await fetchData();
             const profileRes = await authService.getProfile();
             const userData = (profileRes as any).data || profileRes;
@@ -414,7 +414,7 @@ const UserSubscriptions: React.FC = () => {
                     </button>
                     <div>
                         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('subscriptionsPageView.title')}</h1>
-                        <p className="text-sm text-slate-500">Choose the perfect plan for your journey</p>
+                        <p className="text-sm text-slate-500">{t('subscriptionsPageView.subtitle')}</p>
                     </div>
                 </div>
             </div>
@@ -485,13 +485,13 @@ const UserSubscriptions: React.FC = () => {
                                 {isLocked && (
                                     <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-green-500 text-white text-sm font-bold px-4 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 z-30 whitespace-nowrap">
                                         <Check size={14} strokeWidth={3} />
-                                        <span>Current Plan</span>
+                                        <span>{t('subscriptionsPageView.currentPlanBadge')}</span>
                                     </div>
                                 )}
                                 {isYearlyPlan && !isLocked && (
                                     <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-500 to-rose-600 text-white text-sm font-black px-6 py-2 rounded-full shadow-xl z-40 animate-bounce tracking-wider flex items-center gap-2 border-2 border-white/20">
                                         <Zap size={16} fill="white" />
-                                        OFFER NOW
+                                        {t('subscriptionsPageView.offerNow')}
                                     </div>
                                 )}
 
@@ -513,8 +513,8 @@ const UserSubscriptions: React.FC = () => {
                                             <span className={`text-sm font-medium ${isYearlyPlan ? 'text-violet-600 dark:text-violet-400' : 'text-slate-500'}`}>
                                                 /{(() => {
                                                     const lowerName = plan.name?.toLowerCase() || '';
-                                                    if (lowerName.includes('free trial')) return '24hours';
-                                                    if (lowerName.includes('quarterly')) return '3 months';
+                                                    if (lowerName.includes('free trial')) return t('subscriptionsPageView.day24h');
+                                                    if (lowerName.includes('quarterly')) return t('subscriptionsPageView.month3');
                                                     if (lowerName.includes('yearly') || plan.interval === 'year') return t('subscriptionsPageView.year');
                                                     return t('subscriptionsPageView.month');
                                                 })()}
@@ -523,7 +523,7 @@ const UserSubscriptions: React.FC = () => {
                                         {isYearlyPlan && (
                                             <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-[10px] font-bold px-2 py-1 rounded w-fit flex items-center gap-1 mt-1 border border-red-200 dark:border-red-800/30">
                                                 <Zap size={10} fill="currentColor" />
-                                                AVAILABLE ONLY FOR 7 DAYS
+                                                {t('subscriptionsPageView.only7Days')}
                                             </div>
                                         )}
                                     </div>
@@ -583,9 +583,9 @@ const UserSubscriptions: React.FC = () => {
                                                                 className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                                                                 value={couponCode}
                                                                 onChange={e => setCouponCode(e.target.value.toUpperCase())}
-                                                                placeholder="Coupon Code"
+                                                                placeholder={t('subscriptionsPageView.enterCodePlaceholder')}
                                                             />
-                                                            <Button size="sm" onClick={() => validateAndApplyCoupon(plan, couponCode)} disabled={!couponCode}>Apply</Button>
+                                                            <Button size="sm" onClick={() => validateAndApplyCoupon(plan, couponCode)} disabled={!couponCode}>{t('subscriptionsPageView.apply')}</Button>
                                                         </div>
                                                     );
                                                 }

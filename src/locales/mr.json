@@ -488,31 +488,39 @@
         "errorLoad": "रेफरल डेटा लोड करण्यात अयशस्वी"
     },
     "subscriptionsPageView": {
-        "title": "माझी सबस्क्रिप्शन",
-        "currentPlan": "सध्याचा प्लॅन",
-        "freeTrial": "मोफत ट्रायल",
+        "title": "माझ्या सदस्यता",
+        "subtitle": "तुमची शिकण्याची क्षमता आणि अमर्यादित व्हॉइस कॉल अनलॉक करण्यासाठी प्रो मध्ये अपग्रेड करा",
+        "currentPlan": "सध्याची योजना",
+        "currentPlanBadge": "सध्याची योजना",
+        "freeTrial": "मोफत चाचणी",
         "active": "सक्रिय",
         "expired": "कालबाह्य",
-        "renewsOn": "नूतनीकरण",
-        "manageSubscription": "सबस्क्रिप्शन व्यवस्थापित करा",
+        "renewsOn": "नूतनीकरण होईल",
+        "manageSubscription": "सदस्यता व्यवस्थापित करा",
         "availablePlans": "उपलब्ध योजना",
         "popularPlan": "लोकप्रिय योजना",
         "activePlan": "सक्रिय योजना",
+        "offerNow": "आता ऑफर",
+        "only7Days": "केवळ ₹७/दिवस",
+        "day24h": "२४ तास प्रो ॲक्सेस",
+        "month3": "३ महिने ॲक्सेस",
         "noFeatures": "कोणतीही वैशिष्ट्ये सूचीबद्ध नाहीत",
         "haveCoupon": "कूपन कोड आहे का?",
         "hideCoupon": "कूपन लपवा",
-        "enterCode": "कोड प्रविष्ट करा",
+        "enterCode": "कोड टाका",
+        "enterCodePlaceholder": "येथे कोड टाका",
         "apply": "लागू करा",
         "couponRemoved": "कूपन काढले",
         "loading": "योजना लोड होत आहेत...",
         "month": "महिना",
         "year": "वर्ष",
-        "planUsed": "प्लॅन वापरला",
-        "choosePlan": "प्लॅन निवडा",
+        "planUsed": "योजना वापरली",
+        "choosePlan": "योजना निवडा",
+        "renewPlan": "योजना नूतनीकरण करा",
         "plans": {
             "freeTrial": {
-                "name": "मोफत ट्रायल",
-                "description": "मर्यादित वैशिष्ट्यांसह 24-तास ट्रायल"
+                "name": "मोफत चाचणी",
+                "description": "मर्यादित वैशिष्ट्यांसह २४ तासांची चाचणी"
             },
             "monthlyPlan": {
                 "name": "मासिक योजना",
@@ -520,13 +528,44 @@
             },
             "quarterlyPlan": {
                 "name": "त्रैमासिक योजना",
-                "description": "सर्व वैशिष्ट्यांमध्ये पूर्ण प्रवेश - दर 3 महिन्यांनी बिल"
+                "description": "सर्व वैशिष्ट्यांमध्ये पूर्ण प्रवेश - दर ३ महिन्यांनी बिल"
             },
             "yearlyPlan": {
                 "name": "वार्षिक योजना",
                 "description": "सर्व वैशिष्ट्यांमध्ये पूर्ण प्रवेश - वार्षिक बिल"
             }
+        },
+        "messages": {
+            "verifyingPayment": "पेमेंट स्थितीची पडताळणी केली जात आहे...",
+            "paymentSuccess": "पेमेंट यशस्वी! सदस्यता सक्रिय केली जात आहे...",
+            "paymentFailed": "पेमेंट अयशस्वी. कृपया पुन्हा प्रयत्न करा.",
+            "processingSubscription": "नवीन सदस्यता प्रक्रिया केली जात आहे...",
+            "enterCoupon": "कृपया कूपन कोड टाका",
+            "couponApplied": "कूपन लागू! तुम्ही ₹{{amount}} वाचवले",
+            "invalidCoupon": "अवैध कूपन",
+            "expiredCoupon": "अवैध किंवा कालबाह्य कूपन कोड",
+            "cancelingSubscription": "सदस्यता रद्द केली जात आहे...",
+            "cancelSuccess": "सदस्यता यशस्वीरित्या रद्द केली",
+            "initiatingSubscription": "सदस्यता सुरू केली जात आहे...",
+            "verifying": "पेमेंट यशस्वी! पडताळणी केली जात आहे...",
+            "activated": "सदस्यता सक्रिय!",
+            "verificationFailed": "पडताळणी अयशस्वी, कृपया समर्थनाशी संपर्क साधा.",
+            "activatedSuccess": "सदस्यता यशस्वीरित्या सक्रिय झाली!"
         }
+    },
+    "trialTimer": {
+        "expires": "कालबाह्य होईल",
+        "endsIn": "संपेल",
+        "expired": "चाचणी संपली",
+        "upgrade": "प्रो मध्ये अपग्रेड करा",
+        "day": "{{count}} दिवस",
+        "day_plural": "{{count}} दिवस",
+        "hour": "{{count}} तास",
+        "hour_plural": "{{count}} तास",
+        "freeTrial": "मोफत चाचणी",
+        "h": "ता",
+        "m": "मि",
+        "s": "से"
     },
     "landing": {
         "features": {
@@ -643,12 +682,18 @@
         }
     },
     "upgradeModal": {
-        "title": "Upgrade to Pro",
-        "subtitle": "Unlock your full potential",
+        "title": "प्रो मध्ये अपग्रेड करा",
+        "subtitle": "तुमची पूर्ण क्षमता अनलॉक करा",
+        "switchTitle": "सदस्यता बदला",
+        "confirmChanges": "कृपया तुमच्या बदलांची पुष्टी करा",
+        "currentPlan": "सध्याची योजना",
+        "newPlan": "नवीन योजना",
+        "switchDesc": "{{newPlan}} ची सदस्यता घेण्यासाठी, आम्हाला आधी तुमची सध्याची {{currentPlan}} सदस्यता रद्द करावी लागेल. तुम्ही पुष्टी केल्यावर ही क्रिया स्वयंचलितपणे होईल.",
+        "confirmSwitch": "पुष्टी करा आणि बदला",
         "reasons": {
-            "voiceCall": "You've used your daily 5 minutes of voice calls.",
-            "pronunciation": "Your 24-hour pronunciation access has expired.",
-            "general": "Unlock unlimited access to all features."
+            "voiceCall": "तुमच्या दैनंदिन ५ मिनिटांच्या व्हॉइस कॉलची मर्यादा तुम्ही वापरली आहे.",
+            "pronunciation": "तुमचा २४ तासांचा उच्चार प्रवेश संपला आहे.",
+            "general": "सर्व वैशिष्ट्यांमध्ये अमर्यादित प्रवेश अनलॉक करा."
         },
         "featuresTitle": "Pro Features",
         "features": {

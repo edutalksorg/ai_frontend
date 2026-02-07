@@ -486,45 +486,84 @@
         "errorLoad": "રેફરલ ડેટા લોડ કરવામાં નિષ્ફળ"
     },
     "subscriptionsPageView": {
-        "title": "મારા સબ્સ્ક્રિપ્શન્સ",
-        "currentPlan": "વર્તમાન યોજના",
+        "title": "મારી સબ્સ્ક્રિપ્શન્સ",
+        "subtitle": "તમારી શીખવાની ક્ષમતા અને અમર્યાદિત વૉઇસ કૉલ્સને અનલૉક કરવા માટે પ્રોમાં અપગ્રેડ કરો",
+        "currentPlan": "વર્તમાન પ્લાન",
+        "currentPlanBadge": "વર્તમાન પ્લાન",
         "freeTrial": "મફત ટ્રાયલ",
         "active": "સક્રિય",
         "expired": "સમાપ્ત",
-        "renewsOn": "નવીકરણ થશે",
+        "renewsOn": "નવીનીકરણ થશે",
         "manageSubscription": "સબ્સ્ક્રિપ્શન મેનેજ કરો",
-        "availablePlans": "ઉપલબ્ધ યોજનાઓ",
-        "popularPlan": "લોકપ્રિય યોજના",
-        "activePlan": "સક્રિય યોજના",
-        "noFeatures": "કોઈ સુવિધાઓ સૂચિબદ્ધ નથી",
-        "haveCoupon": "શું તમારી પાસે કૂપન કોડ છે?",
+        "availablePlans": "ઉપલબ્ધ પ્લાન્સ",
+        "popularPlan": "લોકપ્રિય પ્લાન",
+        "activePlan": "સક્રિય પ્લાન",
+        "offerNow": "અત્યારે ઓફર",
+        "only7Days": "દિવસમાં માત્ર ₹7",
+        "day24h": "24 કલાક પ્રો એક્સેસ",
+        "month3": "3 મહિનાની એક્સેસ",
+        "noFeatures": "કોઈ વિશેષતાઓ સૂચિબદ્ધ નથી",
+        "haveCoupon": "કૂપન કોડ છે?",
         "hideCoupon": "કૂપન છુપાવો",
-        "enterCode": "કોડ દાખલ કરો",
+        "enterCode": "કોડ લખો",
+        "enterCodePlaceholder": "અહીં કોડ લખો",
         "apply": "લાગુ કરો",
-        "couponRemoved": "કૂપન દૂર કર્યું",
-        "loading": "યોજનાઓ લોડ થઈ રહી છે...",
+        "couponRemoved": "કૂપન દૂર કરવામાં આવ્યું",
+        "loading": "પ્લાન્સ લોડ થઈ રહ્યા છે...",
         "month": "મહિનો",
         "year": "વર્ષ",
         "planUsed": "પ્લાન વપરાયેલ",
         "choosePlan": "પ્લાન પસંદ કરો",
+        "renewPlan": "પ્લાન રિન્યૂ કરો",
         "plans": {
             "freeTrial": {
-                "name": "મફત અજમાયશ",
-                "description": "મર્યાદિત સુવિધાઓ સાથે ૨૪-કલાકની અજમાયશ"
+                "name": "મફત ટ્રાયલ",
+                "description": "મર્યાદિત સુવિધાઓ સાથે 24 કલાકની ટ્રાયલ"
             },
             "monthlyPlan": {
-                "name": "માસિક યોજના",
-                "description": "તમામ સુવિધાઓની સંપૂર્ણ ઍક્સેસ - માસિક બિલ"
+                "name": "માસિક પ્લાન",
+                "description": "તમામ સુવિધાઓ માટે સંપૂર્ણ એક્સેસ - માસિક બિલ"
             },
             "quarterlyPlan": {
-                "name": "ત્રિમાસિક યોજના",
-                "description": "તમામ સુવિધાઓની સંપૂર્ણ ઍક્સેસ - દર ૩ મહિને બિલ"
+                "name": "ત્રિમાસિક પ્લાન",
+                "description": "તમામ સુવિધાઓ માટે સંપૂર્ણ એક્સેસ - દર 3 મહિને બિલ"
             },
             "yearlyPlan": {
-                "name": "વાર્ષિક યોજના",
-                "description": "તમામ સુવિધાઓની સંપૂર્ણ ઍક્સેસ - વાર્ષિક બિલ"
+                "name": "વાર્ષિક પ્લાન",
+                "description": "તમામ સુવિધાઓ માટે સંપૂર્ણ એક્સેસ - વાર્ષિક બિલ"
             }
+        },
+        "messages": {
+            "verifyingPayment": "પેમેન્ટ સ્ટેટસ ચકાસાઈ રહ્યું છે...",
+            "paymentSuccess": "પેમેન્ટ સફળ! સબ્સ્ક્રિપ્શન સક્રિય થઈ રહ્યું છે...",
+            "paymentFailed": "પેમેન્ટ નિષ્ફળ. કૃપા કરીને ફરી પ્રયાસ કરો.",
+            "processingSubscription": "નવું સબ્સ્ક્રિપ્શન પ્રોસેસ થઈ રહ્યું છે...",
+            "enterCoupon": "કૃપા કરીને કૂપન કોડ લખો",
+            "couponApplied": "કૂપન લાગુ! તમે ₹{{amount}} બચાવ્યા",
+            "invalidCoupon": "અમાન્ય કૂપન",
+            "expiredCoupon": "અમાન્ય અથવા સમયસીમા સમાપ્ત થયેલ કૂપન કોડ",
+            "cancelingSubscription": "સબ્સ્ક્રિપ્શન રદ કરવામાં આવી રહ્યું છે...",
+            "cancelSuccess": "સબ્સ્ક્રિપ્શન સફળતાપૂર્વક રદ કરવામાં આવ્યું",
+            "initiatingSubscription": "સબ્સ્ક્રિપ્શન શરૂ થઈ રહ્યું છે...",
+            "verifying": "પેમેન્ટ સફળ! ચકાસણી થઈ રહી છે...",
+            "activated": "સબ્સ્ક્રિપ્શન સક્રિય!",
+            "verificationFailed": "ચકાસણી નિષ્ફળ, કૃપા કરીને સપોર્ટનો સંપર્ક કરો.",
+            "activatedSuccess": "સબ્સ્ક્રિપ્શન સફળતાપૂર્વક સક્રિય થયું!"
         }
+    },
+    "trialTimer": {
+        "expires": "સમાપ્ત થશે",
+        "endsIn": "બાકી છે",
+        "expired": "ટ્રાયલ સમાપ્ત",
+        "upgrade": "પ્રોમાં અપગ્રેડ કરો",
+        "day": "{{count}} દિવસ",
+        "day_plural": "{{count}} દિવસ",
+        "hour": "{{count}} કલાક",
+        "hour_plural": "{{count}} કલાક",
+        "freeTrial": "મફત ટ્રાયલ",
+        "h": "ક",
+        "m": "મિ",
+        "s": "સે"
     },
     "landing": {
         "features": {
@@ -641,12 +680,18 @@
         }
     },
     "upgradeModal": {
-        "title": "Upgrade to Pro",
-        "subtitle": "Unlock your full potential",
+        "title": "પ્રોમાં અપગ્રેડ કરો",
+        "subtitle": "તમારી સંપૂર્ણ ક્ષમતાને અનલૉક કરો",
+        "switchTitle": "સબ્સ્ક્રિપ્શન બદલો",
+        "confirmChanges": "કૃપા કરીને તમારા ફેરફારોની પુષ્ટિ કરો",
+        "currentPlan": "વર્તમાન પ્લાન",
+        "newPlan": "નવો પ્લાન",
+        "switchDesc": "{{newPlan}} સબ્સ્ક્રાઇબ કરવા માટે, અમારે પહેલા તમારું વર્તમાન {{currentPlan}} સબ્સ્ક્રિપ્શન રદ કરવું પડશે. જ્યારે તમે પુષ્ટિ કરો ત્યારે આ ક્રિયા આપમેળે થશે.",
+        "confirmSwitch": "પુષ્ટિ કરો અને બદલો",
         "reasons": {
-            "voiceCall": "You've used your daily 5 minutes of voice calls.",
-            "pronunciation": "Your 24-hour pronunciation access has expired.",
-            "general": "Unlock unlimited access to all features."
+            "voiceCall": "તમે તમારી દૈનિક 5 મિનિટની વૉઇસ કૉલ્સનો ઉપયોગ કરી લીધો છે.",
+            "pronunciation": "તમારી 24-કલાકની ઉચ્ચારણ એક્સેસ સમાપ્ત થઈ ગઈ છે.",
+            "general": "તમામ સુવિધાઓ માટે અમર્યાદિત એક્સેસ અનલૉક કરો."
         },
         "featuresTitle": "Pro Features",
         "features": {

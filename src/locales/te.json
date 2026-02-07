@@ -251,6 +251,20 @@
         "noActivePlan": "యాక్టివ్ ప్లాన్ లేదు",
         "planExpired": "ప్లాన్ గడువు ముగిసింది"
     },
+    "trialTimer": {
+        "expires": "గడువు ముగుస్తుంది",
+        "endsIn": "ముగింపు సమయం",
+        "expired": "ట్రయల్ ముగిసింది",
+        "upgrade": "ప్రోకి అప్‌గ్రేడ్ చేయండి",
+        "day": "{{count}} రోజు",
+        "day_plural": "{{count}} రోజులు",
+        "hour": "{{count}} గంట",
+        "hour_plural": "{{count}} గంటలు",
+        "freeTrial": "ఉచిత ట్రయల్",
+        "h": "గం",
+        "m": "నిము",
+        "s": "సెక"
+    },
     "auth": {
         "login": "లాగిన్",
         "signup": "సైన్ అప్",
@@ -526,6 +540,7 @@
     },
     "subscriptionsPageView": {
         "title": "నా సబ్‌స్క్రిప్షన్‌లు",
+        "subtitle": "మీ ప్రయాణం కోసం సరైన ప్లాన్‌ను ఎంచుకోండి",
         "currentPlan": "ప్రస్తుత ప్లాన్",
         "freeTrial": "ఉచిత ట్రయల్",
         "active": "యాక్టివ్",
@@ -535,10 +550,15 @@
         "availablePlans": "అందుబాటులో ఉన్న ప్లాన్‌లు",
         "popularPlan": "పాపులర్ ప్లాన్",
         "activePlan": "యాక్టివ్ ప్లాన్",
+        "currentPlanBadge": "ప్రస్తుత ప్లాన్",
+        "offerNow": "ఇప్పుడే ఆఫర్",
+        "only7Days": "7 రోజులు మాత్రమే అందుబాటులో ఉంది",
+        "day24h": "24 గంటలు",
+        "month3": "3 నెలలు",
         "noFeatures": "ఫీచర్లు ఏవీ జాబితా చేయబడలేదు",
         "haveCoupon": "కూపన్ కోడ్ ఉందా?",
         "hideCoupon": "కూపన్ దాచు",
-        "enterCode": "కోడ్ ఎంటర్ చేయండి",
+        "enterCodePlaceholder": "కూపన్ కోడ్",
         "apply": "అప్లై",
         "couponRemoved": "కూపన్ తొలగించబడింది",
         "loading": "ప్లాన్‌లు లోడ్ అవుతున్నాయి...",
@@ -546,6 +566,7 @@
         "year": "సంవత్సరం",
         "planUsed": "ప్లాన్ ఉపయోగించబడింది",
         "choosePlan": "ప్లాన్‌ని ఎంచుకోండి",
+        "renewPlan": "ప్లాన్‌ను పునరుద్ధరించండి",
         "plans": {
             "freeTrial": {
                 "name": "ఉచిత ట్రయల్",
@@ -563,6 +584,23 @@
                 "name": "వార్షిక ప్లాన్",
                 "description": "అన్ని ఫీచర్లకు పూర్తి యాక్సెస్ - వార్షిక బిల్"
             }
+        },
+        "messages": {
+            "verifyingPayment": "చెల్లింపు స్థితిని ధృవీకరిస్తోంది...",
+            "paymentSuccess": "చెల్లింపు విజయవంతమైంది! సబ్‌స్క్రిప్షన్‌ను యాక్టివేట్ చేస్తోంది...",
+            "paymentFailed": "చెల్లింపు విఫలమైంది. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+            "processingSubscription": "కొత్త సబ్‌స్క్రిప్షన్‌ను ప్రాసెస్ చేస్తోంది...",
+            "enterCoupon": "దయచేసి కూపన్ కోడ్‌ను నమోదు చేయండి",
+            "couponApplied": "కూపన్ వర్తించబడింది! మీరు ₹{{amount}} ఆదా చేసారు",
+            "invalidCoupon": "చెల్లని కూపన్",
+            "expiredCoupon": "చెల్లని లేదా గడువు ముగిసిన కూపన్ కోడ్",
+            "cancelingSubscription": "సబ్‌స్క్రిప్షన్‌ను రద్దు చేస్తోంది...",
+            "cancelSuccess": "సబ్‌స్క్రిప్షన్ విజయవంతంగా రద్దు చేయబడింది",
+            "initiatingSubscription": "సబ్‌స్క్రిప్షన్‌ను ప్రారంభిస్తోంది...",
+            "verifying": "చెల్లింపు విజయవంతమైంది! ధృవీకరిస్తోంది...",
+            "activated": "సబ్‌స్క్రిప్షన్ యాక్టివేట్ చేయబడింది!",
+            "verificationFailed": "ధృవీకరణ విఫలమైంది, దయచేసి మద్దతును సంప్రదించండి.",
+            "activatedSuccess": "సబ్‌స్క్రిప్షన్ విజయవంతంగా యాక్టివేట్ చేయబడింది!"
         }
     },
     "landing": {
@@ -680,8 +718,14 @@
         }
     },
     "upgradeModal": {
-        "title": "Upgrade to Pro",
-        "subtitle": "Unlock your full potential",
+        "title": "ప్రోకి అప్‌గ్రేడ్ చేయండి",
+        "subtitle": "మీ పూర్తి సామర్థ్యాన్ని అన్‌లాక్ చేయండి",
+        "switchTitle": "సబ్‌స్క్రిప్షన్ మార్చండి",
+        "confirmChanges": "దయచేసి మీ మార్పులను నిర్ధారించండి",
+        "currentPlan": "ప్రస్తుత ప్లాన్",
+        "newPlan": "కొత్త ప్లాన్",
+        "switchDesc": "{{newPlan}} కు సబ్‌స్క్రయిబ్ కావడానికి, మేము మొదట మీ ప్రస్తుత {{currentPlan}} సబ్‌స్క్రిప్షన్‌ను రద్దు చేయాలి. మీరు నిర్ధారించినప్పుడు ఈ చర్య స్వయంచాలకంగా జరుగుతుంది.",
+        "confirmSwitch": "నిర్ధారించండి & మార్చండి",
         "reasons": {
             "voiceCall": "You've used your daily 5 minutes of voice calls.",
             "pronunciation": "Your 24-hour pronunciation access has expired.",

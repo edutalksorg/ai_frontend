@@ -643,12 +643,18 @@
         }
     },
     "upgradeModal": {
-        "title": "Upgrade to Pro",
-        "subtitle": "Unlock your full potential",
+        "title": "ಪ್ರೊಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ",
+        "subtitle": "ನಿಮ್ಮ ಪೂರ್ಣ ಸಾಮರ್ಥ್ಯವನ್ನು ಅನ್ಲಾಕ್ ಮಾಡಿ",
+        "switchTitle": "ಚಂದಾದಾರಿಕೆಯನ್ನು ಬದಲಿಸಿ",
+        "confirmChanges": "ನಿಮ್ಮ ಬದಲಾವಣೆಗಳನ್ನು ದೃಢೀಕರಿಸಿ",
+        "currentPlan": "ಪ್ರಸ್ತುತ ಯೋಜನೆ",
+        "newPlan": "ಹೊಸ ಯೋಜನೆ",
+        "switchDesc": "{{newPlan}} ಗೆ ಚಂದಾದಾರರಾಗಲು, ನಾವು ಮೊದಲು ನಿಮ್ಮ ಪ್ರಸ್ತುತ {{currentPlan}} ಚಂದಾದಾರಿಕೆಯನ್ನು ರದ್ದುಗೊಳಿಸಬೇಕು. ನೀವು ದೃಢೀಕರಿಸಿದಾಗ ಈ ಕ್ರಿಯೆಯು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಸಂಭವಿಸುತ್ತದೆ.",
+        "confirmSwitch": "ದೃಢೀಕರಿಸಿ ಮತ್ತು ಬದಲಿಸಿ",
         "reasons": {
-            "voiceCall": "You've used your daily 5 minutes of voice calls.",
-            "pronunciation": "Your 24-hour pronunciation access has expired.",
-            "general": "Unlock unlimited access to all features."
+            "voiceCall": "ನಿಮ್ಮ ದಿನನಿತ್ಯದ 5 ನಿಮಿಷಗಳ ಧ್ವನಿ ಕರೆಯ ಮಿತಿಯನ್ನು ನೀವು ಬಳಸಿದ್ದೀರಿ.",
+            "pronunciation": "ನಿಮ್ಮ 24 ಗಂಟೆಗಳ ಉಚ್ಚಾರಣಾ ಪ್ರವೇಶ ಮುಗಿದಿದೆ.",
+            "general": "ಎಲ್ಲಾ ವೈಶಿಷ್ಟ್ಯಗಳಿಗೆ ಅನಿಯಮಿತ ಪ್ರವೇಶವನ್ನು ಅನ್ಲಾಕ್ ಮಾಡಿ."
         },
         "featuresTitle": "Pro Features",
         "features": {
