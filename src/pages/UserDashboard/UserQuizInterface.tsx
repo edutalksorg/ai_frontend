@@ -62,16 +62,26 @@ const UserQuizInterface: React.FC = () => {
             setQuizzes(sortedItems);
             setAttempts(attemptsData);
 
-            let lastCompletedIndex = -1;
+            // Determine the last quiz the user PASSED (not just attempted)
+            let lastPassedIndex = -1;
             sortedItems.forEach((quiz: any, index: number) => {
                 const quizId = quiz.id || quiz._id;
                 const quizAttempts = attemptsData[quizId] || [];
-                if (quizAttempts.length > 0) {
-                    lastCompletedIndex = index;
+                const passingScore = quiz.passingScore || 60; // Default to 60% if not set
+
+                // Check if user has at least one attempt that meets or exceeds the passing score
+                const hasPassed = quizAttempts.some((attempt: any) => {
+                    const score = attempt.score ?? 0;
+                    return score >= passingScore;
+                });
+
+                if (hasPassed) {
+                    lastPassedIndex = index;
                 }
             });
 
-            const nextIndex = lastCompletedIndex + 1;
+            // Unlock the next quiz after the last passed quiz
+            const nextIndex = lastPassedIndex + 1;
             const newUnlockedIndex = Math.min(nextIndex, sortedItems.length - 1);
 
             setUnlockedIndex(newUnlockedIndex);
@@ -148,9 +158,17 @@ const UserQuizInterface: React.FC = () => {
                         <div className="lg:col-span-2 h-full flex flex-col">
                             {(() => {
                                 const quiz = quizzes[currentQuizIndex];
-                                const isCompleted = currentQuizIndex < unlockedIndex;
-                                const isLocked = !isCompleted && currentQuizIndex > unlockedIndex;
                                 const quizAttempts = attempts[quiz.id || quiz._id] || [];
+                                const passingScore = quiz.passingScore || 60;
+
+                                // Check if user has passed this quiz
+                                const hasPassed = quizAttempts.some((attempt: any) => {
+                                    const score = attempt.score ?? 0;
+                                    return score >= passingScore;
+                                });
+
+                                const isCompleted = hasPassed; // Only completed if passed
+                                const isLocked = !isCompleted && currentQuizIndex > unlockedIndex;
                                 const bestScore = quizAttempts.length > 0
                                     ? Math.max(...quizAttempts.map(a => a.score))
                                     : null;
@@ -271,15 +289,23 @@ const UserQuizInterface: React.FC = () => {
                             <div className="mt-0">
                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">{t('quiz.completed')}</span>
                                 <div className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
-                                    {quizzes.filter(q => attempts[q.id || q._id]?.length > 0).map((q, idx) => (
+                                    {quizzes.filter(q => {
+                                        const quizAttempts = attempts[q.id || q._id] || [];
+                                        const passingScore = q.passingScore || 60;
+                                        return quizAttempts.some((attempt: any) => (attempt.score ?? 0) >= passingScore);
+                                    }).map((q, idx) => (
                                         <div key={idx} className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
                                             <CheckCircle size={10} className="text-green-500" />
                                             <span className="truncate">{q.title}</span>
                                         </div>
                                     ))}
-                                    {quizzes.filter(q => attempts[q.id || q._id]?.length > 0).length === 0 && (
-                                        <span className="text-xs text-slate-400 italic">No quizzes completed yet</span>
-                                    )}
+                                    {quizzes.filter(q => {
+                                        const quizAttempts = attempts[q.id || q._id] || [];
+                                        const passingScore = q.passingScore || 60;
+                                        return quizAttempts.some((attempt: any) => (attempt.score ?? 0) >= passingScore);
+                                    }).length === 0 && (
+                                            <span className="text-xs text-slate-400 italic">No quizzes completed yet</span>
+                                        )}
                                 </div>
                             </div>
 

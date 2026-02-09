@@ -198,13 +198,12 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
 
     if (quizResult) {
         // Extract data from result - handle both nested and flat structures
-        const score = quizResult.score ?? quizResult.data?.score ?? 0;
-        // Backend returns correctCount, mapped here to correctAnswers for display
-        const correctAnswers = quizResult.correctAnswers ?? quizResult.data?.correctAnswers ?? quizResult.correctCount ?? quizResult.data?.correctCount ?? 0;
-        const totalQuestions = quizResult.totalQuestions ?? quizResult.data?.totalQuestions ?? quiz?.questions?.length ?? 0;
-        const totalPoints = quizResult.totalPoints ?? quizResult.data?.totalPoints ?? 0;
-        const passingScore = quiz?.passingScore || 70;
-        const passed = score >= passingScore;
+        const data = quizResult.data || quizResult;
+        const score = data.score ?? 0;
+        const correctAnswers = data.correctCount ?? data.correctAnswers ?? 0;
+        const totalQuestions = data.totalQuestions ?? quiz?.questions?.length ?? 0;
+        const passingScore = data.passingScore ?? quiz?.passingScore ?? 60;
+        const passed = data.passed ?? (score >= passingScore);
 
         return (
             <UserLayout hideNavbar={true}>

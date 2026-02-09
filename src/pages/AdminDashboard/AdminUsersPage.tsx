@@ -511,6 +511,15 @@ const AdminUsersPage: React.FC = () => {
                                                 >
                                                     <Eye className="w-5 h-5" />
                                                 </button>
+                                                {!['Admin', 'SuperAdmin'].includes(userData.role) && (
+                                                    <button
+                                                        onClick={() => handleDeleteUser(userData.id)}
+                                                        className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                                                        title="Delete User"
+                                                    >
+                                                        <Trash2 className="w-5 h-5" />
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -701,6 +710,32 @@ const AdminUsersPage: React.FC = () => {
                                         <p className="text-sm text-slate-500 dark:text-slate-400 italic">No active subscription</p>
                                     )}
                                 </div>
+
+                                {/* Danger Zone */}
+                                {!['Admin', 'SuperAdmin'].includes(selectedUser.role) && (
+                                    <div className="border-t border-red-200 dark:border-red-900/30 pt-4 mt-6">
+                                        <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-3 flex items-center gap-2">
+                                            <Trash2 className="w-5 h-5" />
+                                            Danger Zone
+                                        </h3>
+                                        <div className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 rounded-lg p-4">
+                                            <p className="text-sm text-red-600 dark:text-red-400 mb-4">
+                                                Deleting this user will permanently remove all their data, including profile, subscriptions, and progress. This action cannot be undone.
+                                            </p>
+                                            <Button
+                                                variant="danger"
+                                                onClick={() => {
+                                                    handleDeleteUser(selectedUser.id);
+                                                    setShowDetails(false);
+                                                }}
+                                                className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white"
+                                            >
+                                                <Trash2 size={18} />
+                                                Delete User Permanently
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
