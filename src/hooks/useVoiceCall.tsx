@@ -11,6 +11,7 @@ import {
 } from '../store/callSlice';
 import { callsService } from '../services/calls';
 import { signalRService } from '../services/signalr';
+import agoraService from '../services/agora';
 import { callLogger } from '../utils/callLogger';
 import { showToast } from '../store/uiSlice';
 
@@ -30,6 +31,8 @@ export const useVoiceCall = () => {
      */
     const initiateCall = async (calleeId: string, topicId?: string) => {
         try {
+            // Important: Resume AudioContext on user gesture
+            await agoraService.resumeAudioContext();
             callLogger.info('Initiating call', { calleeId, topicId, callerId: user?.id });
 
             // Prepare payload
@@ -135,6 +138,8 @@ export const useVoiceCall = () => {
      */
     const acceptCall = async (callId: string) => {
         try {
+            // Important: Resume AudioContext on user gesture
+            await agoraService.resumeAudioContext();
             callLogger.info('Accepting call', { callId });
 
             // 1. Accept Invitation via SignalR FIRST

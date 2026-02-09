@@ -49,19 +49,48 @@ const VoiceRecordsPage: React.FC = () => {
         fetchRecords(debouncedSearch);
     }, [debouncedSearch]);
 
-    const handleDownload = (record: VoiceRecord | any) => {
+    const handleDownload = async (record: VoiceRecord | any) => {
         const url = record.recordingUrl || record.recording_url;
-        if (!url) return;
+        if (!url) {
+            console.warn('No recording URL available for download');
+            return;
+        }
 
-        const apiUrl = import.meta.env.VITE_API_BASE_URL;
-        const fullUrl = url.startsWith('http') ? url : `${apiUrl}${url}`;
+        try {
+            const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+            const fullUrl = url.startsWith('http') ? url : `${apiUrl}${url}`;
 
-        const link = document.createElement('a');
-        link.href = fullUrl;
-        link.download = `call_${record.callId}.webm`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+            // Fetch the file as a blob
+            const response = await fetch(fullUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'audio/webm,audio/*,*/*'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to download: ${response.statusText}`);
+            }
+
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+
+            // Create download link
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = `call_recording_${record.callId}_${new Date().toISOString().slice(0, 10)}.webm`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Clean up blob URL
+            setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+
+            callLogger.info('Recording downloaded successfully');
+        } catch (error) {
+            callLogger.error('Failed to download recording', error);
+            alert('Failed to download recording. Please try again.');
+        }
     };
 
     // We use server-side search now

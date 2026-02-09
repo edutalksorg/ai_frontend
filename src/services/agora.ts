@@ -384,12 +384,19 @@ class AgoraService {
     // RECORDING IMPLEMENTATION
     // ==========================================
 
-    private async initAudioContext() {
+    async initAudioContext() {
         if (!this.audioContext) {
             this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
             this.recordingDestination = this.audioContext.createMediaStreamDestination();
         }
-        if (this.audioContext.state === 'suspended') {
+        await this.resumeAudioContext();
+    }
+
+    /**
+     * Resume AudioContext - MUST be called on a user gesture
+     */
+    async resumeAudioContext() {
+        if (this.audioContext && this.audioContext.state === 'suspended') {
             await this.audioContext.resume();
             console.log('🔊 AudioContext resumed');
         }
@@ -402,17 +409,23 @@ class AgoraService {
         try {
             console.log('🎙️ Starting call recording logic...');
             await this.initAudioContext();
+
+            console.log('🔊 AudioContext state:', this.audioContext?.state);
+            if (this.audioContext?.state !== 'running') {
+                console.warn('⚠️ AudioContext is not running! Recording might be silent.');
+            }
+
             this.recordedChunks = [];
 
             if (!this.recordingDestination) {
                 throw new Error('Recording destination not initialized');
             }
 
-            console.log('🔊 AudioContext state:', this.audioContext?.state);
-
             // 1. Add Local Audio
             if (this.localAudioTrack) {
-                const localMediaStream = new MediaStream([this.localAudioTrack.getMediaStreamTrack()]);
+                const track = this.localAudioTrack.getMediaStreamTrack();
+                console.log('🎤 Local track state:', track.enabled, track.readyState);
+                const localMediaStream = new MediaStream([track]);
                 this.localStreamSource = this.audioContext!.createMediaStreamSource(localMediaStream);
                 this.localStreamSource.connect(this.recordingDestination!);
                 console.log('✅ Local audio added to recording mix');
@@ -433,7 +446,9 @@ class AgoraService {
 
             // 3. Setup MediaRecorder
             const mixedStream = this.recordingDestination.stream;
-            console.log(`📊 Mixed stream has ${mixedStream.getAudioTracks().length} tracks`);
+            const audioTracks = mixedStream.getAudioTracks();
+            console.log(`📊 Mixed stream has ${audioTracks.length} audio tracks`);
+            audioTracks.forEach((t, i) => console.log(`  Track ${i}:`, t.label, t.enabled, t.readyState));
 
             // Check for supported mime types
             const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
@@ -446,11 +461,15 @@ class AgoraService {
             this.mediaRecorder.ondataavailable = (event) => {
                 if (event.data.size > 0) {
                     this.recordedChunks.push(event.data);
-                    console.log(`📥 Received recording chunk: ${event.data.size} bytes. Total chunks: ${this.recordedChunks.length}`);
+                    // Pulsing log to show it's working
+                    if (this.recordedChunks.length % 5 === 0) {
+                        console.log(`📥 Recording in progress... ${this.recordedChunks.length} chunks collected`);
+                    }
                 }
             };
 
             this.mediaRecorder.onstart = () => console.log('🟢 MediaRecorder started');
+            this.mediaRecorder.onstop = () => console.log('🔴 MediaRecorder stopped');
             this.mediaRecorder.onerror = (err) => console.error('🔴 MediaRecorder error:', err);
 
             this.mediaRecorder.start(1000); // Collect chunks every second
