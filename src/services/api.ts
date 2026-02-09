@@ -2,6 +2,12 @@ import axios, { AxiosInstance, AxiosError, AxiosResponse } from 'axios';
 import { STORAGE_KEYS } from '../constants';
 
 const getBaseUrl = () => {
+  // In development, we force relative paths to use the Vite proxy (see vite.config.ts)
+  // This prevents absolute production URLs from the environment from hijacking requests.
+  if (import.meta.env.DEV) {
+    return '/api';
+  }
+
   const envUrl = import.meta.env.VITE_API_BASE_URL;
 
   if (envUrl) {
@@ -15,13 +21,6 @@ const getBaseUrl = () => {
     if (url.endsWith('/api/v1')) return url;
     if (url.endsWith('/api')) return `${url}/v1`;
     return `${url}/api/v1`;
-  }
-
-  // Fallback if no env var
-  // In development, we might use a proxy (see vite.config.ts) or hit the backend directly
-  if (import.meta.env.DEV) {
-    // If you are running backend on a different port or machine, set VITE_API_BASE_URL in .env
-    return '/api/v1'; // Default to proxy path
   }
 
   // Production fallback to relative path

@@ -178,7 +178,7 @@ const AdminCouponsPage: React.FC = () => {
         if (applicableToVal === ApplicabilityType.SpecificPlans) applicableToString = 'SpecificPlans';
 
         const data = {
-            code: formData.get('code') as string,
+            code: (formData.get('code') as string).toUpperCase(),
             description: formData.get('description') as string,
             discountType: discountType,
             discountValue: parseFloat(formData.get('discountValue') as string),
@@ -601,7 +601,13 @@ const AdminCouponsPage: React.FC = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium mb-1 dark:text-slate-300">Code *</label>
-                                            <input name="code" required placeholder="SUMMER2025" className="w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+                                            <input
+                                                name="code"
+                                                required
+                                                placeholder="SUMMER2025"
+                                                className="w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700 dark:text-white uppercase"
+                                                onChange={(e) => e.target.value = e.target.value.toUpperCase()}
+                                            />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium mb-1 dark:text-slate-300">Discount Type *</label>
