@@ -351,10 +351,7 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
                 {/* Header / Timer */}
                 <div className="glass-panel p-4 rounded-xl flex items-center justify-between mb-8 sticky top-20 z-20 backdrop-blur-xl">
                     <div className="flex items-center gap-3">
-                        <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-600 font-bold text-sm">
-                            {currentQuestionIndex + 1}
-                        </span>
-                        <span className="text-sm font-medium text-slate-500">{t('quizTaking.of')} {quiz.questions?.length}</span>
+                        <span className="text-sm font-medium text-slate-500">{t('quizTaking.question')} {currentQuestionIndex + 1}</span>
                     </div>
 
                     <div className={`flex items-center gap-2 px-4 py-1.5 rounded-lg border font-mono font-bold ${timeLeft < 60 ? 'bg-red-50 text-red-600 border-red-200 animate-pulse' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'}`}>
@@ -363,13 +360,6 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
                     </div>
                 </div>
 
-                {/* Progress Bar */}
-                <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full mb-8 overflow-hidden">
-                    <div
-                        className="h-full bg-indigo-500 transition-all duration-300 ease-out"
-                        style={{ width: `${((currentQuestionIndex + 1) / quiz.questions.length) * 100}%` }}
-                    />
-                </div>
 
                 {/* Question Card */}
                 <div className="glass-card p-8 md:p-10 rounded-3xl mb-8 relative overflow-hidden">

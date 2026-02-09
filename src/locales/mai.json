@@ -518,13 +518,28 @@
                 "description": "सभ सुविधा लेल पूर्ण एक्सेस - मासिक बिल"
             },
             "quarterlyPlan": {
-                "name": "त्रैमासिक योजना",
+                "name": "त्रैماसिक योजना",
                 "description": "सभ सुविधा लेल पूर्ण एक्सेस - हर 3 महिना पर बिल"
             },
             "yearlyPlan": {
                 "name": "वार्षिक योजना",
                 "description": "सभ सुविधा लेल पूर्ण एक्सेस - वार्षिक बिल"
             }
+        },
+        "features": {
+            "ai_conversation_5min": "5 मिनट क संवादात्मक (Interactive) AI बातचीत।",
+            "performance_summary": "ट्रायल अवधि लेल अपन प्रदर्शन क सारांश देखू।",
+            "daily_challenge_participation": "एकटा \"डेली चैलेंज\" (Daily Challenge) अभ्यास में भागीदारी।",
+            "educational_modules_24h": "मुख्य शैक्षणिक मॉड्यूल में 24 घंटा क पूर्ण प्रवेश।",
+            "ai_language_tutor": "अपन व्यक्तिगत AI भाषा ट्यूटर क ऑन-डिमांड प्रवेश।",
+            "strength_analysis": "अपन शक्ति आ सुधार क क्षेत्र क बारे में गहीर विश्लेषण।",
+            "unlimited_learning_paths": "सभ वर्तमान आ नव लर्निंग पाथ (Learning Path) में असीमित प्रवेश।",
+            "email_support_24h": "24 घंटा क रिस्पॉन्स टाइम क साथ मानक ईमेल सपोर्ट।",
+            "offline_download_10": "ऑफलाइन अभ्यास लेल 10 मॉड्यूल धरि डाउनलोड करय क क्षमता।",
+            "personalized_learning_reports": "साप्ताहिक AI-जनरेटेड व्यक्तिगत लर्निंग रिपोर्ट।",
+            "unrestricted_voice_calls": "असीमित AI वॉयس कॉल आ अभ्यास क आनंद लहू।",
+            "monthly_included": "मासिक प्लान क सभ सुविधा शामिल अछि।",
+            "certificates_of_completion": "मुख्य कीर्तिमान लेल सर्टिफिकेट ऑफ कम्पलीशन (Certificate of Completion) प्राप्त करू।"
         }
     },
     "landing": {

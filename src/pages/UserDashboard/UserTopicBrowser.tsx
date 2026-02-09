@@ -118,158 +118,151 @@ const UserTopicBrowser: React.FC = () => {
             {loading ? (
                 <div className="py-20 text-center text-slate-500 animate-pulse">{t('topicBrowser.loading')}</div>
             ) : topics.length > 0 ? (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-                    {/* Left: Current Topic Card */}
-                    <div className="lg:col-span-2 h-full flex flex-col">
-                        {(() => {
-                            const topic = topics[currentTopicIndex];
-                            const isCompleted = currentTopicIndex < unlockedIndex || (currentTopicIndex === unlockedIndex && allCompleted);
-                            const isLocked = !isCompleted && currentTopicIndex > unlockedIndex;
+                <>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+                        {/* Left: Current Topic Card */}
+                        <div className="lg:col-span-2 h-full flex flex-col">
+                            {(() => {
+                                const topic = topics[currentTopicIndex];
+                                const isCompleted = currentTopicIndex < unlockedIndex || (currentTopicIndex === unlockedIndex && allCompleted);
+                                const isLocked = !isCompleted && currentTopicIndex > unlockedIndex;
 
-                            return (
-                                <div
-                                    className={`glass-card relative w-full overflow-hidden p-0 rounded-3xl transition-all duration-500 flex-1 flex flex-col justify-center group ${isLocked
-                                        ? 'grayscale opacity-75'
-                                        : 'hover:shadow-[0_20px_60px_-15px_rgba(99,102,241,0.4)] hover:-translate-y-2 hover:scale-[1.02]'
-                                        }`}
-                                >
-                                    {/* Card Background Decoration */}
-                                    {!isLocked && (
-                                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-                                    )}
+                                return (
+                                    <div
+                                        className={`glass-card relative w-full overflow-hidden p-0 rounded-3xl transition-all duration-500 flex-1 flex flex-col justify-center group ${isLocked
+                                            ? 'grayscale opacity-75'
+                                            : 'hover:shadow-[0_20px_60px_-15px_rgba(99,102,241,0.4)] hover:-translate-y-2 hover:scale-[1.02]'
+                                            }`}
+                                    >
+                                        {/* Card Background Decoration */}
+                                        {!isLocked && (
+                                            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                                        )}
 
-                                    <div className="p-8 sm:p-10 relative z-10">
-                                        <div className="flex justify-between items-start mb-6">
-                                            <div className={`p-4 rounded-2xl ${isLocked
-                                                ? 'bg-slate-100/50 dark:bg-slate-800/50 text-slate-400'
-                                                : isCompleted
-                                                    ? 'bg-green-500/10 text-green-500 shadow-lg shadow-green-500/20 backdrop-blur-md'
-                                                    : 'bg-indigo-500/10 text-indigo-500 shadow-lg shadow-indigo-500/20 backdrop-blur-md'
-                                                }`}>
-                                                {isCompleted ? <CheckCircle className="w-8 h-8" strokeWidth={1.5} /> : <BookMarked className="w-8 h-8" strokeWidth={1.5} />}
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                                <span className={`text-sm font-bold px-4 py-1.5 rounded-full border ${isLocked
-                                                    ? 'bg-slate-100/50 border-slate-200 text-slate-400'
-                                                    : 'bg-white/50 dark:bg-slate-800/50 border-slate-200/50 dark:border-white/10 text-slate-600 dark:text-slate-300 backdrop-blur-sm'
+                                        <div className="p-8 sm:p-10 relative z-10">
+                                            <div className="flex justify-between items-start mb-6">
+                                                <div className={`p-4 rounded-2xl ${isLocked
+                                                    ? 'bg-slate-100/50 dark:bg-slate-800/50 text-slate-400'
+                                                    : isCompleted
+                                                        ? 'bg-green-500/10 text-green-500 shadow-lg shadow-green-500/20 backdrop-blur-md'
+                                                        : 'bg-indigo-500/10 text-indigo-500 shadow-lg shadow-indigo-500/20 backdrop-blur-md'
                                                     }`}>
-                                                    {topic.level || 'General'}
-                                                </span>
-                                                {!isLocked && (
+                                                    {isCompleted ? <CheckCircle className="w-8 h-8" strokeWidth={1.5} /> : <BookMarked className="w-8 h-8" strokeWidth={1.5} />}
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <span className={`text-sm font-bold px-4 py-1.5 rounded-full border ${isLocked
+                                                        ? 'bg-slate-100/50 border-slate-200 text-slate-400'
+                                                        : 'bg-white/50 dark:bg-slate-800/50 border-slate-200/50 dark:border-white/10 text-slate-600 dark:text-slate-300 backdrop-blur-sm'
+                                                        }`}>
+                                                        {topic.level || 'General'}
+                                                    </span>
+                                                    {!isLocked && (
+                                                        <button
+                                                            className={`p-2.5 rounded-full hover:bg-white/50 dark:hover:bg-white/10 transition-colors backdrop-blur-sm border border-transparent hover:border-slate-200/50 dark:hover:border-white/10 ${topic.isFavorite ? 'text-yellow-400' : 'text-slate-300 hover:text-yellow-400'}`}
+                                                            onClick={(e) => toggleFavorite(e, topic)}
+                                                        >
+                                                            <Star size={22} className={topic.isFavorite ? "fill-current" : ""} />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <h4 className={`text-2xl sm:text-4xl font-extrabold mb-4 leading-tight ${isLocked ? 'text-slate-400' : 'text-slate-900 dark:text-white'
+                                                }`}>
+                                                {topic.title}
+                                            </h4>
+
+                                            <p className={`text-lg mb-10 leading-relaxed ${isLocked ? 'text-slate-400' : 'text-slate-600 dark:text-slate-300'
+                                                }`}>
+                                                {topic.description}
+                                            </p>
+
+                                            <div className="flex items-center justify-between">
+                                                {isLocked ? (
+                                                    <div className="flex items-center text-slate-400 font-medium bg-slate-100 dark:bg-slate-800/50 px-4 py-2 rounded-xl">
+                                                        <Lock size={18} className="mr-2" />
+                                                        <span>{t('topicBrowser.lockedDesc')}</span>
+                                                    </div>
+                                                ) : (
                                                     <button
-                                                        className={`p-2.5 rounded-full hover:bg-white/50 dark:hover:bg-white/10 transition-colors backdrop-blur-sm border border-transparent hover:border-slate-200/50 dark:hover:border-white/10 ${topic.isFavorite ? 'text-yellow-400' : 'text-slate-300 hover:text-yellow-400'}`}
-                                                        onClick={(e) => toggleFavorite(e, topic)}
+                                                        onClick={() => setSelectedTopicId(topic.id || topic._id)}
+                                                        className={`group relative px-8 py-4 rounded-xl font-bold text-lg shadow-xl outline-none overflow-hidden transition-all ${isCompleted
+                                                            ? 'bg-white text-green-600 border border-green-200 hover:bg-green-50'
+                                                            : 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:-translate-y-1'
+                                                            }`}
                                                     >
-                                                        <Star size={22} className={topic.isFavorite ? "fill-current" : ""} />
+                                                        <span className="relative z-10 flex items-center gap-2">
+                                                            {isCompleted ? t('topicBrowser.reviewTopic') : t('topicBrowser.startLearning')}
+                                                            <span className="transition-transform group-hover:translate-x-1">→</span>
+                                                        </span>
                                                     </button>
                                                 )}
                                             </div>
                                         </div>
+                                    </div>
+                                );
+                            })()}
+                        </div>
 
-                                        <h4 className={`text-2xl sm:text-4xl font-extrabold mb-4 leading-tight ${isLocked ? 'text-slate-400' : 'text-slate-900 dark:text-white'
-                                            }`}>
-                                            {topic.title}
-                                        </h4>
-
-                                        <p className={`text-lg mb-10 leading-relaxed ${isLocked ? 'text-slate-400' : 'text-slate-600 dark:text-slate-300'
-                                            }`}>
-                                            {topic.description}
-                                        </p>
-
-                                        <div className="flex items-center justify-between">
-                                            {isLocked ? (
-                                                <div className="flex items-center text-slate-400 font-medium bg-slate-100 dark:bg-slate-800/50 px-4 py-2 rounded-xl">
-                                                    <Lock size={18} className="mr-2" />
-                                                    <span>{t('topicBrowser.lockedDesc')}</span>
-                                                </div>
-                                            ) : (
-                                                <button
-                                                    onClick={() => setSelectedTopicId(topic.id || topic._id)}
-                                                    className={`group relative px-8 py-4 rounded-xl font-bold text-lg shadow-xl outline-none overflow-hidden transition-all ${isCompleted
-                                                        ? 'bg-white text-green-600 border border-green-200 hover:bg-green-50'
-                                                        : 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:-translate-y-1'
-                                                        }`}
-                                                >
-                                                    <span className="relative z-10 flex items-center gap-2">
-                                                        {isCompleted ? t('topicBrowser.reviewTopic') : t('topicBrowser.startLearning')}
-                                                        <span className="transition-transform group-hover:translate-x-1">→</span>
-                                                    </span>
-                                                </button>
-                                            )}
-                                        </div>
+                        {/* Right: Progress & Navigation */}
+                        <div className="glass-panel p-6 rounded-3xl flex flex-col h-full">
+                            {/* Progress Card */}
+                            <div className="mb-6">
+                                <div className="mt-0 pt-0 border-t-0">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">{t('topicBrowser.completed')}</span>
+                                    <div className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                                        {topics.filter(t => t.isCompleted || t.completed).map((t, idx) => (
+                                            <div key={idx} className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
+                                                <CheckCircle size={10} className="text-green-500" />
+                                                <span className="truncate">{t.title}</span>
+                                            </div>
+                                        ))}
+                                        {topics.filter(t => t.isCompleted || t.completed).length === 0 && (
+                                            <span className="text-xs text-slate-400 italic">No lessons completed yet</span>
+                                        )}
                                     </div>
                                 </div>
-                            );
-                        })()}
-                    </div>
 
-                    {/* Right: Progress & Navigation */}
-                    <div className="glass-panel p-6 rounded-3xl flex flex-col h-full">
-                        {/* Progress Card */}
-                        <div className="mb-6">
-                            <div className="flex justify-between items-end mb-3">
-                                <div>
-                                    <span className="text-sm font-medium text-slate-500 dark:text-slate-400 block mb-1">{t('topicBrowser.progress')}</span>
-                                    <span className="text-2xl font-bold text-slate-900 dark:text-white">{Math.round(((currentTopicIndex + 1) / topics.length) * 100)}%</span>
+                                {/* Status Badge */}
+                                <div className="flex justify-center mt-6">
+                                    {currentTopicIndex < unlockedIndex && (
+                                        <span className="flex items-center gap-2 px-4 py-2 bg-green-500/10 text-green-500 rounded-full font-bold text-sm border border-green-500/20 backdrop-blur-sm transition-all hover:scale-105 hover:shadow-lg hover:shadow-green-500/20">
+                                            <CheckCircle size={16} />
+                                            <span>{t('topicBrowser.completed')}</span>
+                                        </span>
+                                    )}
                                 </div>
-                                <span className="text-sm text-slate-500">{currentTopicIndex + 1} / {topics.length}</span>
                             </div>
-                            <div className="w-full h-3 bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden shadow-inner">
-                                <div
-                                    className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]"
-                                    style={{ width: `${((currentTopicIndex + 1) / topics.length) * 100}%` }}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Status Badge */}
-                        <div className="flex justify-center mb-6">
-                            {currentTopicIndex < unlockedIndex ? (
-                                <span className="flex items-center gap-2 px-4 py-2 bg-green-500/10 text-green-500 rounded-full font-bold text-sm border border-green-500/20 backdrop-blur-sm transition-all hover:scale-105 hover:shadow-lg hover:shadow-green-500/20">
-                                    <CheckCircle size={16} />
-                                    <span>{t('topicBrowser.completed')}</span>
-                                </span>
-                            ) : currentTopicIndex === unlockedIndex ? (
-                                <span className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 text-indigo-500 rounded-full font-bold text-sm border border-indigo-500/20 backdrop-blur-sm animate-pulse transition-all hover:scale-105 hover:shadow-lg hover:shadow-indigo-500/20">
-                                    <Sparkles size={16} />
-                                    <span>{t('topicBrowser.current')}</span>
-                                </span>
-                            ) : (
-                                <span className="flex items-center gap-2 px-4 py-2 bg-slate-500/10 text-slate-500 rounded-full font-bold text-sm border border-slate-500/20 backdrop-blur-sm">
-                                    <Lock size={16} />
-                                    <span>{t('topicBrowser.locked')}</span>
-                                </span>
-                            )}
-                        </div>
-
-                        {/* Navigation Buttons */}
-                        <div className="space-y-3 flex-1 flex flex-col justify-end">
-                            <button
-                                onClick={() => setCurrentTopicIndex(prev => Math.max(0, prev - 1))}
-                                disabled={currentTopicIndex === 0}
-                                className={`w-full glass-button px-5 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${currentTopicIndex === 0
-                                    ? 'opacity-50 cursor-not-allowed'
-                                    : 'hover:-translate-x-1 hover:scale-105 hover:shadow-lg hover:shadow-indigo-500/20'
-                                    }`}
-                            >
-                                <span>←</span>
-                                <span>{t('common.previous')}</span>
-                            </button>
-
-                            <button
-                                onClick={() => setCurrentTopicIndex(prev => Math.min(topics.length - 1, prev + 1))}
-                                disabled={currentTopicIndex >= unlockedIndex || currentTopicIndex === topics.length - 1}
-                                className={`w-full glass-button px-5 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${currentTopicIndex >= unlockedIndex || currentTopicIndex === topics.length - 1
-                                    ? 'opacity-50 cursor-not-allowed'
-                                    : 'hover:translate-x-1 hover:scale-105 hover:shadow-lg hover:shadow-indigo-500/20'
-                                    }`}
-                            >
-                                <span>{t('common.next')}</span>
-                                <span>→</span>
-                            </button>
                         </div>
                     </div>
-                </div>
+
+                    {/* Navigation Buttons - Moved to bottom */}
+                    <div className="flex items-center justify-between gap-4 mt-8">
+                        <button
+                            onClick={() => setCurrentTopicIndex(prev => Math.max(0, prev - 1))}
+                            disabled={currentTopicIndex === 0}
+                            className={`px-8 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 border bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 ${currentTopicIndex === 0
+                                ? 'opacity-50 cursor-not-allowed'
+                                : 'hover:bg-slate-50 dark:hover:bg-white/10'
+                                }`}
+                        >
+                            <span>←</span>
+                            <span>{t('common.previous')}</span>
+                        </button>
+
+                        <button
+                            onClick={() => setCurrentTopicIndex(prev => Math.min(topics.length - 1, prev + 1))}
+                            disabled={currentTopicIndex >= unlockedIndex || currentTopicIndex === topics.length - 1}
+                            className={`px-8 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 border bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 ${currentTopicIndex >= unlockedIndex || currentTopicIndex === topics.length - 1
+                                ? 'opacity-50 cursor-not-allowed'
+                                : 'hover:bg-slate-50 dark:hover:bg-white/10 text-indigo-600 border-indigo-500/30'
+                                }`}
+                        >
+                            <span>{t('common.next')}</span>
+                            <span>→</span>
+                        </button>
+                    </div>
+                </>
             ) : (
                 <div className="glass-panel py-20 text-center rounded-3xl">
                     <BookOpen className="w-16 h-16 text-slate-300 mx-auto mb-4" />
@@ -278,7 +271,7 @@ const UserTopicBrowser: React.FC = () => {
                     </p>
                 </div>
             )}
-        </div>
+        </div >
     );
 };
 

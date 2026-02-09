@@ -207,6 +207,21 @@
         "description": "Full access to all features - billed annually"
       }
     },
+    "features": {
+      "ai_conversation_5min": "5 minutes of interactive AI conversation.",
+      "performance_summary": "View your performance summary for the trial period.",
+      "daily_challenge_participation": "Participation in one \"Daily Challenge\" exercise.",
+      "educational_modules_24h": "24-hour full access to core educational modules.",
+      "ai_language_tutor": "On-demand access to our personalized AI language tutor.",
+      "strength_analysis": "In-depth analysis of your strengths and areas for improvement.",
+      "unlimited_learning_paths": "Unlimited access to all existing and new learning paths.",
+      "email_support_24h": "Standard email support with 24-hour response time.",
+      "offline_download_10": "Ability to download up to 10 modules for offline practice.",
+      "personalized_learning_reports": "Weekly AI-generated personalized learning reports.",
+      "unrestricted_voice_calls": "Enjoy unrestricted AI voice calls and practice.",
+      "monthly_included": "All features from the Monthly plan included.",
+      "certificates_of_completion": "Earn certificates of completion for major milestones."
+    },
     "messages": {
       "verifyingPayment": "Verifying payment status...",
       "paymentSuccess": "Payment successful! Activating subscription...",

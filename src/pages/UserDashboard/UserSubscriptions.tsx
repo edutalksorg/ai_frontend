@@ -188,6 +188,25 @@ const UserSubscriptions: React.FC = () => {
         return null;
     };
 
+    const getFeatureTranslationKey = (displayValue: string) => {
+        const featureMap: Record<string, string> = {
+            "5 minutes of interactive AI conversation.": "ai_conversation_5min",
+            "View your performance summary for the trial period.": "performance_summary",
+            "Participation in one \"Daily Challenge\" exercise.": "daily_challenge_participation",
+            "24-hour full access to core educational modules.": "educational_modules_24h",
+            "On-demand access to our personalized AI language tutor.": "ai_language_tutor",
+            "In-depth analysis of your strengths and areas for improvement.": "strength_analysis",
+            "Unlimited access to all existing and new learning paths.": "unlimited_learning_paths",
+            "Standard email support with 24-hour response time.": "email_support_24h",
+            "Ability to download up to 10 modules for offline practice.": "offline_download_10",
+            "Weekly AI-generated personalized learning reports.": "personalized_learning_reports",
+            "Enjoy unrestricted AI voice calls and practice.": "unrestricted_voice_calls",
+            "All features from the Monthly plan included.": "monthly_included",
+            "Earn certificates of completion for major milestones.": "certificates_of_completion"
+        };
+        return featureMap[displayValue.trim()] || null;
+    };
+
     const getTranslatedPlanName = (originalName: string) => {
         const key = getPlanTranslationKey(originalName);
         return key ? t(`subscriptionsPageView.plans.${key}.name`) : originalName;
@@ -546,7 +565,7 @@ const UserSubscriptions: React.FC = () => {
                                                     <div className={`mt-0.5 p-0.5 rounded-full shrink-0 ${isYearlyPlan ? 'bg-violet-100 dark:bg-violet-900/50 text-violet-600 dark:text-violet-400' : 'bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400'}`}>
                                                         <Check size={12} strokeWidth={3} />
                                                     </div>
-                                                    <span className="leading-tight">{displayValue}</span>
+                                                    <span className="leading-tight">{String(t(`subscriptionsPageView.features.${getFeatureTranslationKey(displayValue) || key}`, displayValue))}</span>
                                                 </li>
                                             );
                                         })
