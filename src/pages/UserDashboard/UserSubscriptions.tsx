@@ -233,31 +233,30 @@ const UserSubscriptions: React.FC = () => {
         try {
             setValidatingCoupon(prev => ({ ...prev, [planId]: true }));
             const response = await couponsService.validate({
-                couponCode: code,
+                couponCode: code.toUpperCase(),
                 amount: plan.price,
                 itemType: 'Subscription',
                 itemId: planId,
             });
             const couponData = (response as any)?.data || response;
-            const discount = couponData.calculatedDiscount ?? couponData.discountAmount ?? 0;
 
-            if (couponData && (discount !== undefined || couponData.finalPrice !== undefined)) {
+            if (couponData && (couponData.discountAmount !== undefined || couponData.finalPrice !== undefined)) {
                 const couponInfo = {
-                    code: code,
-                    discountAmount: discount,
+                    code: code.toUpperCase(),
+                    discountAmount: couponData.discountAmount,
                     finalPrice: couponData.finalPrice,
                     discountPercentage: couponData.discountPercentage,
-                    discountValue: couponData.discountValue ?? discount,
-                    discountType: couponData.discountType || 'FixedAmount',
+                    discountValue: couponData.discountAmount,
+                    discountType: 'FixedAmount',
                 };
                 setAppliedCoupons(prev => ({ ...prev, [planId]: couponInfo }));
-                dispatch(showToast({ message: t('subscriptionsPageView.messages.couponApplied', { amount: discount }), type: 'success' }));
+                dispatch(showToast({ message: t('subscriptionsPageView.messages.couponApplied', { amount: couponData.discountAmount }), type: 'success' }));
                 setCouponCode('');
             } else {
                 dispatch(showToast({ message: t('subscriptionsPageView.messages.invalidCoupon'), type: 'error' }));
             }
         } catch (error: any) {
-            const errorMsg = error.response?.data?.message || error.response?.data?.messages?.[0] || t('subscriptionsPageView.messages.expiredCoupon');
+            const errorMsg = error.response?.data?.messages?.[0] || t('subscriptionsPageView.messages.expiredCoupon');
             dispatch(showToast({ message: errorMsg, type: 'error' }));
         } finally {
             setValidatingCoupon(prev => ({ ...prev, [planId]: false }));
@@ -583,7 +582,7 @@ const UserSubscriptions: React.FC = () => {
                                                             <input
                                                                 className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                                                                 value={couponCode}
-                                                                onChange={e => setCouponCode(e.target.value)}
+                                                                onChange={e => setCouponCode(e.target.value.toUpperCase())}
                                                                 placeholder={t('subscriptionsPageView.enterCodePlaceholder')}
                                                             />
                                                             <Button size="sm" onClick={() => validateAndApplyCoupon(plan, couponCode)} disabled={!couponCode}>{t('subscriptionsPageView.apply')}</Button>

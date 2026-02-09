@@ -249,12 +249,9 @@ export interface ValidateCouponRequest {
 }
 
 export interface ValidateCouponResponse {
-  discountAmount?: number; // Keep for legacy
-  calculatedDiscount?: number; // Backend returns this
+  discountAmount: number;
   finalPrice: number;
   discountPercentage?: number;
-  discountValue?: number;
-  discountType?: string;
 }
 
 export interface ApplyCouponRequest {
