@@ -1,20 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useDispatch } from 'react-redux';
+import { motion, useMotionValue, useTransform, useSpring, AnimatePresence, Variants } from 'framer-motion';
 import Button from '../../components/Button';
 import { authService } from '../../services/auth';
 import { setAuthData, setError } from '../../store/authSlice';
 import { showToast } from '../../store/uiSlice';
 import { AppDispatch } from '../../store';
 import { Logo } from '../../components/common/Logo';
+import { Eye, EyeOff, User, Mail, Phone, Lock, Gift, Check, X, Sparkles, Wand2, AlertCircle, ArrowRight, GraduationCap, BookOpen, PenTool, ArrowLeft } from 'lucide-react';
+import { RegisterIllustration } from '../../components/auth/AuthIllustrations';
 
-// Helper component
 
-// Helper component deleted line 16
 
 type RegisterFormData = {
   fullName: string;
@@ -34,28 +35,32 @@ const RegisterPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isInteracting, setIsInteracting] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // 3D Tilt Values REMOVED
+
+
 
   const registerSchema = React.useMemo(() => z
     .object({
-      fullName: z.string().min(2, t('auth.validation.fullNameMin')),
-      email: z.string().email(t('auth.validation.emailInvalid')),
-      phoneNumber: z.string().regex(/^\d{10}$/, t('auth.validation.phoneDigits')),
-      // Password rules: at least 8 chars, at least one digit, at least one special char
+      fullName: z.string().min(2, 'Full name must be at least 2 characters'),
+      email: z.string().email('Please enter a valid email address'),
+      phoneNumber: z.string().regex(/^\d{10}$/, 'Phone number must be 10 digits'),
       password: z
         .string()
-        .min(8, t('auth.validation.passwordMin'))
-        .regex(/[A-Z]/, t('auth.validation.passwordUppercase'))
-        .regex(/[a-z]/, t('auth.validation.passwordLowercase'))
-        .regex(/[0-9]/, t('auth.validation.passwordNumber'))
-        .regex(/[!@#$%^&*]/, t('auth.validation.passwordSpecial')),
+        .min(8, 'Password must be at least 8 characters')
+        .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+        .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+        .regex(/[0-9]/, 'Password must contain at least one number')
+        .regex(/[!@#$%^&*]/, 'Password must contain at least one special character'),
       confirmPassword: z.string(),
-      // Role is fixed to 'user' for public registration
       role: z.literal('user').default('user'),
       referralCode: z.string().optional(),
       referralSource: z.string().optional(),
     })
     .refine((data) => data.password === data.confirmPassword, {
-      message: t('auth.validation.passwordMatch'),
+      message: "Passwords don't match",
       path: ['confirmPassword'],
     }), [t]);
 
@@ -67,333 +72,289 @@ const RegisterPage: React.FC = () => {
     watch,
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
-    defaultValues: {
-      role: 'user',
-    },
+    defaultValues: { role: 'user' },
   });
 
   const passwordValue = watch('password') || '';
-
   const passwordRequirements = [
-    { label: t('auth.reqLength'), met: passwordValue.length >= 8 },
-    { label: t('auth.reqUppercase'), met: /[A-Z]/.test(passwordValue) },
-    { label: t('auth.reqLowercase'), met: /[a-z]/.test(passwordValue) },
-    { label: t('auth.reqNumber'), met: /[0-9]/.test(passwordValue) },
-    { label: t('auth.reqSpecial'), met: /[!@#$%^&*]/.test(passwordValue) },
+    { label: '8+ Chars', met: passwordValue.length >= 8 },
+    { label: 'Uppercase', met: /[A-Z]/.test(passwordValue) },
+    { label: 'Lowercase', met: /[a-z]/.test(passwordValue) },
+    { label: 'Number', met: /[0-9]/.test(passwordValue) },
+    { label: 'Special', met: /[!@#$%^&*]/.test(passwordValue) },
   ];
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setIsLoading(true);
-      // Prepare payload matching backend schema
-      // Normalize phone to digits only to avoid formatting mismatches
       const normalizedPhone = data.phoneNumber ? data.phoneNumber.replace(/\D/g, '') : '';
-
-      const payload: any = {
-        fullName: data.fullName,
-        email: data.email,
-        phoneNumber: normalizedPhone,
-        password: data.password,
-        confirmPassword: data.confirmPassword,
-        role: data.role,
-        referralCode: data.referralCode,
-        referralSource: data.referralSource,
-      };
-
-      const response = await authService.register(payload);
-
-      // Do not auto-login after registration; redirect user to login page.
-      dispatch(
-        showToast({
-          message: t('auth.registrationSuccess'),
-          type: 'success',
-        })
-      );
-
-      // Redirect to login so user can authenticate explicitly
+      await authService.register({ ...data, phoneNumber: normalizedPhone });
+      dispatch(showToast({ message: 'Registration successful! Please login.', type: 'success' }));
       navigate('/login');
     } catch (error: any) {
-      // Try to map validation errors to form fields for better UX
       const serverData = error?.response?.data || error || {};
-
       const errorsArr: any[] = serverData.errors || serverData.validationErrors || [];
-      // Map phone error
-      const phoneExists = Array.isArray(errorsArr)
-        ? errorsArr.includes('PHONE_EXISTS') || errorsArr.some((e: string) => typeof e === 'string' && e.toLowerCase().includes('phone'))
-        : false;
 
-      if (phoneExists) {
-        setFormError('phoneNumber', {
-          type: 'server',
-          message: 'A user with this phone number already exists',
-        });
-        dispatch(showToast({ message: 'A user with this phone number already exists', type: 'error' }));
+      if (errorsArr.some((e: any) => String(e).includes('phone'))) {
+        setFormError('phoneNumber', { type: 'server', message: 'Phone number already exists' });
+      }
+      if (errorsArr.some((e: any) => String(e).includes('email')) || (serverData.messages && serverData.messages.includes('User with this email already exists'))) {
+        setFormError('email', { type: 'server', message: 'Email already exists' });
       }
 
-      // Map email error
-      const emailExists = Array.isArray(errorsArr)
-        ? errorsArr.includes('EMAIL_EXISTS') || errorsArr.some((e: string) => typeof e === 'string' && e.toLowerCase().includes('email exists'))
-        : (serverData.messages && serverData.messages.includes('User with this email already exists'));
-
-      if (emailExists) {
-        setFormError('email', {
-          type: 'server',
-          message: 'User with this email already exists',
-        });
-        dispatch(showToast({ message: 'User with this email already exists', type: 'error' }));
-      }
-
-      // Map password-specific backend errors
-      const passwordRequiresDigit = Array.isArray(errorsArr) && errorsArr.includes('PasswordRequiresDigit');
-      const passwordRequiresSpecial = Array.isArray(errorsArr) && errorsArr.includes('PasswordRequiresNonAlphanumeric');
-
-      if (passwordRequiresDigit || passwordRequiresSpecial) {
-        const messages: string[] = [];
-        if (passwordRequiresDigit) messages.push(t('auth.validation.passwordNumber'));
-        if (passwordRequiresSpecial) messages.push(t('auth.validation.passwordSpecial'));
-
-        setFormError('password', {
-          type: 'server',
-          message: messages.join('. '),
-        });
-
-        // Also set confirmPassword error to prompt user to re-enter
-        setFormError('confirmPassword', {
-          type: 'server',
-          message: 'Please re-enter the password after fixing the requirements',
-        });
-
-        dispatch(showToast({ message: messages.join('. '), type: 'error' }));
-      }
-
-      // If no mapped field errors, show generic message
-      if (!phoneExists && !emailExists && !passwordRequiresDigit && !passwordRequiresSpecial) {
-        const errorMessage = serverData.message || error?.message || 'Registration failed';
-        dispatch(setError(errorMessage));
-        dispatch(showToast({ message: errorMessage, type: 'error' }));
-      }
+      const errorMessage = serverData.message || error?.message || 'Registration failed';
+      dispatch(setError(errorMessage));
+      dispatch(showToast({ message: errorMessage, type: 'error' }));
     } finally {
       setIsLoading(false);
     }
   };
 
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.08,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants: Variants = {
+    hidden: { y: 20, opacity: 0, scale: 0.95, rotateX: -15 },
+    visible: {
+      y: 0, opacity: 1, scale: 1, rotateX: 0,
+      transition: { type: "spring", stiffness: 200, damping: 20 }
+    }
+  };
+
+  const floatingIconVariants: Variants = {
+    float: {
+      y: [-6, 6, -6],
+      rotate: [5, -5, 5],
+      transition: {
+        duration: 5,
+        ease: "easeInOut",
+        repeat: Infinity
+      }
+    }
+  };
+
   return (
-    <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="card">
-          {/* Back to Home Button */}
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors mb-6 group"
+    <div className="h-[100dvh] w-full relative flex overflow-hidden bg-slate-900 selection:bg-fuchsia-500/30">
+
+      {/* UNIFIED BACKGROUND - Spans entire page */}
+      <div className="absolute inset-0 bg-gradient-to-br from-violet-900 via-slate-900 to-fuchsia-900" />
+      <div className="absolute inset-0 bg-[url('/assets/grid-pattern.svg')] opacity-10" />
+
+      {/* Shared Ambient Glows */}
+      <div className="absolute top-[-20%] left-[-10%] w-[800px] h-[800px] bg-violet-600/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[800px] h-[800px] bg-fuchsia-600/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+
+      {/* Back Button */}
+      <Link to="/" className="absolute top-6 left-6 z-50 flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 backdrop-blur-md transition-all text-slate-400 hover:text-white group">
+        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+        <span className="text-xs font-bold uppercase tracking-wider">Back</span>
+      </Link>
+
+      {/* Floating Particles/Stars spanning across */}
+      <motion.div
+        animate={{ y: [0, -20, 0], x: [0, 10, 0], opacity: [0.3, 0.6, 0.3] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute top-1/4 left-1/3 w-2 h-2 bg-white rounded-full blur-[1px]"
+      />
+      <motion.div
+        animate={{ y: [0, 30, 0], x: [0, -10, 0], opacity: [0.2, 0.5, 0.2] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        className="absolute bottom-1/3 right-1/3 w-3 h-3 bg-sky-400 rounded-full blur-[2px]"
+      />
+
+      {/* MAIN CONTENT CONTAINER */}
+      <div className="relative z-10 w-full h-full flex flex-col lg:flex-row items-center justify-center p-4 lg:p-12 gap-8 lg:gap-16">
+
+        {/* LEFT SIDE: CUSTOM ILLUSTRATION */}
+        <div className="hidden lg:flex flex-1 flex-col items-center justify-center relative">
+          <RegisterIllustration />
+
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="text-center mt-8 relative z-20"
           >
-            <svg
-              className="w-5 h-5 transition-transform group-hover:-translate-x-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+            <h2 className="text-5xl font-black text-white mb-4 tracking-tighter drop-shadow-2xl">
+              Join the <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">Revolution</span>
+            </h2>
+            <p className="text-slate-300 text-lg max-w-md mx-auto leading-relaxed font-medium">
+              Experience the cutest way to master English pronunciation with AI.
+            </p>
+          </motion.div>
+        </div>
+
+        {/* RIGHT SIDE: FORM CARD */}
+        <div className="flex-1 w-full max-w-[480px] flex items-center justify-center">
+
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="w-full relative"
+          >
+            {/* Mobile Logo */}
+            <div className="lg:hidden flex justify-center mb-6">
+              <Logo className="w-12 h-12" />
+            </div>
+
+            {/* The Card - Now clearly floating on the shared background */}
+            <motion.div
+              ref={cardRef}
+              className="glass-panel-v2 relative overflow-hidden p-6 sm:p-10 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-slate-900/40 backdrop-blur-md rounded-[2.5rem]"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            {/* <span className="text-sm font-medium">Back to Home</span> */}
-          </Link>
+              {/* Card Internals - Subtle highlight */}
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-sky-500 via-fuchsia-500 to-sky-500 opacity-50" />
 
-          {/* Logo */}
-          <div className="flex justify-center mb-8">
-            <Logo className="scale-125" />
-          </div>
-
-          <h1 className="text-3xl font-bold text-center mb-2 text-slate-900 dark:text-white">
-            {t('auth.createAccount')}
-          </h1>
-          <p className="text-center text-slate-600 dark:text-slate-400 mb-8">
-            {t('auth.joinFreeTrial')}
-          </p>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Full Name */}
-            <div>
-              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-                {t('auth.fullName')}
-              </label>
-              <input
-                {...register('fullName')}
-                type="text"
-                placeholder={t('auth.fullNamePlaceholder')}
-                className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-              {errors.fullName && (
-                <p className="text-red-600 text-sm mt-1">{errors.fullName.message}</p>
-              )}
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-                {t('auth.emailLabel')}
-              </label>
-              <input
-                {...register('email')}
-                type="email"
-                placeholder={t('auth.enterEmail')}
-                className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-              {errors.email && (
-                <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>
-              )}
-            </div>
-
-            {/* Phone */}
-            <div>
-              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-                {t('auth.phoneNumber')}
-              </label>
-              <input
-                {...register('phoneNumber')}
-                type="tel"
-                placeholder={t('auth.phoneNumberPlaceholder')}
-                className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-              {errors.phoneNumber && (
-                <p className="text-red-600 text-sm mt-1">{errors.phoneNumber.message}</p>
-              )}
-            </div>
-
-            {/* Referral Code */}
-            <div>
-              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-                {t('auth.referralCode')}
-              </label>
-              <input
-                {...register('referralCode')}
-                type="text"
-                placeholder={t('auth.referralCodePlaceholder')}
-                className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* Password */}
-            <div>
-              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-                {t('auth.password')}
-              </label>
-              <div className="relative">
-                <input
-                  {...register('password')}
-                  type={showPassword ? "text" : "password"}
-                  placeholder=""
-                  className="w-full px-4 py-2.5 pr-12 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                  aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
-                >
-                  {showPassword ? (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  )}
-                </button>
+              <div className="text-center mb-8">
+                <h1 className="text-3xl font-black text-white mb-2 tracking-tight">Create Account</h1>
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-[0.2em]">Start your free trial today</p>
               </div>
-              {errors.password && (
-                <p className="text-red-600 text-sm mt-1">{errors.password.message}</p>
-              )}
 
-              <div className="mt-3 space-y-1.5 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                <p className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-2">{t('auth.passwordRequirements')}</p>
-                {passwordRequirements.map((req, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${req.met
-                      ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
-                      : 'bg-slate-200 dark:bg-slate-700 text-slate-400'
-                      }`}>
-                      {req.met ? (
-                        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+
+                {/* Full Name */}
+                <motion.div variants={itemVariants} className="space-y-1.5 group">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1 group-focus-within:text-sky-400 transition-colors">Full Name</label>
+                  <div className={`relative flex items-center bg-slate-900/50 border border-white/5 rounded-2xl px-4 py-3.5 transition-all group-focus-within:bg-slate-900 group-focus-within:border-sky-500/50 group-focus-within:ring-4 group-focus-within:ring-sky-500/10 ${errors.fullName ? 'border-red-500/50' : ''}`}>
+                    <User className="w-4 h-4 text-slate-500 mr-3 group-focus-within:text-sky-400 transition-colors" />
+                    <input {...register('fullName')} placeholder="John Doe" className="flex-1 bg-transparent border-none outline-none text-white text-sm font-semibold placeholder-slate-600" />
+                  </div>
+                </motion.div>
+
+                {/* Email */}
+                <motion.div variants={itemVariants} className="space-y-1.5 group">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1 group-focus-within:text-sky-400 transition-colors">Email Address</label>
+                  <div className={`relative flex items-center bg-slate-900/50 border border-white/5 rounded-2xl px-4 py-3.5 transition-all group-focus-within:bg-slate-900 group-focus-within:border-sky-500/50 group-focus-within:ring-4 group-focus-within:ring-sky-500/10 ${errors.email ? 'border-red-500/50' : ''}`}>
+                    <Mail className="w-4 h-4 text-slate-500 mr-3 group-focus-within:text-sky-400 transition-colors" />
+                    <input {...register('email')} placeholder="john@example.com" className="flex-1 bg-transparent border-none outline-none text-white text-sm font-semibold placeholder-slate-600" />
+                  </div>
+                </motion.div>
+
+                {/* Grid: Phone & Referral */}
+                <div className="grid grid-cols-2 gap-4">
+                  <motion.div variants={itemVariants} className="space-y-1.5 group">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1 group-focus-within:text-sky-400 transition-colors">Phone</label>
+                    <div className={`relative flex items-center bg-slate-900/50 border border-white/5 rounded-2xl px-4 py-3.5 transition-all group-focus-within:bg-slate-900 group-focus-within:border-sky-500/50 group-focus-within:ring-4 group-focus-within:ring-sky-500/10 ${errors.phoneNumber ? 'border-red-500/50' : ''}`}>
+                      <Phone className="w-4 h-4 text-slate-500 mr-2 group-focus-within:text-sky-400 transition-colors" />
+                      <input {...register('phoneNumber')} placeholder="+1 234..." className="flex-1 bg-transparent border-none outline-none text-white text-sm font-semibold placeholder-slate-600 min-w-0" />
+                    </div>
+                  </motion.div>
+                  <motion.div variants={itemVariants} className="space-y-1.5 group">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1 group-focus-within:text-amber-400 transition-colors">Referral</label>
+                    <div className="relative flex items-center bg-slate-900/50 border border-white/5 rounded-2xl px-4 py-3.5 transition-all group-focus-within:bg-slate-900 group-focus-within:border-amber-500/50 group-focus-within:ring-4 group-focus-within:ring-amber-500/10">
+                      <Gift className="w-4 h-4 text-slate-500 mr-2 group-focus-within:text-amber-400 transition-colors" />
+                      <input {...register('referralCode')} placeholder="Opt Code" className="flex-1 bg-transparent border-none outline-none text-white text-sm font-semibold placeholder-slate-600 min-w-0" />
+                    </div>
+                  </motion.div>
+                </div>
+
+                {/* Password Fields */}
+                <div className="grid grid-cols-2 gap-4">
+                  <motion.div variants={itemVariants} className="space-y-1.5 group">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1 group-focus-within:text-sky-400 transition-colors">Password</label>
+                    <div className={`relative flex items-center bg-slate-900/50 border border-white/5 rounded-2xl px-4 py-3.5 transition-all group-focus-within:bg-slate-900 group-focus-within:border-sky-500/50 group-focus-within:ring-4 group-focus-within:ring-sky-500/10 ${errors.password ? 'border-red-500/50' : ''}`}>
+                      <Lock className="w-4 h-4 text-slate-500 mr-2 group-focus-within:text-sky-400 transition-colors" />
+                      <input
+                        {...register('password')}
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••"
+                        className="flex-1 bg-transparent border-none outline-none text-white text-sm font-semibold placeholder-slate-600 min-w-0"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="opacity-40 hover:opacity-100 transition-opacity"
+                      >
+                        {showPassword ? <EyeOff className="w-3.5 h-3.5 text-white" /> : <Eye className="w-3.5 h-3.5 text-white" />}
+                      </button>
+                    </div>
+                  </motion.div>
+                  <motion.div variants={itemVariants} className="space-y-1.5 group">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1 group-focus-within:text-sky-400 transition-colors">Confirm</label>
+                    <div className={`relative flex items-center bg-slate-900/50 border border-white/5 rounded-2xl px-4 py-3.5 transition-all group-focus-within:bg-slate-900 group-focus-within:border-sky-500/50 group-focus-within:ring-4 group-focus-within:ring-sky-500/10 ${errors.confirmPassword ? 'border-red-500/50' : ''}`}>
+                      <Lock className="w-4 h-4 text-slate-500 mr-2 group-focus-within:text-sky-400 transition-colors" />
+                      <input
+                        {...register('confirmPassword')}
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="••••••"
+                        className="flex-1 bg-transparent border-none outline-none text-white text-sm font-semibold placeholder-slate-600 min-w-0"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="opacity-40 hover:opacity-100 transition-opacity"
+                      >
+                        {showConfirmPassword ? <EyeOff className="w-3.5 h-3.5 text-white" /> : <Eye className="w-3.5 h-3.5 text-white" />}
+                      </button>
+                    </div>
+                  </motion.div>
+                </div>
+
+                {/* Combined Error Message */}
+                <AnimatePresence>
+                  {Object.keys(errors).length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="flex items-center gap-2 text-red-400 text-[10px] font-bold bg-red-500/10 p-2 rounded-lg border border-red-500/20">
+                        <AlertCircle className="w-3 h-3" />
+                        {Object.values(errors)[0]?.message as string}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Tiny Requirements */}
+                <motion.div variants={itemVariants} className="flex flex-wrap gap-2 opacity-60">
+                  {passwordRequirements.map((req, i) => (
+                    <div key={i} className={`text-[8px] uppercase font-bold tracking-wider px-2 py-1 rounded-full border ${req.met ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' : 'bg-slate-900 border-white/5 text-slate-500'}`}>
+                      {req.label}
+                    </div>
+                  ))}
+                </motion.div>
+
+                <motion.div variants={itemVariants} className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="relative w-full group overflow-hidden rounded-2xl p-[1px]"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-sky-500 via-fuchsia-500 to-sky-500 animate-gradient-xy" />
+                    <div className="relative bg-slate-900 rounded-[15px] h-14 flex items-center justify-center transition-colors group-hover:bg-slate-900/0">
+                      {isLoading ? (
+                        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }} className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full" />
                       ) : (
-                        <div className="w-1.5 h-1.5 rounded-full bg-current" />
+                        <span className="font-black text-white uppercase tracking-[0.2em] text-sm group-hover:tracking-[0.25em] transition-all">Create Account</span>
                       )}
                     </div>
-                    <span className={`text-xs ${req.met ? 'text-slate-600 dark:text-slate-300 line-through opacity-50' : 'text-slate-500 dark:text-slate-400'
-                      }`}>
-                      {req.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
+                  </button>
+                </motion.div>
 
-            {/* Confirm Password */}
-            <div>
-              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-                {t('auth.confirmPasswordLabel')}
-              </label>
-              <div className="relative">
-                <input
-                  {...register('confirmPassword')}
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder=""
-                  className="w-full px-4 py-2.5 pr-12 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                  aria-label={showConfirmPassword ? t('auth.hidePassword') : t('auth.showPassword')}
-                >
-                  {showConfirmPassword ? (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-              {errors.confirmPassword && (
-                <p className="text-red-600 text-sm mt-1">{errors.confirmPassword.message}</p>
-              )}
-            </div>
+                <div className="text-center mt-4">
+                  <p className="text-slate-500 text-xs font-medium">Already have an account? <Link to="/login" className="text-sky-400 hover:text-sky-300 font-bold transition-colors">Sign In</Link></p>
+                </div>
 
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              variant="primary"
-              fullWidth
-              isLoading={isLoading}
-              className="mt-6"
-            >
-              {t('auth.createAccount')}
-            </Button>
-          </form>
-
-          {/* Login Link */}
-          <p className="text-center text-slate-600 dark:text-slate-400 mt-6">
-            {t('auth.alreadyHaveAccount')}{' '}
-            <Link to="/login" className="text-primary-600 dark:text-primary-400 font-medium hover:underline">
-              {t('auth.login')}
-            </Link>
-          </p>
-
-          {/* Privacy Notice */}
-          <p className="text-xs text-slate-500 dark:text-slate-500 text-center mt-6">
-            {t('auth.privacyNotice')}
-          </p>
+              </form>
+            </motion.div>
+          </motion.div>
         </div>
+
       </div>
+
     </div>
   );
 };
 
 export default RegisterPage;
-

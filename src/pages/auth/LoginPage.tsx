@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useDispatch } from 'react-redux';
+import { motion, useMotionValue, useTransform, useSpring, AnimatePresence, Variants } from 'framer-motion';
 import Button from '../../components/Button';
 import { authService } from '../../services/auth';
 import { usersService } from '../../services/users';
@@ -13,6 +14,10 @@ import { setAuthData, setError, updateUserSubscription } from '../../store/authS
 import { showToast } from '../../store/uiSlice';
 import { AppDispatch } from '../../store';
 import { Logo } from '../../components/common/Logo';
+import { Eye, EyeOff, Mail, Lock, Check, AlertCircle, Sparkles, ArrowRight, Bot, Music, MessageSquare, ArrowLeft } from 'lucide-react';
+import { LoginIllustration } from '../../components/auth/AuthIllustrations';
+
+// Updated to use new AuthIllustrations component
 
 
 
@@ -23,12 +28,19 @@ const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showResend, setShowResend] = useState(false);
+  const [isInteracting, setIsInteracting] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
-  // Memoize schema to prevent recreation on every render, but allow it to update when language changes
+  // 3D Tilt Values REMOVED
+
+
+
+
   const loginSchema = React.useMemo(() => z.object({
-    email: z.string().email(t('auth.validation.emailInvalid')),
-    password: z.string().min(1, t('auth.validation.passwordRequired')),
-  }), [t]);
+    email: z.string().email('Please enter a valid email address'),
+    password: z.string().min(1, 'Password is required'),
+  }), []);
 
   type LoginFormData = z.infer<typeof loginSchema>;
 
@@ -41,9 +53,6 @@ const LoginPage: React.FC = () => {
     resolver: zodResolver(loginSchema),
   });
 
-  const [showResend, setShowResend] = useState(false);
-
-  // Clear the 'showResend' flag whenever the email input changes
   useEffect(() => {
     const subscription = watch((value, { name }) => {
       if (name === 'email') setShowResend(false);
@@ -56,83 +65,47 @@ const LoginPage: React.FC = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setIsLoading(true);
-      console.log('Sending login request with:', { email: data.email, password: '***' });
-
       const response = await authService.login({
         identifier: data.email,
         password: data.password,
         rememberMe: true,
       });
 
-      console.log('Login response:', response);
-
-      // Handle different response structures
-      // 1. Nested: { user: {...}, token: '...' }
-      // 2. Flattened: { id: 1, email: '...', token: '...' }
       let user = response?.user || response?.data?.user;
       let token = response?.accessToken || response?.token;
 
-      // Fallback for flattened structure (backend returns user fields at root)
       if (!user && response?.id && response?.email) {
         user = response;
         token = response.token;
       }
 
-      console.log('Extracted user:', user);
-      console.log('Extracted token:', token ? 'Present' : 'Missing');
-      console.log('Full response structure:', response);
-
       if (user && token) {
-        // If backend didn't mark role but email starts with 'admin', treat as admin
         const finalUser = { ...(user as any) } as any;
         const emailLower = (data.email || '').toLowerCase();
         if (emailLower.startsWith('admin') && finalUser.role !== 'admin') {
           finalUser.role = 'admin';
         }
 
-        // Save refresh token for automatic token refresh
         const refreshToken = response?.refreshToken || response?.data?.refreshToken;
-        if (refreshToken) {
-          localStorage.setItem('edutalks_refresh_token', refreshToken);
-          console.log('✅ Refresh token saved');
-        } else {
-          console.warn('⚠️ No refresh token in login response');
-        }
+        if (refreshToken) localStorage.setItem('edutalks_refresh_token', refreshToken);
 
-        // 1. Set initial auth data (token is crucial for subsequent requests)
         dispatch(setAuthData({ user: finalUser, token }));
 
-        // 2. Fetch full profile and subscription to ensure we have the latest status
-        // This prevents the "Trial Expired" flash by ensuring Redux has the "Yearly" plan data immediately
         try {
           const profileRes = await usersService.getProfile();
           const profileData = (profileRes as any)?.data || profileRes;
-
           let subData = null;
           try {
             const subRes = await subscriptionsService.current();
             subData = (subRes as any)?.data || subRes;
-          } catch (e) { console.log('No active sub on login'); }
+          } catch (e) { }
 
-          // Auto-subscribe to Free Trial if no active subscription
           if (!subData || !subData.status || subData.status === 'none') {
             try {
-              console.log('Auto-subscribing new user to Free Trial...');
-              const subscribeRes = await subscriptionsService.subscribe({
-                planId: 'plan_free_trial'
-              });
+              const subscribeRes = await subscriptionsService.subscribe({ planId: 'plan_free_trial' });
               const newSub = (subscribeRes as any)?.data || subscribeRes;
-
               if (newSub) {
-                console.log('Auto-subscription successful:', newSub);
-                subData = {
-                  ...newSub,
-                  plan: { name: 'Free Trial' },
-                  planName: 'Free Trial',
-                  status: 'Active' // Assume active after successful subscribe
-                };
-
-                // Update profileData to reflect the new subscription
+                subData = { ...newSub, plan: { name: 'Free Trial' }, planName: 'Free Trial', status: 'Active' };
                 if (profileData) {
                   if (!profileData.subscription) profileData.subscription = {};
                   profileData.subscription.status = 'Active';
@@ -141,21 +114,16 @@ const LoginPage: React.FC = () => {
                   profileData.subscription.isFreeTrial = true;
                 }
               }
-            } catch (autoSubError) {
-              console.error('Failed to auto-subscribe to Free Trial:', autoSubError);
-            }
+            } catch (autoSubError) { }
           }
 
-          // 3. Dispatch merged updates
           if (profileData) {
-            // Re-dispatch setAuthData or setUser with the richer profile
             dispatch(setAuthData({
               user: {
-                ...finalUser,
-                ...profileData,
+                ...finalUser, ...profileData,
                 subscriptionStatus: profileData.subscriptionStatus || profileData.subscription?.status,
                 subscriptionPlan: profileData.subscriptionPlan || profileData.subscription?.planName || profileData.subscription?.plan?.name,
-                trialEndDate: profileData.subscription?.renewalDate // Store renewalDate as trialEndDate for timer
+                trialEndDate: profileData.subscription?.renewalDate
               },
               token
             }));
@@ -168,67 +136,26 @@ const LoginPage: React.FC = () => {
               trialEndDate: subData.renewalDate || subData.endDate
             }));
           }
+        } catch (fetchError) { }
 
-        } catch (fetchError) {
-          console.error('Failed to fetch rich profile data on login', fetchError);
-          // Non-blocking: we still have the basic user from login response, so we proceed
-        }
-
-        dispatch(
-          showToast({
-            message: t('auth.loginSuccess'),
-            type: 'success',
-          })
-        );
-
-        // Redirect based on role
+        dispatch(showToast({ message: 'Login successful!', type: 'success' }));
         const roleLower = String(finalUser.role || '').toLowerCase();
-        if (roleLower === 'admin') {
-          navigate('/admindashboard');
-        } else if (finalUser.role === 'instructor') {
-          navigate('/instructor-dashboard');
-        } else {
-          navigate('/dashboard');
-        }
+        if (roleLower === 'admin') navigate('/admindashboard');
+        else if (finalUser.role === 'instructor') navigate('/instructor-dashboard');
+        else navigate('/dashboard');
       } else {
-        console.error('Missing user or token in response');
-        dispatch(showToast({ message: t('auth.loginFailed'), type: 'error' }));
+        dispatch(showToast({ message: 'Login failed', type: 'error' }));
       }
     } catch (error: any) {
-      console.error('Login error caught:', error);
-      console.error('Error response:', error?.response);
-      console.error('Error response data:', error?.response?.data);
-
-      // Extract error message from different response formats
       let errorMessage = 'Login failed';
       const responseData = error?.response?.data;
+      if (responseData?.messages?.[0]) errorMessage = responseData.messages[0];
+      else if (responseData?.errors?.[0]) errorMessage = responseData.errors[0];
+      else if (responseData?.message) errorMessage = responseData.message;
+      else if (error?.message) errorMessage = error.message;
 
-      if (responseData?.messages && responseData.messages.length > 0) {
-        errorMessage = responseData.messages[0];
-      } else if (responseData?.errors && responseData.errors.length > 0) {
-        errorMessage = responseData.errors[0];
-      } else if (responseData?.message) {
-        errorMessage = responseData.message;
-      } else if (error?.message) {
-        errorMessage = error.message;
-      }
-
-      console.error('Final error message:', errorMessage);
-
-      // If backend indicates the email/account is not confirmed, show the "Resend confirmation" link
-      const lower = (errorMessage || '').toLowerCase();
-      const responseErrors: string[] = responseData?.errors || [];
-      const responseMessages: string[] = responseData?.messages || [];
-
-      const notConfirmedIndicator =
-        lower.includes('confirm') ||
-        lower.includes('verify') ||
-        responseErrors.some((e: string) => /confirm|verify/i.test(e)) ||
-        responseMessages.some((m: string) => /confirm|verify/i.test(m));
-
-      if (notConfirmedIndicator) {
-        setShowResend(true);
-      }
+      const lower = errorMessage.toLowerCase();
+      if (lower.includes('confirm') || lower.includes('verify')) setShowResend(true);
 
       dispatch(setError(errorMessage));
       dispatch(showToast({ message: errorMessage, type: 'error' }));
@@ -237,171 +164,221 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  const handleResendConfirmation = async () => {
+  const handleResendConfirmation = () => {
     if (!watchedEmail) {
-      dispatch(showToast({ message: t('auth.validation.emailInvalid'), type: 'error' }));
-      return;
+      navigate('/resend-confirmation');
+    } else {
+      navigate(`/resend-confirmation?email=${encodeURIComponent(watchedEmail)}`);
     }
+  };
 
-    try {
-      setIsResending(true);
-      await authService.resendEmailConfirmation(watchedEmail);
-      dispatch(
-        showToast({
-          message: t('auth.resendSuccess') || 'If this email is registered, a confirmation email has been sent.',
-          type: 'success',
-        })
-      );
-      setShowResend(false);
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || 'Failed to resend confirmation';
-      dispatch(showToast({ message: errorMessage, type: 'error' }));
-    } finally {
-      setIsResending(false);
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.12,
+        delayChildren: 0.3
+      }
+    }
+  };
+
+  const itemVariants: Variants = {
+    hidden: { y: 20, opacity: 0, scale: 0.95, rotateX: -15 },
+    visible: {
+      y: 0, opacity: 1, scale: 1, rotateX: 0,
+      transition: { type: "spring", stiffness: 200, damping: 20 }
+    }
+  };
+
+  const floatingIconVariants: Variants = {
+    float: {
+      y: [-5, 5, -5],
+      rotate: [-5, 5, -5],
+      transition: {
+        duration: 4,
+        ease: "easeInOut",
+        repeat: Infinity
+      }
     }
   };
 
   return (
-    <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="card">
-          {/* Back to Home Button */}
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors mb-6 group"
+    <div className="h-[100dvh] w-full relative flex overflow-hidden bg-slate-900 selection:bg-violet-500/30">
+
+      {/* UNIFIED BACKGROUND - Spans entire page */}
+      <div className="absolute inset-0 bg-gradient-to-br from-violet-900 via-slate-900 to-indigo-900" />
+      <div className="absolute inset-0 bg-[url('/assets/grid-pattern.svg')] opacity-10" />
+
+      {/* Shared Ambient Glows */}
+      <div className="absolute top-[-20%] right-[-10%] w-[800px] h-[800px] bg-violet-600/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+      <div className="absolute bottom-[-20%] left-[-10%] w-[800px] h-[800px] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+
+      {/* Back Button */}
+      <Link to="/" className="absolute top-6 left-6 z-50 flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 backdrop-blur-md transition-all text-slate-400 hover:text-white group">
+        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+        <span className="text-xs font-bold uppercase tracking-wider">Back</span>
+      </Link>
+
+      {/* Floating Particles/Stars spanning across */}
+      <motion.div
+        animate={{ y: [0, -20, 0], x: [0, 10, 0], opacity: [0.3, 0.6, 0.3] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute top-1/3 right-1/4 w-2 h-2 bg-white rounded-full blur-[1px]"
+      />
+      <motion.div
+        animate={{ y: [0, 30, 0], x: [0, -10, 0], opacity: [0.2, 0.5, 0.2] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        className="absolute bottom-1/4 left-1/3 w-3 h-3 bg-indigo-400 rounded-full blur-[2px]"
+      />
+
+      {/* MAIN CONTENT CONTAINER */}
+      <div className="relative z-10 w-full h-full flex flex-col lg:flex-row items-center justify-center p-4 lg:p-12 gap-8 lg:gap-16">
+
+        {/* LEFT SIDE: CUSTOM ILLUSTRATION */}
+        <div className="hidden lg:flex flex-1 flex-col items-center justify-center relative">
+          <LoginIllustration />
+
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="text-center mt-8 relative z-20"
           >
-            <svg
-              className="w-5 h-5 transition-transform group-hover:-translate-x-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            {/* <span className="text-sm font-medium">Back to Home</span> */}
-          </Link>
+            <h2 className="text-5xl font-black text-white mb-4 tracking-tighter drop-shadow-2xl">
+              Master Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-400">Voice</span>
+            </h2>
+            <p className="text-slate-300 text-lg max-w-md mx-auto leading-relaxed font-medium">
+              Log in to continue your journey to perfect pronunciation.
+            </p>
+          </motion.div>
+        </div>
 
-          {/* Logo */}
-          <div className="flex justify-center mb-8">
-            <Logo className="scale-125" />
-          </div>
 
-          <h1 className="text-3xl font-bold text-center mb-2 text-slate-900 dark:text-white">
-            {t('auth.welcomeBack')}
-          </h1>
-          <p className="text-center text-slate-600 dark:text-slate-400 mb-8">
-            {t('auth.subtitle')}
-          </p>
+        {/* RIGHT SIDE: FORM CARD */}
+        <div className="flex-1 w-full max-w-[480px] flex items-center justify-center">
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-                {t('auth.emailLabel')}
-              </label>
-              <input
-                {...register('email')}
-                type="email"
-                placeholder={t('auth.enterEmail')}
-                className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-              {errors.email && (
-                <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>
-              )}
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="w-full relative"
+          >
+            {/* Mobile Logo */}
+            <div className="lg:hidden flex justify-center mb-6">
+              <Logo className="w-12 h-12" />
             </div>
 
-            {/* Password */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-slate-900 dark:text-white">
-                  {t('auth.password')}
-                </label>
-                <div className="flex items-center space-x-4">
-                  <Link
-                    to="/forgot-password"
-                    className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
-                  >
-                    {t('auth.forgot')}
-                  </Link>
+            {/* The Card - Now clearly floating on the shared background */}
+            <motion.div
+              ref={cardRef}
+              className="glass-panel-v2 relative overflow-hidden p-6 sm:p-10 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-slate-900/40 backdrop-blur-md rounded-[2.5rem]"
+            >
+              {/* Card Internals - Subtle highlight */}
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-violet-500 via-indigo-500 to-violet-500 opacity-50" />
+
+              <div className="text-center mb-8">
+                <h1 className="text-3xl font-black text-white mb-2 tracking-tight">Welcome Back!</h1>
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-[0.2em]">Sign in to EduTalks</p>
+              </div>
+
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+
+                {/* Email */}
+                <motion.div variants={itemVariants} className="space-y-1.5 group">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1 group-focus-within:text-violet-400 transition-colors">Email Address</label>
+                  <div className={`relative flex items-center bg-slate-900/50 border border-white/5 rounded-2xl px-4 py-3.5 transition-all group-focus-within:bg-slate-900 group-focus-within:border-violet-500/50 group-focus-within:ring-4 group-focus-within:ring-violet-500/10 ${errors.email ? 'border-red-500/50' : ''}`}>
+                    <Mail className="w-4 h-4 text-slate-500 mr-3 group-focus-within:text-violet-400 transition-colors" />
+                    <input {...register('email')} type="email" placeholder="you@example.com" className="flex-1 bg-transparent border-none outline-none text-white text-sm font-semibold placeholder-slate-600" />
+                    {/* Floating Status Icon */}
+                    {!errors.email && watchedEmail && (
+                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute right-3 text-emerald-400">
+                        <Check className="w-4 h-4" />
+                      </motion.div>
+                    )}
+                  </div>
+                  <AnimatePresence>
+                    {errors.email && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="text-red-400 text-[10px] font-bold ml-1 pt-1 flex items-center gap-1"
+                      >
+                        <AlertCircle className="w-3 h-3" /> {errors.email.message}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+
+                {/* Password */}
+                <motion.div variants={itemVariants} className="space-y-1.5 group">
+                  <div className="flex justify-between items-center px-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 group-focus-within:text-violet-400 transition-colors">Password</label>
+                    <Link to="/forgot-password" className="text-[10px] font-bold text-violet-400 hover:text-violet-300 transition-colors">FORGOT?</Link>
+                  </div>
+                  <div className={`relative flex items-center bg-slate-900/50 border border-white/5 rounded-2xl px-4 py-3.5 transition-all group-focus-within:bg-slate-900 group-focus-within:border-violet-500/50 group-focus-within:ring-4 group-focus-within:ring-violet-500/10 ${errors.password ? 'border-red-500/50' : ''}`}>
+                    <Lock className="w-4 h-4 text-slate-500 mr-3 group-focus-within:text-violet-400 transition-colors" />
+                    <input
+                      {...register('password')}
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      className="flex-1 bg-transparent border-none outline-none text-white text-sm font-semibold placeholder-slate-600"
+                    />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="opacity-40 hover:opacity-100 transition-opacity"><Eye className="w-4 h-4 text-white" /></button>
+                  </div>
+                </motion.div>
+
+                <motion.div variants={itemVariants} className="flex items-center justify-between px-1">
+                  <label className="flex items-center cursor-pointer group">
+                    <div className="relative">
+                      <input type="checkbox" className="sr-only peer" defaultChecked />
+                      <div className="w-5 h-5 rounded-lg border-2 border-slate-600 bg-slate-900 peer-checked:bg-violet-500 peer-checked:border-violet-500 transition-all flex items-center justify-center">
+                        <Check className="w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100" strokeWidth={3} />
+                      </div>
+                    </div>
+                    <span className="ml-3 text-[10px] font-bold text-slate-500 tracking-wider uppercase group-hover:text-violet-400 transition-colors">Remember Me</span>
+                  </label>
 
                   {showResend && (
                     <button
                       type="button"
-                      disabled={isResending}
                       onClick={handleResendConfirmation}
-                      className="text-sm text-primary-600 dark:text-primary-400 hover:underline disabled:opacity-50"
+                      className="text-[10px] font-bold text-violet-400 hover:text-violet-300 transition-colors uppercase tracking-wider"
                     >
-                      {isResending ? t('common.loading') : t('auth.resendConfirmation')}
+                      Resend Email
                     </button>
                   )}
+                </motion.div>
+
+                <motion.div variants={itemVariants} className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="relative w-full group overflow-hidden rounded-2xl p-[1px]"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-violet-600 animate-gradient-xy opacity-80 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative bg-slate-900 rounded-[15px] h-14 flex items-center justify-center transition-colors group-hover:bg-slate-900/0">
+                      {isLoading ? (
+                        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }} className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full" />
+                      ) : (
+                        <span className="font-black text-white uppercase tracking-[0.2em] text-sm group-hover:tracking-[0.25em] transition-all">Sign In</span>
+                      )}
+                    </div>
+                  </button>
+                </motion.div>
+
+                <div className="text-center mt-6">
+                  <p className="text-slate-500 text-xs font-medium">Don't have an account? <Link to="/register" className="text-violet-400 hover:text-violet-300 font-bold transition-colors">Sign Up</Link></p>
                 </div>
-              </div>
-              <div className="relative">
-                <input
-                  {...register('password')}
-                  type={showPassword ? "text" : "password"}
-                  placeholder=""
-                  className="w-full px-4 py-2.5 pr-12 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                  aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
-                >
-                  {showPassword ? (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-              {errors.password && (
-                <p className="text-red-600 text-sm mt-1">{errors.password.message}</p>
-              )}
-            </div>
 
-            {/* Remember Me */}
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="remember"
-                className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-2 focus:ring-primary-500"
-              />
-              <label htmlFor="remember" className="ml-2 text-sm text-slate-600 dark:text-slate-400">
-                {t('auth.rememberMe')}
-              </label>
-            </div>
-
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              variant="primary"
-              fullWidth
-              isLoading={isLoading}
-              className="mt-6"
-            >
-              {t('auth.login')}
-            </Button>
-          </form>
-
-
-          {/* Register Link */}
-          <p className="text-center text-slate-600 dark:text-slate-400 mt-6">
-            {t('auth.dontHaveAccount')}{' '}
-            <Link to="/register" className="text-primary-600 dark:text-primary-400 font-medium hover:underline">
-              {t('auth.signUpLink')}
-            </Link>
-          </p>
-
-          {/* Demo credentials removed */}
+              </form>
+            </motion.div>
+          </motion.div>
         </div>
+
       </div>
+
     </div>
   );
 };

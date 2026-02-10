@@ -167,6 +167,144 @@ a {
   scrollbar-width: none;
 }
 
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
+/* Ultra-Premium Animations for Auth Pages V2 REFINED */
+@keyframes mesh-gradient {
+  0% {
+    background-size: 100% 100%;
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-size: 120% 120%;
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-size: 100% 100%;
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-150%);
+  }
+
+  100% {
+    transform: translateX(150%);
+  }
+}
+
+@keyframes float-subtle {
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+
+  33% {
+    transform: translateY(-8px) rotate(1deg);
+  }
+
+  66% {
+    transform: translateY(4px) rotate(-1deg);
+  }
+}
+
+.animate-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-shimmer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent);
+  transform: translateX(-150%);
+  animation: shimmer 3s infinite cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-float-subtle {
+  animation: float-subtle 6s ease-in-out infinite;
+}
+
+.auth-gradient-bg {
+  background-color: #0f172a;
+  background-image:
+    radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.2) 0, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.2) 0, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.2) 0, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(16, 185, 129, 0.15) 0, transparent 50%);
+  background-size: 130% 130%;
+  animation: mesh-gradient 15s ease infinite alternate;
+  background-attachment: fixed;
+}
+
+.glass-panel-v2 {
+  @apply relative rounded-[2.5rem] bg-slate-900/40 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/40;
+  transform-style: preserve-3d;
+}
+
+.glass-panel-v2::before {
+  content: "";
+  @apply absolute inset-0 rounded-[2.5rem] p-[1px] bg-gradient-to-br from-white/30 via-transparent to-white/5 -z-10;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+}
+
+.premium-input-v2 {
+  @apply w-full bg-slate-950/30 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-slate-500 focus:border-white/40 focus:bg-slate-950/50 outline-none transition-all duration-300 shadow-inner shadow-black/20;
+}
+
+/* 3D Perspective Utilities */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+/* Enhanced Z-Index for 3D */
+.translate-z-10 {
+  transform: translateZ(10px);
+}
+
+.translate-z-20 {
+  transform: translateZ(20px);
+}
+
+.translate-z-30 {
+  transform: translateZ(30px);
+}
+
+.translate-z-40 {
+  transform: translateZ(40px);
+}
+
+.translate-z-50 {
+  transform: translateZ(50px);
+}
+
+/* Custom Selection Color */
+::selection {
+  @apply bg-violet-500/30 text-white;
+}
+
+/* Ensure autofill doesn't break the dark theme */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #0f172a inset !important;
+  -webkit-text-fill-color: white !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.glass-input-container {
+  @apply relative overflow-hidden rounded-xl border border-slate-200/50 dark:border-white/10 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm transition-all duration-300 focus-within:ring-2 focus-within:ring-violet-500/50 focus-within:bg-white/80 dark:focus-within:bg-slate-900/80;
 }

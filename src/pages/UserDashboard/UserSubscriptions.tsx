@@ -37,7 +37,7 @@ const UserSubscriptions: React.FC = () => {
     const { t } = useTranslation();
 
     // Coupon state
-    const [couponCode, setCouponCode] = useState('');
+    const [couponCode, setCouponCode] = useState<Record<string, string>>({});
     const [appliedCoupons, setAppliedCoupons] = useState<Record<string, any>>({});
     const [validatingCoupon, setValidatingCoupon] = useState<Record<string, boolean>>({});
     const [showCouponInput, setShowCouponInput] = useState<Record<string, boolean>>({});
@@ -270,7 +270,7 @@ const UserSubscriptions: React.FC = () => {
                 };
                 setAppliedCoupons(prev => ({ ...prev, [planId]: couponInfo }));
                 dispatch(showToast({ message: t('subscriptionsPageView.messages.couponApplied', { amount: couponData.discountAmount }), type: 'success' }));
-                setCouponCode('');
+                setCouponCode(prev => ({ ...prev, [planId]: '' }));
             } else {
                 dispatch(showToast({ message: t('subscriptionsPageView.messages.invalidCoupon'), type: 'error' }));
             }
@@ -600,11 +600,11 @@ const UserSubscriptions: React.FC = () => {
                                                         <div className="flex gap-2 mb-2">
                                                             <input
                                                                 className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                                                                value={couponCode}
-                                                                onChange={e => setCouponCode(e.target.value.toUpperCase())}
+                                                                value={couponCode[planId] || ''}
+                                                                onChange={e => setCouponCode(prev => ({ ...prev, [planId]: e.target.value.toUpperCase() }))}
                                                                 placeholder={t('subscriptionsPageView.enterCodePlaceholder')}
                                                             />
-                                                            <Button size="sm" onClick={() => validateAndApplyCoupon(plan, couponCode)} disabled={!couponCode}>{t('subscriptionsPageView.apply')}</Button>
+                                                            <Button size="sm" onClick={() => validateAndApplyCoupon(plan, couponCode[planId] || '')} disabled={!couponCode[planId]}>{t('subscriptionsPageView.apply')}</Button>
                                                         </div>
                                                     );
                                                 }
