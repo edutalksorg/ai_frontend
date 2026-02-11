@@ -59,29 +59,31 @@ const AdminUsersPage: React.FC = () => {
         return <Navigate to="/" replace />;
     }
 
-    const loadUsers = async () => {
+    const loadUsers = async (search: string = '') => {
         try {
-            setLoading(true);
-            const res = await adminService.getAllUsers(1000, 1);
+            setLoading(search ? false : true); // Don't show full screen loader for search
+            const res = await adminService.getAllUsers(1000, 1, { search });
             const responseData = (res as any)?.data || res;
             const allUsers = Array.isArray(responseData) ? responseData : responseData?.items || [];
 
             setUsers(allUsers);
             setFilteredUsers(allUsers);
 
-            // Calculate stats
-            const instructorCount = allUsers.filter((u: UserData) =>
-                String(u.role).toLowerCase() === 'instructor'
-            ).length;
-            const learnerCount = allUsers.filter((u: UserData) =>
-                String(u.role).toLowerCase() === 'user'
-            ).length;
+            // Calculate stats (optional: only if not searching)
+            if (!search) {
+                const instructorCount = allUsers.filter((u: UserData) =>
+                    String(u.role).toLowerCase() === 'instructor'
+                ).length;
+                const learnerCount = allUsers.filter((u: UserData) =>
+                    String(u.role).toLowerCase() === 'user'
+                ).length;
 
-            setStats({
-                total: allUsers.length,
-                instructors: instructorCount,
-                learners: learnerCount,
-            });
+                setStats({
+                    total: allUsers.length,
+                    instructors: instructorCount,
+                    learners: learnerCount,
+                });
+            }
         } catch (error) {
             console.error('Failed to load users:', error);
             dispatch(showToast({ type: 'error', message: 'Failed to load users' }));
@@ -110,6 +112,20 @@ const AdminUsersPage: React.FC = () => {
         loadUsers();
     }, []);
 
+    // Debounced search
+    useEffect(() => {
+        if (searchTerm === '') {
+            loadUsers();
+            return;
+        }
+
+        const delayDebounceFn = setTimeout(() => {
+            loadUsers(searchTerm);
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm]);
+
     useEffect(() => {
         let filtered = users;
 
@@ -125,13 +141,15 @@ const AdminUsersPage: React.FC = () => {
             filtered = filtered.filter(u => !['active', 'trialing', 'succeeded'].includes(u.subscriptionStatus?.toLowerCase() || ''));
         }
 
-        // Filter by search term
+        // Search is now handled server-side for primary results, 
+        // but we can keep a secondary client-side check if needed 
+        // to handle results that might have changed locally.
         if (searchTerm) {
             filtered = filtered.filter(u =>
-                u.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                u.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                u.phoneNumber?.includes(searchTerm)
+                String(u.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                String(u.fullName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                String(u.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                String(u.phoneNumber || '').includes(searchTerm)
             );
         }
 

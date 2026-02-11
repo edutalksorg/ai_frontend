@@ -199,17 +199,38 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
     if (quizResult) {
         // Extract data from result - handle both nested and flat structures
         const data = quizResult.data || quizResult;
+
+        // More robust calculation for summary stats
+        const resultQuestions = data.questions || quiz?.questions || [];
+        const resultAnswers = data.answers || [];
+
+        let calculatedCorrect = 0;
+        resultQuestions.forEach((q: any, idx: number) => {
+            const qId = q.id || q._id || String(idx);
+            const userAns = resultAnswers.find((a: any) => String(a.questionId) === String(qId));
+            const userSelection = userAns?.selectedOption;
+
+            let correctOptionText = q.correctAnswer;
+            if (Array.isArray(q.options) && !isNaN(Number(q.correctAnswer))) {
+                correctOptionText = q.options[Number(q.correctAnswer)];
+            }
+
+            if (userSelection === correctOptionText) {
+                calculatedCorrect++;
+            }
+        });
+
         const score = data.score ?? 0;
-        const correctAnswers = data.correctCount ?? data.correctAnswers ?? 0;
-        const totalQuestions = data.totalQuestions ?? quiz?.questions?.length ?? 0;
+        const correctAnswers = data.correctCount ?? data.correctAnswers ?? calculatedCorrect;
+        const totalQuestions = data.totalQuestions ?? resultQuestions.length;
         const passingScore = data.passingScore ?? quiz?.passingScore ?? 60;
         const passed = data.passed ?? (score >= passingScore);
 
         return (
             <UserLayout hideNavbar={true}>
-                <div className="max-w-2xl mx-auto text-center pb-20">
+                <div className="max-w-4xl mx-auto text-center pb-20 px-4">
                     {/* Result Card */}
-                    <div className="glass-panel p-10 rounded-3xl relative overflow-hidden mb-8">
+                    <div className="glass-panel p-6 md:p-10 rounded-3xl relative overflow-hidden mb-12 shadow-2xl shadow-indigo-500/10 border-white/20">
                         {/* Confeetti/Glow */}
                         <div className={`absolute top-0 right-0 w-80 h-80 rounded-full blur-3xl -mr-20 -mt-20 ${passed ? 'bg-green-500/10' : 'bg-orange-500/10'}`} />
                         <div className={`absolute bottom-0 left-0 w-80 h-80 rounded-full blur-3xl -ml-20 -mb-20 ${passed ? 'bg-green-500/10' : 'bg-orange-500/10'}`} />
@@ -225,27 +246,31 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
                                 </div>
                             )}
 
-                            <h2 className="text-4xl font-extrabold mb-2 text-slate-900 dark:text-white">
+                            <h2 className="text-3xl md:text-5xl font-black mb-3 text-slate-900 dark:text-white tracking-tight">
                                 {passed ? t('quizTaking.passed') : t('quizTaking.keepPracticing')}
                             </h2>
-                            <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-md mx-auto">
+                            <p className="text-slate-500 dark:text-slate-400 mb-10 max-w-lg mx-auto text-lg leading-relaxed">
                                 {passed
-                                    ? "Congratulations on mastering this topic! You've shown excellent understanding."
-                                    : "Don't give up! Review the material and try again to improve your score."}
+                                    ? "Exceptional work! You've demonstrated a strong command of this subject matter."
+                                    : "You're on the right track! Review the corrections below and give it another shot."}
                             </p>
 
-                            <div className="grid grid-cols-3 gap-4 mb-8">
-                                <div className="p-4 bg-slate-50/50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
-                                    <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">{t('quizTaking.correct')}</div>
-                                    <div className="text-2xl font-black text-green-500">{correctAnswers}</div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+                                <div className="p-5 bg-white/50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-white/5 backdrop-blur-sm group hover:border-green-500/30 transition-colors">
+                                    <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">{t('quizTaking.correct')}</div>
+                                    <div className="text-3xl font-black text-green-500">{correctAnswers}</div>
                                 </div>
-                                <div className="p-4 bg-slate-50/50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
-                                    <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">{t('quizTaking.totalQuestions')}</div>
-                                    <div className="text-2xl font-black text-slate-700 dark:text-slate-300">{totalQuestions}</div>
+                                <div className="p-5 bg-white/50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-white/5 backdrop-blur-sm group hover:border-orange-500/30 transition-colors">
+                                    <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Incorrect</div>
+                                    <div className="text-3xl font-black text-orange-500">{totalQuestions - correctAnswers}</div>
                                 </div>
-                                <div className="p-4 bg-slate-50/50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
-                                    <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">{t('quizTaking.score')}</div>
-                                    <div className={`text-2xl font-black ${passed ? 'text-green-500' : 'text-orange-500'}`}>{score}%</div>
+                                <div className="p-5 bg-white/50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-white/5 backdrop-blur-sm group hover:border-slate-300 dark:hover:border-white/20 transition-colors">
+                                    <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">{t('quizTaking.totalQuestions')}</div>
+                                    <div className="text-3xl font-black text-slate-700 dark:text-slate-300">{totalQuestions}</div>
+                                </div>
+                                <div className="p-5 bg-white/50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-white/5 backdrop-blur-sm group hover:border-indigo-500/30 transition-colors">
+                                    <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">{t('quizTaking.score')}</div>
+                                    <div className={`text-3xl font-black ${passed ? 'text-green-500' : 'text-orange-500'}`}>{score}%</div>
                                 </div>
                             </div>
 
@@ -253,19 +278,17 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
                                 <Button
                                     variant="outline"
                                     onClick={() => onBack ? onBack() : navigate('/dashboard?tab=quizzes')}
-                                    className="glass-button"
+                                    className="px-8 border-slate-200 dark:border-slate-700 font-bold hover:bg-slate-100"
                                 >
                                     {t('quizTaking.backToDashboard')}
                                 </Button>
 
-                                {/* Show Next Quiz ONLY if passed AND next quiz exists */}
                                 {((passed || score >= passingScore) && nextQuizId) ? (
                                     <Button
                                         onClick={() => {
-                                            // Force reload/navigate to new quiz
                                             window.location.href = `/quizzes/${nextQuizId}`;
                                         }}
-                                        className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20"
+                                        className="px-8 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 font-bold"
                                     >
                                         {t('quizTaking.nextQuiz')}
                                         <ArrowRight size={18} className="ml-2" />
@@ -273,13 +296,105 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
                                 ) : (
                                     <Button
                                         onClick={() => window.location.reload()}
-                                        className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20"
+                                        className="px-8 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 font-bold"
                                     >
                                         <RotateCcw size={18} className="mr-2" />
                                         {t('quizTaking.retake')}
                                     </Button>
                                 )}
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Detailed Review Section */}
+                    <div className="text-left mt-16 max-w-3xl mx-auto">
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="w-1.5 h-8 bg-indigo-500 rounded-full" />
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Review Your Answers</h3>
+                        </div>
+
+                        <div className="space-y-6">
+                            {(data.questions || quiz?.questions)?.map((question: any, qIdx: number) => {
+                                const questionId = question.id || question._id || String(qIdx);
+                                const userAttempt = data.answers?.find((a: any) => String(a.questionId) === String(questionId));
+                                const userSelection = userAttempt?.selectedOption;
+
+                                // Determine the correct option text
+                                let correctOptionText = question.correctAnswer;
+                                if (Array.isArray(question.options) && !isNaN(Number(question.correctAnswer))) {
+                                    correctOptionText = question.options[Number(question.correctAnswer)];
+                                }
+
+                                const isCorrect = userSelection === correctOptionText;
+
+                                return (
+                                    <div key={questionId} className={`glass-card p-6 md:p-8 rounded-3xl border-2 transition-all flex flex-col md:flex-row gap-6 ${isCorrect ? 'border-green-500/20 bg-green-500/5' : 'border-orange-500/20 bg-orange-500/5'
+                                        }`}>
+                                        <div className="flex-shrink-0">
+                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isCorrect ? 'bg-green-500 text-white shadow-lg shadow-green-500/20' : 'bg-orange-500 text-white shadow-lg shadow-orange-500/20'
+                                                }`}>
+                                                {isCorrect ? <CheckCircle size={24} /> : <XCircle size={24} />}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex-grow">
+                                            <div className="flex items-center gap-3 mb-3">
+                                                <span className="text-xs font-black uppercase tracking-widest text-slate-400">Question {qIdx + 1}</span>
+                                                {isCorrect ? (
+                                                    <span className="text-[10px] font-bold px-2 py-0.5 bg-green-500/10 text-green-600 rounded-full border border-green-500/20 uppercase tracking-tighter">Correct</span>
+                                                ) : (
+                                                    <span className="text-[10px] font-bold px-2 py-0.5 bg-orange-500/10 text-orange-600 rounded-full border border-orange-500/20 uppercase tracking-tighter">Incorrect</span>
+                                                )}
+                                            </div>
+
+                                            <h4 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white mb-6 leading-snug">
+                                                {question.questionText || question.question}
+                                            </h4>
+
+                                            <div className="grid grid-cols-1 gap-3">
+                                                {question.options?.map((option: string, optIdx: number) => {
+                                                    const isUserChoice = userSelection === option;
+                                                    const isCorrectChoice = correctOptionText === option;
+
+                                                    let statusStyles = "border-slate-100 dark:border-white/5 opacity-60";
+                                                    let showBadge = false;
+                                                    let badgeText = "";
+                                                    let badgeColor = "";
+
+                                                    if (isUserChoice) {
+                                                        showBadge = true;
+                                                        if (isCorrectChoice) {
+                                                            statusStyles = "border-green-500 bg-green-500/10 text-green-700 dark:text-green-300 ring-4 ring-green-500/5 opacity-100 font-bold";
+                                                            badgeText = "Correct Selection";
+                                                            badgeColor = "bg-green-500/10 text-green-600";
+                                                        } else {
+                                                            statusStyles = "border-orange-500 bg-orange-500/10 text-orange-700 dark:text-orange-300 opacity-100 font-bold";
+                                                            badgeText = "Your Selection (Wrong)";
+                                                            badgeColor = "bg-orange-500/10 text-orange-600";
+                                                        }
+                                                    }
+
+                                                    return (
+                                                        <div
+                                                            key={optIdx}
+                                                            className={`p-4 rounded-xl border flex items-center justify-between transition-all ${statusStyles}`}
+                                                        >
+                                                            <span className="text-sm md:text-base">{option}</span>
+                                                            {showBadge && (
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded ${badgeColor}`}>
+                                                                        {badgeText}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
