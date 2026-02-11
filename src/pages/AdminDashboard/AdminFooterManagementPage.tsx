@@ -9,7 +9,10 @@ import {
     Loader,
     ArrowLeft,
     CheckCircle,
-    ExternalLink
+    ExternalLink,
+    FileText,
+    Lock,
+    Cookie
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
@@ -18,7 +21,7 @@ import { useDispatch } from 'react-redux';
 import { showToast } from '../../store/uiSlice';
 import { settingsService } from '../../services/settingsService';
 
-type FooterTab = 'about' | 'success' | 'blog';
+type FooterTab = 'about' | 'success' | 'blog' | 'terms' | 'privacy' | 'cookies';
 
 const AdminFooterManagementPage: React.FC = () => {
     const dispatch = useDispatch();
@@ -30,7 +33,10 @@ const AdminFooterManagementPage: React.FC = () => {
     const [content, setContent] = useState<any>({
         about: { title: 'About EduTalks', description: '', imageUrl: '', previewUrl: '' },
         success: { title: 'Success Stories', description: '', imageUrl: '', previewUrl: '' },
-        blog: { title: 'EduTalks Blog & Logs', description: '', imageUrl: '', previewUrl: '' }
+        blog: { title: 'EduTalks Blog & Logs', description: '', imageUrl: '', previewUrl: '' },
+        terms: { title: 'Terms and Conditions', description: '', imageUrl: '', previewUrl: '' },
+        privacy: { title: 'Privacy Policy', description: '', imageUrl: '', previewUrl: '' },
+        cookies: { title: 'Cookie Policy', description: '', imageUrl: '', previewUrl: '' }
     });
 
     useEffect(() => {
@@ -45,27 +51,18 @@ const AdminFooterManagementPage: React.FC = () => {
             const newContent = { ...content };
 
             // Map settings to state
-            if (settings.footer_about) {
-                try {
-                    newContent.about = typeof settings.footer_about === 'string' ? JSON.parse(settings.footer_about) : settings.footer_about;
-                } catch (e) {
-                    newContent.about.description = settings.footer_about;
+            const keys: FooterTab[] = ['about', 'success', 'blog', 'terms', 'privacy', 'cookies'];
+
+            keys.forEach(key => {
+                const settingKey = `footer_${key}`;
+                if (settings[settingKey]) {
+                    try {
+                        newContent[key] = typeof settings[settingKey] === 'string' ? JSON.parse(settings[settingKey]) : settings[settingKey];
+                    } catch (e) {
+                        newContent[key].description = settings[settingKey];
+                    }
                 }
-            }
-            if (settings.footer_success) {
-                try {
-                    newContent.success = typeof settings.footer_success === 'string' ? JSON.parse(settings.footer_success) : settings.footer_success;
-                } catch (e) {
-                    newContent.success.description = settings.footer_success;
-                }
-            }
-            if (settings.footer_blog) {
-                try {
-                    newContent.blog = typeof settings.footer_blog === 'string' ? JSON.parse(settings.footer_blog) : settings.footer_blog;
-                } catch (e) {
-                    newContent.blog.description = settings.footer_blog;
-                }
-            }
+            });
 
             setContent(newContent);
         } catch (error) {
@@ -84,7 +81,16 @@ const AdminFooterManagementPage: React.FC = () => {
 
             await settingsService.updateSiteSettings({ [key]: data });
 
-            dispatch(showToast({ message: `${tab === 'about' ? 'About Us' : tab === 'success' ? 'Success Stories' : 'Blog'} content updated successfully`, type: 'success' }));
+            const tabLabels: Record<FooterTab, string> = {
+                about: 'About Us',
+                success: 'Success Stories',
+                blog: 'Blog',
+                terms: 'Terms and Conditions',
+                privacy: 'Privacy Policy',
+                cookies: 'Cookie Policy'
+            };
+
+            dispatch(showToast({ message: `${tabLabels[tab]} content updated successfully`, type: 'success' }));
         } catch (error) {
             dispatch(showToast({ message: 'Failed to update content', type: 'error' }));
         } finally {
@@ -107,7 +113,22 @@ const AdminFooterManagementPage: React.FC = () => {
         { id: 'about' as FooterTab, label: 'About Us', icon: Info },
         { id: 'success' as FooterTab, label: 'Success Stories', icon: Star },
         { id: 'blog' as FooterTab, label: 'Blogs / Logs', icon: BookOpen },
+        { id: 'terms' as FooterTab, label: 'Terms & Conditions', icon: FileText },
+        { id: 'privacy' as FooterTab, label: 'Privacy Policy', icon: Lock },
+        { id: 'cookies' as FooterTab, label: 'Cookie Policy', icon: Cookie },
     ];
+
+    const getPreviewLink = (tab: FooterTab) => {
+        switch (tab) {
+            case 'about': return '/about';
+            case 'success': return '/success-stories';
+            case 'blog': return '/blog';
+            case 'terms': return '/terms';
+            case 'privacy': return '/privacy-policy';
+            case 'cookies': return '/cookie-policy';
+            default: return '/';
+        }
+    };
 
     return (
         <AdminLayout>
@@ -135,7 +156,7 @@ const AdminFooterManagementPage: React.FC = () => {
                     </div>
 
                     {/* Tabs */}
-                    <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                    <div className="flex flex-wrap bg-white dark:bg-slate-800 p-1 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
                         {tabs.map((tab) => {
                             const Icon = tab.icon;
                             const isActive = activeTab === tab.id;
@@ -143,7 +164,7 @@ const AdminFooterManagementPage: React.FC = () => {
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-bold transition-all ${isActive
+                                    className={`flex-1 min-w-[140px] flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-bold transition-all ${isActive
                                         ? 'bg-indigo-600 text-white shadow-md'
                                         : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700/50'
                                         }`}
@@ -182,7 +203,7 @@ const AdminFooterManagementPage: React.FC = () => {
                                                 Description / Content Text
                                             </label>
                                             <Link
-                                                to={activeTab === 'about' ? '/about' : activeTab === 'success' ? '/success-stories' : '/blog'}
+                                                to={getPreviewLink(activeTab)}
                                                 target="_blank"
                                                 className="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1"
                                             >

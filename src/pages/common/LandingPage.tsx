@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Mic, BookOpen, Phone, CheckSquare, Rocket, Star, Zap, Facebook, Linkedin, Instagram, Mail, ArrowRight } from 'lucide-react';
+import { Mic, BookOpen, Phone, CheckSquare, Rocket, Star, Zap, Facebook, Linkedin, Instagram, Mail, ArrowRight, Check, Loader } from 'lucide-react';
+import { subscriptionsService } from '../../services/subscriptions';
 import Button from '../../components/Button';
 import { Logo } from '../../components/common/Logo';
 
@@ -24,6 +25,30 @@ const AnimatedBanner: React.FC = () => {
 
 const LandingPage: React.FC = () => {
     const { t } = useTranslation();
+    const [plans, setPlans] = useState<any[]>([]);
+    const [loadingPlans, setLoadingPlans] = useState(true);
+
+    useEffect(() => {
+        const fetchPlans = async () => {
+            try {
+                const response = await subscriptionsService.getPlans();
+                const planList = (response as any)?.data || (Array.isArray(response) ? response : (response as any)?.items) || [];
+                setPlans(planList);
+            } catch (error) {
+                console.error("Failed to fetch plans", error);
+            } finally {
+                setLoadingPlans(false);
+            }
+        };
+        fetchPlans();
+    }, []);
+
+    const getFeatureDisplay = (key: string, value: any) => {
+        if (['priority', '_id', 'createdat', 'updatedat', '__v', 'id', 'subscriptions'].includes(key.toLowerCase())) return null;
+        let displayValue = typeof value === 'string' ? value : (value?.value || value?.text);
+        if (!displayValue || displayValue === 'true' || displayValue === 'false') return null;
+        return displayValue;
+    };
 
     return (
         <div className="min-h-dvh bg-white dark:bg-slate-900">
@@ -285,6 +310,114 @@ const LandingPage: React.FC = () => {
                 </div>
             </section>
 
+            {/* Pricing Section */}
+            <section id="pricing" className="bg-slate-50 dark:bg-slate-900/50 py-24 border-y border-slate-200 dark:border-slate-800 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-violet-500/5 blur-[120px] rounded-full pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-fuchsia-500/5 blur-[120px] rounded-full pointer-events-none" />
+
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                    <div className="text-center mb-16">
+                        <h2 className="text-4xl md:text-5xl font-bold mb-6 text-slate-900 dark:text-white">
+                            Choose Your Plan
+                        </h2>
+                        <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+                            Start with a free trial and upgrade anytime. All plans include access to our core features.
+                        </p>
+                    </div>
+
+                    {loadingPlans ? (
+                        <div className="flex justify-center items-center py-20">
+                            <Loader className="w-10 h-10 text-violet-600 animate-spin" />
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {plans.length > 0 ? plans.map((plan) => {
+                                const isYearlyPlan = plan.name?.toLowerCase().includes('yearly') || plan.interval?.toLowerCase() === 'year';
+                                const isFreeTrial = plan.name?.toLowerCase().includes('free trial');
+                                const isQuarterly = plan.name?.toLowerCase().includes('quarterly');
+
+                                return (
+                                    <div key={plan.id || plan._id} className={`relative rounded-3xl p-6 sm:p-8 flex flex-col h-full transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl ${isYearlyPlan
+                                            ? 'border-violet-500/50 dark:border-violet-400/30 bg-gradient-to-b from-violet-50/50 to-white/50 dark:from-violet-900/20 dark:to-slate-900/40 shadow-violet-500/10'
+                                            : 'bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700'
+                                        }`}>
+                                        {isYearlyPlan && (
+                                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-500 to-rose-600 text-white text-sm font-black px-6 py-2 rounded-full shadow-xl z-40 animate-bounce tracking-wider flex items-center gap-2 border-2 border-white/20">
+                                                <Zap size={16} fill="white" />
+                                                BEST OFFER
+                                            </div>
+                                        )}
+
+                                        <div className="mb-6 pt-2">
+                                            <h4 className={`text-xl font-bold mb-2 ${isYearlyPlan ? 'text-violet-700 dark:text-violet-300' : 'text-slate-900 dark:text-white'}`}>
+                                                {plan.name}
+                                            </h4>
+                                            <div className="flex flex-col gap-1">
+                                                <div className="flex items-baseline gap-2">
+                                                    {isYearlyPlan && (
+                                                        <span className="text-xl text-slate-400 line-through font-medium">₹1300</span>
+                                                    )}
+                                                    <span className={`text-4xl font-extrabold tracking-tight ${isYearlyPlan ? 'text-violet-900 dark:text-white' : 'text-slate-900 dark:text-white'}`}>
+                                                        ₹{plan.price}
+                                                    </span>
+                                                    <span className={`text-sm font-medium ${isYearlyPlan ? 'text-violet-600 dark:text-violet-400' : 'text-slate-500'}`}>
+                                                        /{isFreeTrial ? '24h' : (plan.interval === 'year' || isYearlyPlan) ? 'year' : (isQuarterly ? '3 months' : 'month')}
+                                                    </span>
+                                                </div>
+                                                {isYearlyPlan && (
+                                                    <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-[10px] font-bold px-2 py-1 rounded w-fit flex items-center gap-1 mt-1 border border-red-200 dark:border-red-800/30">
+                                                        <Zap size={10} fill="currentColor" />
+                                                        Limited Time Offer
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-4 leading-relaxed min-h-[40px]">
+                                                {plan.description}
+                                            </p>
+                                        </div>
+
+                                        <div className="h-px w-full bg-slate-200 dark:bg-slate-700/50 mb-6" />
+
+                                        <ul className="space-y-4 mb-8 flex-1">
+                                            {plan.features && Object.keys(plan.features).length > 0 ? (
+                                                Object.entries(plan.features).map(([key, value], i) => {
+                                                    const displayValue = getFeatureDisplay(key, value);
+                                                    if (!displayValue) return null;
+
+                                                    return (
+                                                        <li key={i} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300">
+                                                            <div className={`mt-0.5 p-0.5 rounded-full shrink-0 ${isYearlyPlan ? 'bg-violet-100 dark:bg-violet-900/50 text-violet-600 dark:text-violet-400' : 'bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400'}`}>
+                                                                <Check size={12} strokeWidth={3} />
+                                                            </div>
+                                                            <span className="leading-tight">{displayValue}</span>
+                                                        </li>
+                                                    );
+                                                })
+                                            ) : (
+                                                <li className="text-sm text-slate-500 italic">Core features included</li>
+                                            )}
+                                        </ul>
+
+                                        <Link to="/register" className="mt-auto">
+                                            <button className={`w-full py-4 rounded-xl font-bold shadow-lg transition-all ${isYearlyPlan
+                                                    ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-violet-500/30'
+                                                    : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90'
+                                                }`}>
+                                                {isFreeTrial ? "Start Free Trial" : "Get Started"}
+                                            </button>
+                                        </Link>
+                                    </div>
+                                );
+                            }) : (
+                                <div className="col-span-full text-center text-slate-500">
+                                    No plans available at the moment.
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </section>
+
             {/* Community Section */}
             <section className="bg-slate-50 dark:bg-slate-900/50 py-24 border-y border-slate-200 dark:border-slate-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -424,7 +557,7 @@ const LandingPage: React.FC = () => {
                     <div className="border-t border-slate-900 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-500 text-sm">
                         <p>{t('landing.footer.copyright')}</p>
                         <div className="flex gap-6">
-                            <Link to="/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</Link>
+                            <Link to="/privacy-policy" className="hover:text-slate-300 transition-colors">Privacy Policy</Link>
                             <Link to="/terms" className="hover:text-slate-300 transition-colors">Terms of Service</Link>
                             <Link to="/cookie-policy" className="hover:text-slate-300 transition-colors">Cookie Policy</Link>
                         </div>

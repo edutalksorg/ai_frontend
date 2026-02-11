@@ -43,9 +43,9 @@ import QuizzesPage from './pages/UserDashboard/QuizzesPage';
 import AIPronunciationPage from './pages/UserDashboard/AIPronunciationPage';
 import UserTopicDetailsPage from './pages/UserDashboard/UserTopicDetailsPage';
 import UserQuizTakingPage from './pages/UserDashboard/UserQuizTakingPage';
-import PrivacyPolicyPage from './pages/legal/PrivacyPolicyPage';
-import TermsPage from './pages/legal/TermsPage';
-import CookiePolicyPage from './pages/legal/CookiePolicyPage';
+import PrivacyPolicyPage from './pages/policies/PrivacyPage';
+import TermsPage from './pages/policies/TermsPage';
+import CookiePolicyPage from './pages/policies/CookiePage';
 import ComingSoonPage from './pages/common/ComingSoonPage';
 import AdminFooterManagementPage from './pages/AdminDashboard/AdminFooterManagementPage';
 
@@ -265,7 +265,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/verify/:token" element={<VerifyEmailPage />} />
-        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/cookie-policy" element={<CookiePolicyPage />} />
         <Route path="/about" element={<ComingSoonPage title="About Us" settingKey="footer_about" />} />
