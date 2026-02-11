@@ -25,6 +25,7 @@ const UserTopicDetailsPage: React.FC<UserTopicDetailsPageProps> = ({ topicId: pr
     const [topic, setTopic] = useState<any | null>(null);
     const [nextTopicId, setNextTopicId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isGrammarCompleted, setIsGrammarCompleted] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -177,6 +178,7 @@ const UserTopicDetailsPage: React.FC<UserTopicDetailsPageProps> = ({ topicId: pr
                             explanation={topic.grammarData.explanation}
                             translations={topic.grammarData.translations}
                             currentLanguage={i18n.language}
+                            onSuccess={setIsGrammarCompleted}
                         />
                     ) : (
                         <p className="text-center text-slate-500 italic">No exercise available for this lesson.</p>
@@ -187,22 +189,17 @@ const UserTopicDetailsPage: React.FC<UserTopicDetailsPageProps> = ({ topicId: pr
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6 border-t border-slate-200 dark:border-slate-700">
                     <Button
                         onClick={handleMarkCompleted}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-3 rounded-xl shadow-lg shadow-indigo-500/20 w-full sm:w-auto flex items-center justify-center"
+                        disabled={!isGrammarCompleted}
+                        className={`font-bold px-8 py-3 rounded-xl shadow-lg w-full sm:w-auto flex items-center justify-center transition-all duration-300 ${isGrammarCompleted
+                            ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/20'
+                            : 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed shadow-none'
+                            }`}
                     >
                         <CheckCircle className="mr-2" size={20} />
                         {t('topicDetails.markCompleted')}
                     </Button>
 
-                    {nextTopicId && (
-                        <Button
-                            onClick={() => navigate(`/topics/${nextTopicId}`)}
-                            variant="secondary"
-                            className="w-full sm:w-auto flex items-center justify-center"
-                        >
-                            {t('topicDetails.skipNext')}
-                            <ArrowRight className="ml-2" size={18} />
-                        </Button>
-                    )}
+
                 </div>
             </div>
         </div >

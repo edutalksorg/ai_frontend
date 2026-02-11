@@ -92,11 +92,29 @@ const TermsPage: React.FC = () => {
 
                     <div className="prose prose-lg prose-invert max-w-none">
                         {content.description ? (
-                            content.description.split('\n').map((paragraph, index) => (
-                                <p key={index} className="text-xl text-slate-300 leading-relaxed font-medium mb-6 last:mb-0">
-                                    {paragraph}
-                                </p>
-                            ))
+                            content.description.split('\n').map((paragraph, index) => {
+                                // Helper to render text with clickable emails
+                                const renderWithLinks = (text: string) => {
+                                    const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi;
+                                    const parts = text.split(emailRegex);
+                                    return parts.map((part, i) => {
+                                        if (emailRegex.test(part)) {
+                                            return (
+                                                <a key={i} href={`mailto:${part}`} className="text-blue-400 hover:text-blue-300 underline underline-offset-4 decoration-blue-500/30 transition-colors">
+                                                    {part}
+                                                </a>
+                                            );
+                                        }
+                                        return part;
+                                    });
+                                };
+
+                                return (
+                                    <p key={index} className="text-xl text-slate-300 leading-relaxed font-medium mb-6 last:mb-0">
+                                        {renderWithLinks(paragraph)}
+                                    </p>
+                                );
+                            })
                         ) : (
                             <div className="text-center py-12 text-slate-500">
                                 <p>No content available yet.</p>
@@ -106,11 +124,27 @@ const TermsPage: React.FC = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="mt-20 text-center">
-                    <div className="inline-flex items-center gap-6 px-8 py-3 rounded-full bg-white/5 border border-white/5 backdrop-blur-md">
-                        <span className="text-slate-500 text-xs font-bold tracking-widest uppercase">
-                            © {new Date().getFullYear()} EduTalks AI
-                        </span>
+                <div className="mt-20">
+                    <div className="flex flex-col md:flex-row justify-between items-center bg-white/5 border border-white/5 backdrop-blur-md px-8 py-6 rounded-3xl gap-6">
+                        <div className="flex items-center gap-6">
+                            <span className="text-slate-500 text-xs font-bold tracking-widest uppercase">
+                                © {new Date().getFullYear()} EduTalks AI
+                            </span>
+                        </div>
+
+                        <div className="flex flex-wrap justify-center gap-6 text-sm font-semibold">
+                            <Link to="/privacy-policy" className="text-slate-400 hover:text-white transition-colors">
+                                Privacy Policy
+                            </Link>
+                            <span className="text-slate-700 mx-2">|</span>
+                            <Link to="/terms" className="text-blue-400">
+                                Terms & Conditions
+                            </Link>
+                            <span className="text-slate-700 mx-2">|</span>
+                            <Link to="/cookie-policy" className="text-slate-400 hover:text-white transition-colors">
+                                Cookie Policy
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </div>

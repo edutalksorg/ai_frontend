@@ -8,9 +8,10 @@ interface JumbleGameProps {
     explanation: string;
     translations?: { lang: string; text: string }[];
     currentLanguage?: string;
+    onSuccess?: (success: boolean) => void;
 }
 
-const JumbleGame: React.FC<JumbleGameProps> = ({ originalSentence, explanation, translations, currentLanguage }) => {
+const JumbleGame: React.FC<JumbleGameProps> = ({ originalSentence, explanation, translations, currentLanguage, onSuccess }) => {
     const [words, setWords] = useState<{ id: number; text: string }[]>([]);
     const [userSentence, setUserSentence] = useState<{ id: number; text: string }[]>([]);
     const [isSuccess, setIsSuccess] = useState(false);
@@ -44,6 +45,7 @@ const JumbleGame: React.FC<JumbleGameProps> = ({ originalSentence, explanation, 
         setUserSentence([]);
         setIsSuccess(false);
         setIsError(false);
+        if (onSuccess) onSuccess(false);
     };
 
     const handleWordClick = (word: { id: number; text: string }, from: 'pool' | 'sentence') => {
@@ -64,6 +66,7 @@ const JumbleGame: React.FC<JumbleGameProps> = ({ originalSentence, explanation, 
         if (currentText === originalSentence) {
             setIsSuccess(true);
             setIsError(false);
+            if (onSuccess) onSuccess(true);
         } else {
             setIsError(true);
         }
