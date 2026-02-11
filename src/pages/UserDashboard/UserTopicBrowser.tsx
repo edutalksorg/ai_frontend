@@ -156,14 +156,7 @@ const UserTopicBrowser: React.FC = () => {
                                                         }`}>
                                                         {topic.level || 'General'}
                                                     </span>
-                                                    {!isLocked && (
-                                                        <button
-                                                            className={`p-2.5 rounded-full hover:bg-white/50 dark:hover:bg-white/10 transition-colors backdrop-blur-sm border border-transparent hover:border-slate-200/50 dark:hover:border-white/10 ${topic.isFavorite ? 'text-yellow-400' : 'text-slate-300 hover:text-yellow-400'}`}
-                                                            onClick={(e) => toggleFavorite(e, topic)}
-                                                        >
-                                                            <Star size={22} className={topic.isFavorite ? "fill-current" : ""} />
-                                                        </button>
-                                                    )}
+
                                                 </div>
                                             </div>
 

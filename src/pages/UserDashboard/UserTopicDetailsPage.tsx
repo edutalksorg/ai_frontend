@@ -124,33 +124,7 @@ const UserTopicDetailsPage: React.FC<UserTopicDetailsPageProps> = ({ topicId: pr
                     {t('topicDetails.backToTopics')}
                 </Button>
 
-                <button
-                    onClick={async () => {
-                        if (!topic) return;
-                        try {
-                            if (topic.isFavorite) {
-                                await topicsService.unfavorite(topic.id || topic._id);
-                                setTopic({ ...topic, isFavorite: false });
-                                dispatch(showToast({ message: 'Removed from favorites', type: 'success' }));
-                            } else {
-                                await topicsService.favorite(topic.id || topic._id);
-                                setTopic({ ...topic, isFavorite: true });
-                                dispatch(showToast({ message: 'Added to favorites', type: 'success' }));
-                            }
-                        } catch (error: any) {
-                            console.error('Failed to toggle favorite:', error);
-                            const errorMsg = error.response?.data?.message || error.response?.data?.messages?.[0] || 'Failed to update favorite';
-                            dispatch(showToast({ message: errorMsg, type: 'error' }));
-                        }
-                    }}
-                    className={`glass-button p-3 rounded-full transition-all duration-300 ${topic.isFavorite
-                        ? 'text-yellow-400 bg-yellow-400/10 hover:bg-yellow-400/20 shadow-yellow-400/20'
-                        : 'text-slate-400 hover:text-yellow-400'
-                        }`}
-                    title={topic.isFavorite ? t('topicDetails.removeFromFavorites') : t('topicDetails.addToFavorites')}
-                >
-                    <Star size={24} className={topic.isFavorite ? 'fill-current' : ''} />
-                </button>
+
             </div>
 
             {/* Main Single Card Content */}
