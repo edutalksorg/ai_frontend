@@ -70,11 +70,12 @@ const VoiceRecordsPage: React.FC = () => {
                 return idB - idA;
             });
 
-            // Filter out calls that have no recording and 0 duration (likely < 1s or failed attempts)
-            items = items.filter((record: any) =>
-                (record.recordingUrl || record.recording_url) ||
-                (record.durationSeconds !== undefined ? record.durationSeconds > 0 : (record.duration || 0) > 0)
-            );
+            // Filter out calls that have 0 duration (even if rejected or showing recording)
+            // REQ: Don't display the 0sec one even it is rejected 
+            items = items.filter((record: any) => {
+                const dur = record.durationSeconds !== undefined ? record.durationSeconds : ((record as any).duration || (record as any).DurationSeconds || (record as any).Duration || 0);
+                return dur > 0;
+            });
 
             setRecords(items);
         } catch (error) {

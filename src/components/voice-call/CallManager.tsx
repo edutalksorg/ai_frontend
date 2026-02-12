@@ -81,11 +81,7 @@ const CallManager: React.FC = () => {
             callStartTimeRef.current = Date.now();
             callLogger.info('⏱️ Call timing started');
         }
-
-        // Reset start time when returning to idle
-        if (callState === 'idle') {
-            callStartTimeRef.current = null;
-        }
+        // REMOVED: Premature reset that causes recordings to be skipped
     }, [callState]);
 
     useEffect(() => {
@@ -235,6 +231,7 @@ const CallManager: React.FC = () => {
                 } catch (error) {
                     callLogger.error('❌ Failed to finalize/upload recording', error);
                 } finally {
+                    // Final cleanup after recording is stopped and duration is used
                     callStartTimeRef.current = null;
                 }
             };
