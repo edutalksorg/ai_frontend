@@ -35,9 +35,13 @@ const AdminUsersPage: React.FC = () => {
     const [users, setUsers] = useState<UserData[]>([]);
     const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
     const [stats, setStats] = useState({ total: 0, instructors: 0, learners: 0 });
+    const [platformStats, setPlatformStats] = useState({ total: 0, instructors: 0, learners: 0 });
     const [filterRole, setFilterRole] = useState<'all' | 'instructor' | 'user'>('all');
     const [filterPayment, setFilterPayment] = useState<'all' | 'paid' | 'unpaid'>('all');
     const [searchTerm, setSearchTerm] = useState('');
+    const [dateFilter, setDateFilter] = useState('all');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
     const [showDetails, setShowDetails] = useState(false);
     const [userSubscription, setUserSubscription] = useState<any>(null);
@@ -59,31 +63,45 @@ const AdminUsersPage: React.FC = () => {
         return <Navigate to="/" replace />;
     }
 
-    const loadUsers = async (search: string = '') => {
+    const fetchPlatformStats = async () => {
         try {
-            setLoading(search ? false : true); // Don't show full screen loader for search
-            const res = await adminService.getAllUsers(1000, 1, { search });
+            const res = await adminService.getDashboardStats();
+            const data = (res as any)?.data || res;
+            if (data) {
+                const instructorCount = data.userRoleDistribution?.find((r: any) => String(r.role).toLowerCase() === 'instructor')?.value || 0;
+                const learnerCount = data.userRoleDistribution?.find((r: any) => String(r.role).toLowerCase() === 'user')?.value || 0;
+
+                const statsData = {
+                    total: parseInt(data.totalUsers) || 0,
+                    instructors: parseInt(instructorCount),
+                    learners: parseInt(learnerCount)
+                };
+                setPlatformStats(statsData);
+                setStats(statsData); // Fallback for any legacy usage
+            }
+        } catch (error) {
+            console.error('Failed to fetch platform stats:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchPlatformStats();
+    }, []);
+
+    const loadUsers = async (search: string = '', dateFilterVal: string = 'all', sDate: string = '', eDate: string = '') => {
+        try {
+            setLoading(search || dateFilterVal !== 'all' ? false : true);
+            const res = await adminService.getAllUsers(1000, 1, {
+                search: search || undefined,
+                dateFilter: dateFilterVal !== 'all' ? dateFilterVal : undefined,
+                startDate: (dateFilterVal === 'custom' || dateFilterVal === 'single') ? sDate : undefined,
+                endDate: (dateFilterVal === 'custom' || dateFilterVal === 'single') ? eDate : undefined
+            });
             const responseData = (res as any)?.data || res;
             const allUsers = Array.isArray(responseData) ? responseData : responseData?.items || [];
 
             setUsers(allUsers);
             setFilteredUsers(allUsers);
-
-            // Calculate stats (optional: only if not searching)
-            if (!search) {
-                const instructorCount = allUsers.filter((u: UserData) =>
-                    String(u.role).toLowerCase() === 'instructor'
-                ).length;
-                const learnerCount = allUsers.filter((u: UserData) =>
-                    String(u.role).toLowerCase() === 'user'
-                ).length;
-
-                setStats({
-                    total: allUsers.length,
-                    instructors: instructorCount,
-                    learners: learnerCount,
-                });
-            }
         } catch (error) {
             console.error('Failed to load users:', error);
             dispatch(showToast({ type: 'error', message: 'Failed to load users' }));
@@ -100,7 +118,7 @@ const AdminUsersPage: React.FC = () => {
         try {
             await adminService.deleteUser(userId);
             dispatch(showToast({ type: 'success', message: 'User deleted successfully' }));
-            loadUsers(); // Refresh list
+            loadUsers(searchTerm, dateFilter, startDate, endDate); // Refresh list
         } catch (err: any) {
             console.error('Error deleting user:', err);
             const msg = err.response?.data?.message || err.message || 'Failed to delete user';
@@ -109,18 +127,23 @@ const AdminUsersPage: React.FC = () => {
     };
 
     useEffect(() => {
-        loadUsers();
-    }, []);
+        if (dateFilter === 'all' ||
+            (dateFilter === 'custom' && startDate && endDate) ||
+            (dateFilter === 'single' && startDate) ||
+            ['today', 'yesterday', 'last7days', 'last30days'].includes(dateFilter)) {
+            loadUsers(searchTerm, dateFilter, startDate, endDate);
+        }
+    }, [dateFilter, startDate, endDate]);
 
     // Debounced search
     useEffect(() => {
         if (searchTerm === '') {
-            loadUsers();
+            loadUsers('', dateFilter, startDate, endDate);
             return;
         }
 
         const delayDebounceFn = setTimeout(() => {
-            loadUsers(searchTerm);
+            loadUsers(searchTerm, dateFilter, startDate, endDate);
         }, 500);
 
         return () => clearTimeout(delayDebounceFn);
@@ -336,7 +359,7 @@ const AdminUsersPage: React.FC = () => {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Users</p>
-                                <p className="text-3xl font-bold text-blue-900 dark:text-blue-100 mt-2">{stats.total}</p>
+                                <p className="text-3xl font-bold text-blue-900 dark:text-blue-100 mt-2">{platformStats.total}</p>
                             </div>
                             <Users className="w-12 h-12 text-blue-500" />
                         </div>
@@ -346,7 +369,7 @@ const AdminUsersPage: React.FC = () => {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium text-green-600 dark:text-green-400">Instructors</p>
-                                <p className="text-3xl font-bold text-green-900 dark:text-green-100 mt-2">{stats.instructors}</p>
+                                <p className="text-3xl font-bold text-green-900 dark:text-green-100 mt-2">{platformStats.instructors}</p>
                             </div>
                             <CheckCircle className="w-12 h-12 text-green-500" />
                         </div>
@@ -356,7 +379,7 @@ const AdminUsersPage: React.FC = () => {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium text-purple-600 dark:text-purple-400">Learners</p>
-                                <p className="text-3xl font-bold text-purple-900 dark:text-blue-100 mt-2">{stats.learners}</p>
+                                <p className="text-3xl font-bold text-purple-900 dark:text-blue-100 mt-2">{platformStats.learners}</p>
                             </div>
                             <AlertCircle className="w-12 h-12 text-purple-500" />
                         </div>
@@ -373,6 +396,35 @@ const AdminUsersPage: React.FC = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
                         />
+                        <div className="relative flex items-center gap-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-1.5 focus-within:ring-2 focus-within:ring-blue-500 transition-all duration-200 shadow-sm">
+                            <Calendar className="text-blue-500 dark:text-blue-400" size={18} />
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider leading-none mb-1">Registration Date</span>
+                                <input
+                                    type="date"
+                                    value={startDate}
+                                    onChange={(e) => {
+                                        setStartDate(e.target.value);
+                                        if (e.target.value) setDateFilter('single');
+                                        else setDateFilter('all');
+                                    }}
+                                    className="bg-transparent border-none p-0 text-sm font-medium text-slate-900 dark:text-white outline-none cursor-pointer focus:ring-0"
+                                />
+                            </div>
+                            {startDate && (
+                                <button
+                                    onClick={() => {
+                                        setStartDate('');
+                                        setDateFilter('all');
+                                    }}
+                                    className="ml-1 p-1 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
+                                    title="Clear date filter"
+                                >
+                                    <X size={14} />
+                                </button>
+                            )}
+                        </div>
+
                         <div className="flex flex-wrap gap-2">
                             <div className="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-lg">
                                 <button
@@ -497,8 +549,14 @@ const AdminUsersPage: React.FC = () => {
                                             )}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-slate-900 dark:text-white">
-                                                {userData.phoneNumber || <span className="text-slate-400">N/A</span>}
+                                            <div className="flex flex-col">
+                                                <div className="text-sm text-slate-900 dark:text-white font-medium">
+                                                    {userData.phoneNumber || <span className="text-slate-400">N/A</span>}
+                                                </div>
+                                                <div className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
+                                                    <Calendar size={10} className="text-slate-400" />
+                                                    {userData.createdAt ? new Date(userData.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
+                                                </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -569,9 +627,17 @@ const AdminUsersPage: React.FC = () => {
                                 </button>
                             </div>
                             <div className="space-y-4">
-                                <div>
-                                    <label className="text-sm font-medium text-slate-500 dark:text-slate-400">Name</label>
-                                    <p className="text-lg text-slate-900 dark:text-white">{selectedUser.fullName}</p>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-sm font-medium text-slate-500 dark:text-slate-400">Name</label>
+                                        <p className="text-lg text-slate-900 dark:text-white font-semibold">{selectedUser.fullName}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-slate-500 dark:text-slate-400">Registered On</label>
+                                        <p className="text-lg text-slate-900 dark:text-white font-semibold">
+                                            {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : 'N/A'}
+                                        </p>
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="text-sm font-medium text-slate-500 dark:text-slate-400">Email</label>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Loader, Users, Shield, GraduationCap, BookOpen, Filter } from 'lucide-react';
+import { Search, Loader, Users, Shield, GraduationCap, BookOpen, Filter, Calendar, X } from 'lucide-react';
 import SuperAdminLayout from '../../components/SuperAdminLayout';
 import { adminService } from '../../services/admin';
 
@@ -7,11 +7,45 @@ const AllUsersPage: React.FC = () => {
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [dateFilter, setDateFilter] = useState('all');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
     const [activeTab, setActiveTab] = useState<'all' | 'admin' | 'instructor' | 'user'>('all');
+    const [platformStats, setPlatformStats] = useState({ total: 0, admins: 0, instructors: 0, learners: 0 });
+
+    const fetchPlatformStats = async () => {
+        try {
+            const res = await adminService.getDashboardStats();
+            const data = (res as any)?.data || res;
+            if (data) {
+                const adminCount = data.userRoleDistribution?.find((r: any) => String(r.role).toLowerCase() === 'admin')?.value || 0;
+                const instructorCount = data.userRoleDistribution?.find((r: any) => String(r.role).toLowerCase() === 'instructor')?.value || 0;
+                const learnerCount = data.userRoleDistribution?.find((r: any) => String(r.role).toLowerCase() === 'user')?.value || 0;
+
+                setPlatformStats({
+                    total: parseInt(data.totalUsers) || 0,
+                    admins: parseInt(adminCount),
+                    instructors: parseInt(instructorCount),
+                    learners: parseInt(learnerCount)
+                });
+            }
+        } catch (error) {
+            console.error('Failed to fetch platform stats:', error);
+        }
+    };
 
     useEffect(() => {
-        loadAllUsers();
+        fetchPlatformStats();
     }, []);
+
+    useEffect(() => {
+        if (dateFilter === 'all' ||
+            (dateFilter === 'custom' && startDate && endDate) ||
+            (dateFilter === 'single' && startDate) ||
+            ['today', 'yesterday', 'last7days', 'last30days'].includes(dateFilter)) {
+            loadAllUsers();
+        }
+    }, [dateFilter, startDate, endDate]);
 
     const loadAllUsers = async () => {
         try {
@@ -22,7 +56,12 @@ const AllUsersPage: React.FC = () => {
             const pageSize = 100;
 
             while (hasMore) {
-                const res = await adminService.getAllUsers(pageSize, page);
+                const res = await adminService.getAllUsers(pageSize, page, {
+                    search: searchTerm || undefined,
+                    dateFilter: dateFilter !== 'all' ? dateFilter : undefined,
+                    startDate: (dateFilter === 'custom' || dateFilter === 'single') ? startDate : undefined,
+                    endDate: (dateFilter === 'custom' || dateFilter === 'single') ? (dateFilter === 'single' ? startDate : endDate) : undefined
+                });
                 const data = (res as any)?.data || res;
                 const items = Array.isArray(data) ? data : data?.items || [];
 
@@ -38,12 +77,8 @@ const AllUsersPage: React.FC = () => {
             }
 
             // Filter out SuperAdmin for clean display
-            // const filtered = all.filter((u: any) => !(u.role || '').toLowerCase().includes('superadmin'));
-            // Actually, for "All Users" we might want to see SuperAdmin too, but usually safer to hide root.
-            // Let's hide SuperAdmin to be consistent.
             const filtered = all.filter((u: any) => !(u.role || '').toLowerCase().includes('superadmin'));
 
-            setUsers(all); // Keep superadmins in raw data if needed? No, let's use filtered.
             setUsers(filtered);
         } catch (error) {
             console.error("Failed to load users", error);
@@ -104,7 +139,7 @@ const AllUsersPage: React.FC = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <StatCard
                     title="Total Users"
-                    count={users.length}
+                    count={platformStats.total}
                     icon={Users}
                     color="indigo"
                     isActive={activeTab === 'all'}
@@ -112,15 +147,15 @@ const AllUsersPage: React.FC = () => {
                 />
                 <StatCard
                     title="Admins"
-                    count={admins.length}
+                    count={platformStats.admins}
                     icon={Shield}
-                    color="purple"
+                    color="emerald"
                     isActive={activeTab === 'admin'}
                     onClick={() => setActiveTab('admin')}
                 />
                 <StatCard
                     title="Instructors"
-                    count={instructors.length}
+                    count={platformStats.instructors}
                     icon={GraduationCap}
                     color="orange"
                     isActive={activeTab === 'instructor'}
@@ -128,9 +163,9 @@ const AllUsersPage: React.FC = () => {
                 />
                 <StatCard
                     title="Learners"
-                    count={learners.length}
+                    count={platformStats.learners}
                     icon={BookOpen}
-                    color="green"
+                    color="blue"
                     isActive={activeTab === 'user'}
                     onClick={() => setActiveTab('user')}
                 />
@@ -151,6 +186,35 @@ const AllUsersPage: React.FC = () => {
                             className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-indigo-500"
                         />
                     </div>
+                    <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 rounded-lg px-3 py-1.5 focus-within:ring-2 focus-within:ring-indigo-500 transition-all duration-200">
+                        <Calendar className="text-indigo-500" size={16} />
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-tight leading-none mb-0.5">Date</span>
+                            <input
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => {
+                                    setStartDate(e.target.value);
+                                    if (e.target.value) setDateFilter('single');
+                                    else setDateFilter('all');
+                                }}
+                                className="bg-transparent border-none p-0 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none cursor-pointer focus:ring-0"
+                            />
+                        </div>
+                        {startDate && (
+                            <button
+                                onClick={() => {
+                                    setStartDate('');
+                                    setDateFilter('all');
+                                }}
+                                className="ml-1 p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
+                                title="Clear date filter"
+                            >
+                                <X size={12} />
+                            </button>
+                        )}
+                    </div>
+
                     <div className="flex items-center gap-2 text-sm text-slate-500">
                         Showing {displayedUsers.length} results
                     </div>
@@ -205,8 +269,16 @@ const AllUsersPage: React.FC = () => {
                                                     {user.isActive === false ? 'Inactive' : 'Active'}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
-                                                {user.phoneNumber || '-'}
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm text-slate-900 dark:text-white font-medium">
+                                                        {user.phoneNumber || <span className="text-slate-400">N/A</span>}
+                                                    </span>
+                                                    <span className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
+                                                        <Calendar size={10} className="text-slate-400" />
+                                                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
+                                                    </span>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
