@@ -119,6 +119,9 @@ export const callsService = {
   adminFlagCall: async (callId: string, reason: string) =>
     apiService.post(`/admin/calls/${callId}/flag`, { reason }),
 
+  adminDeleteCall: async (callId: string) =>
+    apiService.delete(`/admin/calls/${callId}`),
+
   adminGetCallTranscript: async (callId: string) =>
     apiService.get(`/admin/calls/${callId}/transcript`),
 

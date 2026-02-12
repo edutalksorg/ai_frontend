@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Phone, User, Clock, History, RefreshCw, ArrowLeft, ChevronDown, Sparkles, Crown, AlertCircle, Trash2 } from 'lucide-react';
+import { Phone, User, Clock, History, RefreshCw, ArrowLeft, ChevronDown, Sparkles, Crown, AlertCircle, Trash2, PhoneIncoming, PhoneOutgoing, PhoneMissed } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import callsService from '../../services/calls';
 import Button from '../../components/Button';
@@ -127,6 +127,7 @@ const UserVoiceCall: React.FC = () => {
             signalRService.offEvent('usereligibilitychanged');
             signalRService.offEvent('FriendRequestReceived');
             signalRService.offEvent('FriendRequestAccepted');
+            signalRService.offEvent('FriendshipRemoved');
         };
     }, []);
 
@@ -291,7 +292,15 @@ const UserVoiceCall: React.FC = () => {
             setLoading(true);
             callLogger.debug('Fetching call history');
             const res = await callsService.history({ pageSize: 100 });
-            const items = (res as any)?.data || (Array.isArray(res) ? res : (res as any)?.items) || [];
+            let items = (res as any)?.data || (Array.isArray(res) ? res : (res as any)?.items) || [];
+
+            // Senior Dev: Sort by recency (most recent at top)
+            items = [...items].sort((a, b) => {
+                const dateA = new Date(a.initiatedAt || a.startTime || a.startedAt || a.startedat || a.createdAt || a.created_at || a.timestamp || a.time || a.date || 0).getTime();
+                const dateB = new Date(b.initiatedAt || b.startTime || b.startedAt || b.startedat || b.createdAt || b.created_at || b.timestamp || b.time || b.date || 0).getTime();
+                return dateB - dateA;
+            });
+
             setHistory(items);
         } catch (error) {
             callLogger.error('Failed to fetch call history', error);
@@ -347,8 +356,8 @@ const UserVoiceCall: React.FC = () => {
     return (
         <div className="space-y-6">
             {/* Header / Tabs / Stats */}
-            <div className="glass-panel rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex gap-2 p-1 bg-slate-100/50 dark:bg-slate-800/50 rounded-xl backdrop-blur-sm">
+            <div className="glass-panel rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl shadow-slate-200/50 dark:shadow-black/20">
+                <div className="flex gap-2 p-1 bg-slate-100/30 dark:bg-slate-800/30 rounded-xl backdrop-blur-md border border-slate-200/50 dark:border-white/5">
                     <button
                         className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab === 'available'
                             ? 'bg-white dark:bg-slate-700 text-violet-600 dark:text-violet-300 shadow-sm'
@@ -397,22 +406,22 @@ const UserVoiceCall: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                     {/* Left: Random Call CTA */}
                     <div className="lg:col-span-2 space-y-6">
-                        <div className="relative overflow-hidden glass-panel rounded-3xl p-8 sm:p-12 text-center group flex flex-col justify-center min-h-[500px]">
+                        <div className="relative overflow-hidden glass-panel rounded-[2.5rem] p-8 sm:p-12 text-center group flex flex-col justify-center min-h-[500px] border border-white/40 dark:border-white/10 shadow-2xl transition-all duration-500 hover:shadow-violet-500/10">
                             {/* Decorative Background Blobs inside card */}
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-violet-500/20 transition-all duration-700" />
-                            <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3 group-hover:bg-cyan-500/20 transition-all duration-700" />
+                            <div className="absolute top-0 right-0 w-80 h-80 bg-violet-600/10 dark:bg-violet-500/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 group-hover:bg-violet-600/20 transition-all duration-700 animate-pulse" />
+                            <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-600/10 dark:bg-cyan-500/20 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/3 group-hover:bg-cyan-600/20 transition-all duration-700" />
 
                             <div className="relative z-10 flex flex-col items-center">
-                                <div className="w-24 h-24 mb-6 rounded-full bg-gradient-to-tr from-violet-500 to-fuchsia-500 p-[2px] shadow-lg shadow-violet-500/30">
-                                    <div className="w-full h-full rounded-full bg-white dark:bg-slate-900 flex items-center justify-center backdrop-blur-sm">
-                                        <Phone className="w-10 h-10 text-violet-500 animate-pulse" />
+                                <div className="w-28 h-28 mb-8 rounded-full bg-gradient-to-tr from-violet-600 via-fuchsia-500 to-violet-600 p-[3px] shadow-2xl shadow-violet-500/30 group-hover:scale-110 transition-transform duration-500">
+                                    <div className="w-full h-full rounded-full bg-white dark:bg-slate-900 flex items-center justify-center backdrop-blur-xl">
+                                        <Phone className="w-12 h-12 text-violet-600 dark:text-violet-400 group-hover:rotate-12 transition-transform duration-300" />
                                     </div>
                                 </div>
 
-                                <h1 className="text-3xl sm:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 mb-4">
+                                <h1 className="text-4xl sm:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-violet-800 to-slate-900 dark:from-white dark:via-violet-200 dark:to-white mb-6 tracking-tight">
                                     {t('voiceCall.randomCallTitle')}
                                 </h1>
-                                <p className="text-lg text-slate-600 dark:text-slate-400 max-w-lg mb-8 leading-relaxed">
+                                <p className="text-lg text-slate-600 dark:text-slate-400 max-w-lg mb-10 leading-relaxed font-medium">
                                     {t('voiceCall.randomCallDesc')}
                                 </p>
 
@@ -630,37 +639,52 @@ const UserVoiceCall: React.FC = () => {
                     ) : history.length > 0 ? (
                         <div className="divide-y divide-slate-200/50 dark:divide-white/5 flex-1 overflow-y-auto pr-2 custom-scrollbar">
                             {history.map((call) => {
-                                const startTime = call.initiatedAt || call.startTime || call.startedAt || call.startedat;
-                                const duration = call.durationSeconds !== undefined ? call.durationSeconds : call.duration;
-                                const isIncoming = call.isIncoming;
-                                const status = call.status || 'Unknown';
+                                const startTime = call.initiatedAt || call.startTime || call.startedAt || call.startedat || call.createdAt || call.created_at || call.timestamp || call.time || call.date;
+                                const duration = call.durationSeconds !== undefined ? call.durationSeconds : (call.duration || 0);
+                                const isIncoming = call.isIncoming !== undefined ? call.isIncoming : (call.calleeId === currentUser?.id);
+                                const status = (call.status || 'Unknown').toLowerCase();
+                                const partnerName = (isIncoming ? (call.callerName || call.callerFullName || call.caller?.fullName) : (call.calleeName || call.calleeFullName || call.callee?.fullName)) || call.partnerName || call.partnerFullName || call.partner?.fullName || (typeof call.partner === 'string' ? call.partner : null) || call.displayName || call.userName;
+
+                                // Senior Dev: Dynamic Icon and Styling
+                                let StatusIcon = Phone;
+                                let statusColor = 'text-slate-500';
+                                let bgColor = 'bg-slate-500/10';
+
+                                if (status === 'completed' || status === 'ended' || status === 'accepted') {
+                                    StatusIcon = isIncoming ? PhoneIncoming : PhoneOutgoing;
+                                    statusColor = 'text-green-500';
+                                    bgColor = 'bg-green-500/10';
+                                } else if (['missed', 'failed', 'declined', 'rejected', 'busy', 'cancelled'].includes(status)) {
+                                    StatusIcon = PhoneMissed;
+                                    statusColor = 'text-red-500';
+                                    bgColor = 'bg-red-500/10';
+                                } else if (['pending', 'ringing'].includes(status)) {
+                                    StatusIcon = Phone;
+                                    statusColor = 'text-yellow-500';
+                                    bgColor = 'bg-yellow-500/10';
+                                }
+
                                 return (
-                                    <div key={call.callId} className="p-4 hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors flex items-center justify-between group">
+                                    <div key={call.callId} className="p-4 hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors flex items-center justify-between group rounded-2xl">
                                         <div className="flex items-center gap-4">
-                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${['missed', 'failed', 'declined'].includes(status.toLowerCase()) ? 'bg-red-500/10 text-red-500' :
-                                                status.toLowerCase() === 'completed' ? 'bg-green-500/10 text-green-500' :
-                                                    ['pending', 'ringing'].includes(status.toLowerCase()) ? 'bg-yellow-500/10 text-yellow-500' :
-                                                        'bg-slate-500/10 text-slate-500'
-                                                }`}>
-                                                {isIncoming ? <ArrowLeft size={18} className="rotate-45" /> : <Phone size={18} />}
+                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${bgColor} ${statusColor} shadow-inner`}>
+                                                <StatusIcon size={20} />
                                             </div>
                                             <div>
-                                                <h4 className="font-semibold text-slate-900 dark:text-white group-hover:text-violet-500 transition-colors">
-                                                    {t('voiceCall.voiceCallLabel')}
+                                                <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-violet-500 transition-colors">
+                                                    {partnerName || t('voiceCall.voiceCallLabel')}
                                                 </h4>
-                                                <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                                                    <span>{(() => {
-                                                        if (!startTime) return 'N/A';
-                                                        const dateStr = startTime.endsWith('Z') ? startTime : `${startTime}Z`;
-                                                        const date = new Date(dateStr);
-                                                        return isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString();
-                                                    })()}</span>
+                                                <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                                                    <span className="flex items-center gap-1 capitalize">
+                                                        {isIncoming ? t('voiceCall.incoming') : t('voiceCall.outgoing')}
+                                                    </span>
                                                     <span>•</span>
                                                     <span>{(() => {
                                                         if (!startTime) return 'N/A';
-                                                        const dateStr = startTime.endsWith('Z') ? startTime : `${startTime}Z`;
+                                                        const dateStr = String(startTime).endsWith('Z') ? String(startTime) : `${String(startTime)}Z`;
                                                         const date = new Date(dateStr);
-                                                        return isNaN(date.getTime()) ? 'N/A' : date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                                        if (isNaN(date.getTime())) return 'N/A';
+                                                        return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
                                                     })()}</span>
                                                 </div>
                                             </div>
@@ -670,14 +694,8 @@ const UserVoiceCall: React.FC = () => {
                                                 <Clock size={12} />
                                                 {Math.floor(duration / 60)}:{String(duration % 60).padStart(2, '0')}
                                             </div>
-                                            <p className={`text-xs mt-1 font-medium ${['missed', 'failed', 'declined'].includes(status.toLowerCase()) ? 'text-red-500' :
-                                                status.toLowerCase() === 'completed' ? 'text-green-500' :
-                                                    ['pending', 'ringing'].includes(status.toLowerCase()) ? 'text-yellow-500' :
-                                                        'text-slate-500'
-                                                }`}>
-                                                {(['ended', 'completed', 'missed', 'pending', 'failed', 'ringing', 'declined', 'busy'].includes(status.toLowerCase()))
-                                                    ? t(`voiceCall.${status.toLowerCase()}`)
-                                                    : status}
+                                            <p className={`text-xs mt-1 font-bold uppercase tracking-wider ${statusColor}`}>
+                                                {t(`voiceCall.${status}`) || status}
                                             </p>
                                         </div>
                                     </div>
