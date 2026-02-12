@@ -215,17 +215,24 @@ const CallManager: React.FC = () => {
 
                         callLogger.info('📤 Uploading call recording...', {
                             duration: durationInSeconds.toFixed(2) + 's',
-                            size: recordingBlob.size,
+                            size: (recordingBlob.size / 1024).toFixed(2) + ' KB',
                             callId: callData.callId
                         });
 
                         // Upload to backend
-                        await callsService.uploadRecording(callData.callId, recordingBlob);
-                        callLogger.info('✅ Recording uploaded successfully');
+                        try {
+                            const response = await callsService.uploadRecording(callData.callId, recordingBlob);
+                            callLogger.info('✅ Recording uploaded successfully', {
+                                url: (response as any)?.data?.url
+                            });
+                        } catch (uploadErr) {
+                            callLogger.error('❌ Upload to backend failed', uploadErr);
+                        }
                     } else {
                         callLogger.warning('⚠️ Recording blob is empty or null, skipping upload', {
                             size: recordingBlob?.size,
-                            hasCallData: !!callData
+                            hasCallData: !!callData,
+                            duration: durationInSeconds.toFixed(2) + 's'
                         });
                     }
                 } catch (error) {
@@ -400,9 +407,11 @@ const CallManager: React.FC = () => {
                 // Start Recording with a small delay to ensure tracks are ready
                 setTimeout(async () => {
                     try {
+                        callLogger.debug('Attempting to start recording...', { state: callStateRef.current });
                         if (callStateRef.current === 'active' || callStateRef.current === 'connecting') {
                             await agoraService.startRecording();
-                            callLogger.info('🎙️ Recording started after stabilization delay');
+                        } else {
+                            callLogger.info(`⏭️ Skipping recording start - state changed to ${callStateRef.current}`);
                         }
                     } catch (err) {
                         callLogger.error('Failed to start recording', err);

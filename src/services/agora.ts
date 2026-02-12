@@ -459,21 +459,34 @@ class AgoraService {
             this.mediaRecorder = new MediaRecorder(mixedStream, { mimeType });
 
             this.mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) {
+                if (event.data && event.data.size > 0) {
                     this.recordedChunks.push(event.data);
-                    // Pulsing log to show it's working
-                    if (this.recordedChunks.length % 5 === 0) {
-                        console.log(`📥 Recording in progress... ${this.recordedChunks.length} chunks collected`);
+                    // Pulsing log every ~10 seconds
+                    if (this.recordedChunks.length % 10 === 0) {
+                        const totalSize = this.recordedChunks.reduce((acc, chunk) => acc + chunk.size, 0);
+                        console.log(`📥 Recording in progress: ${this.recordedChunks.length} chunks, ${(totalSize / 1024).toFixed(2)} KB collected`);
                     }
                 }
             };
 
-            this.mediaRecorder.onstart = () => console.log('🟢 MediaRecorder started');
-            this.mediaRecorder.onstop = () => console.log('🔴 MediaRecorder stopped');
-            this.mediaRecorder.onerror = (err) => console.error('🔴 MediaRecorder error:', err);
+            this.mediaRecorder.onstart = () => {
+                console.log('🟢 MediaRecorder started:', this.mediaRecorder?.mimeType);
+            };
+
+            this.mediaRecorder.onstop = () => {
+                console.log('🔴 MediaRecorder onstop event fired');
+            };
+
+            this.mediaRecorder.onerror = (err: any) => {
+                console.error('🔴 MediaRecorder error:', err);
+                // Attempt to stop and recover what we have
+                if (this.mediaRecorder?.state !== 'inactive') {
+                    this.mediaRecorder?.stop();
+                }
+            };
 
             this.mediaRecorder.start(1000); // Collect chunks every second
-            console.log('✅ MediaRecorder.start() called');
+            console.log('✅ MediaRecorder.start() initiated successfully');
 
         } catch (error) {
             console.error('❌ Failed to start recording:', error);

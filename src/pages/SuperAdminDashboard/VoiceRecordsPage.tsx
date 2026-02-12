@@ -70,11 +70,14 @@ const VoiceRecordsPage: React.FC = () => {
                 return idB - idA;
             });
 
-            // Filter out calls that have 0 duration (even if rejected or showing recording)
+            // Filter out calls that have 0 or very small duration (like < 1s) unless they actually have a recording
             // REQ: Don't display the 0sec one even it is rejected 
             items = items.filter((record: any) => {
                 const dur = record.durationSeconds !== undefined ? record.durationSeconds : ((record as any).duration || (record as any).DurationSeconds || (record as any).Duration || 0);
-                return dur > 0;
+                const hasRecording = !!(record.recordingUrl || (record as any).recording_url);
+
+                // Show if it has a recording or if duration is at least 1 second
+                return hasRecording || (dur >= 1);
             });
 
             setRecords(items);
