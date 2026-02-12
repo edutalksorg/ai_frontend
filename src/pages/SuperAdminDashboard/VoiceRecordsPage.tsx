@@ -70,6 +70,12 @@ const VoiceRecordsPage: React.FC = () => {
                 return idB - idA;
             });
 
+            // Filter out calls that have no recording and 0 duration (likely < 1s or failed attempts)
+            items = items.filter((record: any) =>
+                (record.recordingUrl || record.recording_url) ||
+                (record.durationSeconds !== undefined ? record.durationSeconds > 0 : (record.duration || 0) > 0)
+            );
+
             setRecords(items);
         } catch (error) {
             callLogger.error('Failed to fetch voice records', error);

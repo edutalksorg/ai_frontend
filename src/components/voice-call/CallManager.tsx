@@ -57,6 +57,7 @@ const CallManager: React.FC = () => {
     const hasJoinedChannel = useRef<boolean>(false);
     const callStateRef = useRef(callState);
     const currentCallRef = useRef<any>(null);
+    const callStartTimeRef = useRef<number | null>(null);
 
     // DEBUG: Log component mount
     useEffect(() => {
@@ -75,6 +76,16 @@ const CallManager: React.FC = () => {
     // Update refs when state changes
     useEffect(() => {
         callStateRef.current = callState;
+
+        if (callState === 'active' && !callStartTimeRef.current) {
+            callStartTimeRef.current = Date.now();
+            callLogger.info('⏱️ Call timing started');
+        }
+
+        // Reset start time when returning to idle
+        if (callState === 'idle') {
+            callStartTimeRef.current = null;
+        }
     }, [callState]);
 
     useEffect(() => {
@@ -189,11 +200,25 @@ const CallManager: React.FC = () => {
 
             const finalizeRecording = async (callData: any) => {
                 try {
+                    // Calculate actual duration
+                    const durationInSeconds = callStartTimeRef.current ? (Date.now() - callStartTimeRef.current) / 1000 : 0;
+
                     // Stop recording and get blob
                     const recordingBlob = await agoraService.stopRecording();
 
                     if (recordingBlob && recordingBlob.size > 0 && callData) {
+                        // REQ: Only record if talk time > 0.1 sec
+                        if (durationInSeconds <= 0.1) {
+                            callLogger.info('⏭️ Skipping recording upload - duration too short', {
+                                durationInSeconds,
+                                size: recordingBlob.size,
+                                callId: callData.callId
+                            });
+                            return;
+                        }
+
                         callLogger.info('📤 Uploading call recording...', {
+                            duration: durationInSeconds.toFixed(2) + 's',
                             size: recordingBlob.size,
                             callId: callData.callId
                         });
@@ -209,6 +234,8 @@ const CallManager: React.FC = () => {
                     }
                 } catch (error) {
                     callLogger.error('❌ Failed to finalize/upload recording', error);
+                } finally {
+                    callStartTimeRef.current = null;
                 }
             };
 
