@@ -98,8 +98,13 @@ const UserWallet: React.FC = () => {
         const formData = new FormData(e.target as HTMLFormElement);
         const amount = parseFloat(formData.get('amount') as string);
 
-        if (amount <= 0) {
+        if (isNaN(amount) || amount <= 0) {
             dispatch(showToast({ message: t('wallet.invalidAmount'), type: 'error' }));
+            return;
+        }
+
+        if (amount < 500) {
+            dispatch(showToast({ message: t('wallet.minWithdrawParams', { amount: 500 }), type: 'error' }));
             return;
         }
 
@@ -241,9 +246,16 @@ const UserWallet: React.FC = () => {
                         </div>
                     </div>
                     <div className="w-full sm:w-auto">
+
                         <Button
                             className="w-full sm:w-auto bg-white text-indigo-900 hover:bg-white/90 font-bold px-8 py-4 rounded-xl shadow-xl shadow-black/20"
-                            onClick={() => setShowWithdraw(!showWithdraw)}
+                            onClick={() => {
+                                if (walletData.availableBalance < 500) {
+                                    dispatch(showToast({ message: t('wallet.minWithdrawParams', { amount: 500 }), type: 'error' }));
+                                    return;
+                                }
+                                setShowWithdraw(!showWithdraw);
+                            }}
                         >
                             <span className="flex items-center gap-2">
                                 <Landmark size={20} />
@@ -293,7 +305,7 @@ const UserWallet: React.FC = () => {
                                 <input
                                     name="amount"
                                     type="number"
-                                    min="1"
+                                    min="9"
                                     max={walletData.availableBalance}
                                     required
                                     className="glass-input w-full pl-8 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 font-bold text-lg"

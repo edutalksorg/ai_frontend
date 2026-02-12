@@ -280,6 +280,7 @@
     "accountNumberPlaceholder": "0000000000",
     "accountHolderPlaceholder": "Name as per bank records",
     "upiPlaceholder": "username@upi (Optional)",
+    "minWithdrawParams": "Minimum withdrawal amount is ₹{{amount}}",
     "error": "Error"
   },
   "quiz": {
