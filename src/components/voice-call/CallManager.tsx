@@ -204,7 +204,8 @@ const CallManager: React.FC = () => {
 
                     if (recordingBlob && recordingBlob.size > 0 && callData) {
                         // REQ: Only record if talk time > 0.1 sec
-                        if (durationInSeconds <= 0.1) {
+                        // Use 0.05 as buffer to safely include 0.1s+ calls
+                        if (durationInSeconds <= 0.05) {
                             callLogger.info('⏭️ Skipping recording upload - duration too short', {
                                 durationInSeconds,
                                 size: recordingBlob.size,

@@ -76,8 +76,11 @@ const VoiceRecordsPage: React.FC = () => {
                 const dur = record.durationSeconds !== undefined ? record.durationSeconds : ((record as any).duration || (record as any).DurationSeconds || (record as any).Duration || 0);
                 const hasRecording = !!(record.recordingUrl || (record as any).recording_url);
 
-                // Show if it has a recording or if duration is at least 1 second
-                return hasRecording || (dur >= 1);
+                const status = (record.status || '').toLowerCase();
+                const isAccepted = ['completed', 'ended', 'accepted'].includes(status);
+
+                // Show ONLY if accepted/completed AND duration > 1 second
+                return isAccepted && (dur > 1);
             });
 
             setRecords(items);
