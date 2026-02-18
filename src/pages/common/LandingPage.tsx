@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Mic, BookOpen, Phone, CheckSquare, Rocket, Star, Zap, Facebook, Linkedin, Instagram, Mail, ArrowRight, Check, Loader } from 'lucide-react';
+import { Mic, BookOpen, Phone, CheckSquare, Rocket, Star, Zap, Facebook, Linkedin, Instagram, Mail, ArrowRight, Check, Loader, Download, Smartphone } from 'lucide-react';
 import { subscriptionsService } from '../../services/subscriptions';
 import Button from '../../components/Button';
 import { Logo } from '../../components/common/Logo';
@@ -27,6 +27,17 @@ const LandingPage: React.FC = () => {
     const { t } = useTranslation();
     const [plans, setPlans] = useState<any[]>([]);
     const [loadingPlans, setLoadingPlans] = useState(true);
+    const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+    const [showInstallGuide, setShowInstallGuide] = useState(false);
+
+    useEffect(() => {
+        const handleBeforeInstallPrompt = (e: any) => {
+            e.preventDefault();
+            setDeferredPrompt(e);
+        };
+        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    }, []);
 
     useEffect(() => {
         const fetchPlans = async () => {
@@ -338,8 +349,8 @@ const LandingPage: React.FC = () => {
 
                                 return (
                                     <div key={plan.id || plan._id} className={`relative rounded-3xl p-6 sm:p-8 flex flex-col h-full transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl ${isYearlyPlan
-                                            ? 'border-violet-500/50 dark:border-violet-400/30 bg-gradient-to-b from-violet-50/50 to-white/50 dark:from-violet-900/20 dark:to-slate-900/40 shadow-violet-500/10'
-                                            : 'bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700'
+                                        ? 'border-violet-500/50 dark:border-violet-400/30 bg-gradient-to-b from-violet-50/50 to-white/50 dark:from-violet-900/20 dark:to-slate-900/40 shadow-violet-500/10'
+                                        : 'bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700'
                                         }`}>
                                         {isYearlyPlan && (
                                             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-500 to-rose-600 text-white text-sm font-black px-6 py-2 rounded-full shadow-xl z-40 animate-bounce tracking-wider flex items-center gap-2 border-2 border-white/20">
@@ -400,8 +411,8 @@ const LandingPage: React.FC = () => {
 
                                         <Link to="/register" className="mt-auto">
                                             <button className={`w-full py-4 rounded-xl font-bold shadow-lg transition-all ${isYearlyPlan
-                                                    ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-violet-500/30'
-                                                    : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90'
+                                                ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-violet-500/30'
+                                                : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90'
                                                 }`}>
                                                 {isFreeTrial ? "Start Free Trial" : "Get Started"}
                                             </button>
@@ -497,6 +508,98 @@ const LandingPage: React.FC = () => {
                     </Link>
                 </div>
             </section>
+
+            {/* Download App Section */}
+            <section id="download" className="bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 py-24 relative overflow-hidden text-center">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                    <div className="inline-block p-4 rounded-3xl bg-blue-600/10 border border-blue-500/20 mb-8 backdrop-blur-sm">
+                        <Smartphone className="w-10 h-10 text-blue-600" />
+                    </div>
+                    <h2 className="text-4xl md:text-5xl font-extrabold mb-6 text-slate-900 dark:text-white tracking-tight">
+                        Experience EduTalks on <span className="text-blue-600">Mobile</span>
+                    </h2>
+                    <p className="text-xl text-slate-600 dark:text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed">
+                        Take your English learning journey everywhere. Download our Android app to practice real-time conversations even on the go.
+                    </p>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+                        <button
+                            onClick={async () => {
+                                if (deferredPrompt) {
+                                    deferredPrompt.prompt();
+                                    const { outcome } = await deferredPrompt.userChoice;
+                                    if (outcome === 'accepted') {
+                                        setDeferredPrompt(null);
+                                    }
+                                } else {
+                                    // Fallback to APK download with instructions
+                                    const link = document.createElement('a');
+                                    link.href = '/edutalks.apk';
+                                    link.download = 'edutalks.apk';
+                                    link.click();
+                                    setShowInstallGuide(true);
+                                }
+                            }}
+                            className="group relative flex items-center gap-3 px-10 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-2xl text-xl transition-all shadow-2xl hover:scale-105 active:scale-95"
+                        >
+                            <Download className="w-6 h-6" />
+                            {deferredPrompt ? 'Install App Directly' : 'Download & Install APK'}
+                        </button>
+                    </div>
+
+                    {showInstallGuide && (
+                        <div className="mt-8 p-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-3xl text-left max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <h4 className="font-bold text-blue-900 dark:text-blue-300 mb-2 flex items-center gap-2">
+                                <Rocket className="w-5 h-5" /> How to install?
+                            </h4>
+                            <ol className="text-sm text-blue-800 dark:text-blue-400 space-y-2 list-decimal ml-4">
+                                <li>The APK is downloading... Once finished, <b>tap the file</b>.</li>
+                                <li>If prompted, allow "Install from Unknown Sources".</li>
+                                <li>Follow the on-screen steps to complete installation.</li>
+                            </ol>
+                            <button
+                                onClick={() => setShowInstallGuide(false)}
+                                className="mt-4 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                            >
+                                Got it!
+                            </button>
+                        </div>
+                    )}
+
+                    <p className="mt-8 text-sm text-slate-500 font-medium">
+                        * Compatible with Android 8.0 and above
+                    </p>
+                </div>
+
+                {/* Decorative blob */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[100px] -z-10"></div>
+            </section>
+
+            {/* Floating Download Button */}
+            <div className="fixed bottom-8 right-8 z-[60] group">
+                <button
+                    onClick={async () => {
+                        if (deferredPrompt) {
+                            deferredPrompt.prompt();
+                            const { outcome } = await deferredPrompt.userChoice;
+                            if (outcome === 'accepted') {
+                                setDeferredPrompt(null);
+                            }
+                        } else {
+                            const link = document.createElement('a');
+                            link.href = '/edutalks.apk';
+                            link.download = 'edutalks.apk';
+                            link.click();
+                            setShowInstallGuide(true);
+                            // Scroll to guide if it's shown
+                            document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }}
+                    className="flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-2xl shadow-[0_20px_50px_rgba(37,99,235,0.4)] transition-all hover:scale-105 active:scale-95"
+                >
+                    <Download className="w-6 h-6" />
+                    <span className="hidden sm:inline">Install App</span>
+                </button>
+            </div>
 
             {/* Footer */}
             <footer className="bg-slate-950 text-white border-t border-slate-900 pt-20 pb-10">

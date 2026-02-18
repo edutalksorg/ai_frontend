@@ -1,0 +1,22 @@
+{
+    "name": "EduTalks - Master English",
+    "short_name": "EduTalks",
+    "description": "Master English visually and verbally. Connect with the world through real-time conversations.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#020617",
+    "theme_color": "#0ea5e9",
+    "icons": [
+        {
+            "src": "/image.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/image.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
