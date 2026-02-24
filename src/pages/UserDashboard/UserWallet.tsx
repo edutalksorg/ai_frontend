@@ -198,22 +198,22 @@ const UserWallet: React.FC = () => {
             <div className="flex items-center gap-4 mb-4">
                 <button
                     onClick={() => navigate('/dashboard')}
-                    className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors group"
+                    className="p-2 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-full transition-colors group"
                     title={t('common.back')}
                 >
-                    <ArrowLeft className="w-6 h-6 text-slate-500 group-hover:text-indigo-500" />
+                    <ArrowLeft className="w-6 h-6 text-red-500" />
                 </button>
-                <div className="p-3 bg-indigo-500/10 rounded-xl">
-                    <Wallet className="w-6 h-6 text-indigo-500" />
+                <div className="p-3 bg-red-500/10 rounded-xl shadow-sm">
+                    <Wallet className="w-6 h-6 text-red-600" />
                 </div>
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('wallet.myWallet')}</h1>
-                    <p className="text-sm text-slate-500">{t('wallet.manageFinances')}</p>
+                    <h1 className="text-2xl font-bold text-red-600 dark:text-red-500">{t('wallet.myWallet')}</h1>
+                    <p className="text-sm text-red-500/70 dark:text-red-400/70 font-medium">{t('wallet.manageFinances')}</p>
                 </div>
             </div>
 
             {/* Balance Card - Premium Glass */}
-            <div className="glass-card relative overflow-hidden rounded-3xl p-8 text-white shadow-2xl bg-gradient-to-br from-indigo-700 via-violet-700 to-purple-800 border-indigo-500/30">
+            <div className="glass-card relative overflow-hidden rounded-3xl p-8 text-white shadow-2xl bg-gradient-to-br from-red-700 via-rose-600 to-orange-700 border-red-500/30">
                 {/* Decorative Patterns */}
                 <div className="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-white/10 rounded-full blur-3xl animate-pulse-slow" />
                 <div className="absolute bottom-0 left-0 -mb-16 -ml-16 w-64 h-64 bg-black/10 rounded-full blur-3xl" />
@@ -242,11 +242,11 @@ const UserWallet: React.FC = () => {
                     </div>
                     <div className="w-full sm:w-auto">
                         <Button
-                            className="w-full sm:w-auto bg-white text-indigo-900 hover:bg-white/90 font-bold px-8 py-4 rounded-xl shadow-xl shadow-black/20"
+                            className="w-full sm:w-auto bg-white !text-red-600 hover:bg-white/90 font-bold px-8 py-4 rounded-xl shadow-xl shadow-black/20"
                             onClick={() => setShowWithdraw(!showWithdraw)}
                         >
                             <span className="flex items-center gap-2">
-                                <Landmark size={20} />
+                                <Landmark size={20} className="text-red-600" />
                                 {t('wallet.withdraw')}
                             </span>
                         </Button>
@@ -279,9 +279,9 @@ const UserWallet: React.FC = () => {
 
             {/* Withdrawal Form */}
             {showWithdraw && (
-                <div className="glass-panel p-8 rounded-3xl animate-in slide-in-from-top-4 fade-in duration-300 border-l-4 border-l-indigo-500">
+                <div className="glass-panel p-8 rounded-3xl animate-in slide-in-from-top-4 fade-in duration-300 border-l-4 border-l-red-500">
                     <h3 className="font-bold text-xl mb-6 text-slate-900 dark:text-white flex items-center gap-2">
-                        <Landmark className="text-indigo-500" />
+                        <Landmark className="text-red-500" />
                         {t('wallet.requestWithdrawal')}
                     </h3>
 
@@ -300,7 +300,7 @@ const UserWallet: React.FC = () => {
                                     placeholder="0.00"
                                 />
                             </div>
-                            <p className="text-xs font-bold text-indigo-500 mt-2 flex items-center gap-1">
+                            <p className="text-xs font-bold text-red-500 mt-2 flex items-center gap-1">
                                 <CheckCircle size={12} /> {t('wallet.available')}: ₹{walletData.availableBalance.toFixed(2)}
                             </p>
                         </div>
@@ -330,7 +330,7 @@ const UserWallet: React.FC = () => {
                         </div>
 
                         <div className="flex gap-3 pt-2">
-                            <Button type="submit" isLoading={withdrawLoading} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 px-8">
+                            <Button type="submit" isLoading={withdrawLoading} className="bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-500/30 px-8">
                                 {t('wallet.submitRequest')}
                             </Button>
                             <Button type="button" variant="ghost" onClick={() => setShowWithdraw(false)}>

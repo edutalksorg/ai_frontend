@@ -180,14 +180,14 @@ function App() {
   // Debug: Log app initialization
   console.log('[App] Initialized with user:', user?.role);
 
-  // Initialize theme on mount - Force Dark
+  // Initialize theme on mount - Force Light (Default)
   useEffect(() => {
-    dispatch(setTheme('dark'));
+    dispatch(setTheme('light'));
   }, [dispatch]);
 
-  // Apply theme class to document (Always Dark)
+  // Apply theme class to document
   useEffect(() => {
-    document.documentElement.classList.add('dark');
+    document.documentElement.classList.remove('dark');
   }, [theme]);
 
   // Sync profile data on mount to ensure subscription status is fresh

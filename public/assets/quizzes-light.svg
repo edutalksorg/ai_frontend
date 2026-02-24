@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none">
+  <defs>
+    <linearGradient id="bg_grad_amber" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#fffbeb"/>
+    </linearGradient>
+    <filter id="shadow_amber" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#92400e" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <rect width="800" height="600" fill="url(#bg_grad_amber)"/>
+
+  <!-- Decorative Blobs -->
+  <circle cx="100" cy="100" r="150" fill="#f59e0b" fill-opacity="0.03"/>
+  <circle cx="700" cy="500" r="200" fill="#f59e0b" fill-opacity="0.05"/>
+
+  <!-- Quiz/Check Elements -->
+  <g filter="url(#shadow_amber)">
+    <rect x="340" y="240" width="120" height="120" rx="30" fill="white"/>
+    <path d="M375 300 L395 320 L425 280" stroke="#f59e0b" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <rect x="365" y="270" width="15" height="15" rx="3" fill="#f59e0b" fill-opacity="0.2"/>
+    <rect x="420" y="315" width="15" height="15" rx="3" fill="#f59e0b" fill-opacity="0.2"/>
+  </g>
+
+  <!-- Floating Question Marks -->
+  <text x="200" y="250" font-family="Arial" font-size="40" fill="#f59e0b" fill-opacity="0.1">?</text>
+  <text x="600" y="400" font-family="Arial" font-size="60" fill="#f59e0b" fill-opacity="0.1">?</text>
+</svg>

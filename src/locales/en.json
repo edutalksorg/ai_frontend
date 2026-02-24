@@ -503,7 +503,10 @@
     "tipAvoidNoise": "Avoid background noise for better accuracy",
     "tipCheckMicrophone": "Make sure your microphone is working properly",
     "tipPauseSentences": "Pause briefly between sentences if needed",
-    "recordingInstructions": "Click the button above to start recording. Read the text clearly and naturally."
+    "recordingInstructions": "Click the button above to start recording. Read the text clearly and naturally.",
+    "practiceHelp": "Read the text below carefully and clearly",
+    "aiVoiceover": "AI VOICEOVER",
+    "textToRead": "TEXT TO READ"
   },
   "settingsPage": {
     "title": "Settings",
@@ -619,6 +622,8 @@
       "roleFixed": "Role is fixed to 'user' for public registration"
     },
     "verifyEmail": {
+      "title": "Email Verification",
+      "subtitle": "Confirming your email address to activate your account.",
       "verifyingAccount": "Verifying Account",
       "pleaseWait": "Please wait while we confirm your email address...",
       "success": "Success!",
@@ -696,7 +701,7 @@
       "privacy": "Privacy",
       "terms": "Terms",
       "contact": "Contact",
-      "copyright": "© 2024 EduTalks. All rights reserved.",
+      "copyright": "© 2024 Edutalks Learning Pvt Ltd Product. All rights reserved.",
       "madeWith": "Made with ❤️ for English learners worldwide"
     }
   },

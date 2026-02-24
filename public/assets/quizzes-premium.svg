@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none">
+  <defs>
+    <!-- Background Gradients -->
+    <linearGradient id="bg_grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#fffbeb"/>
+    </linearGradient>
+    
+    <!-- Amber Theme Gradients -->
+    <linearGradient id="main_amber" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    
+    <!-- Glass Effect -->
+    <linearGradient id="glass_grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0.2"/>
+    </linearGradient>
+    
+    <!-- Glow Filters -->
+    <filter id="glow_amber" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="15" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="600" fill="url(#bg_grad)"/>
+
+  <!-- Decorative Abstract Shapes -->
+  <circle cx="150" cy="500" r="130" fill="#f59e0b" fill-opacity="0.05"/>
+  <path d="M600 50 L750 200 L600 350 Z" fill="#f59e0b" fill-opacity="0.03"/>
+
+  <!-- Floating Quiz Elements -->
+  <g filter="glow_amber" opacity="0.3">
+    <text x="650" y="150" font-family="Arial" font-size="100" fill="#f59e0b" font-weight="black">?</text>
+    <path d="M100 100 L150 150 L100 200" stroke="#f59e0b" stroke-width="12" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- Premium 3D Badge Icon Container -->
+  <g transform="translate(250, 150)">
+    <!-- Main 3D Shape -->
+    <rect x="0" y="0" width="300" height="300" rx="60" fill="url(#main_amber)"/>
+    
+    <!-- Glass Overlay -->
+    <rect x="40" y="40" width="220" height="220" rx="40" fill="url(#glass_grad)" stroke="white" stroke-width="2" stroke-opacity="0.5"/>
+    
+    <!-- Checkmark Icon -->
+    <path d="M100 160 L140 200 L210 110" stroke="white" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    
+    <!-- Small star decorative -->
+    <path d="M220 70 L225 85 L240 90 L225 95 L220 110 L215 95 L200 90 L215 85 Z" fill="white"/>
+  </g>
+
+  <!-- Floating Particles -->
+  <circle cx="550" cy="450" r="10" fill="#f59e0b" opacity="0.2"/>
+  <rect x="120" y="300" width="15" height="15" rx="4" fill="#f59e0b" opacity="0.1" transform="rotate(30 127.5 307.5)"/>
+</svg>

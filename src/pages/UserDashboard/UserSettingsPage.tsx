@@ -112,7 +112,7 @@ const UserSettingsPage: React.FC = () => {
                             <Button
                                 variant="outline"
                                 onClick={() => navigate('/change-password')}
-                                className="glass-button w-full sm:w-auto"
+                                className="w-full sm:w-auto"
                             >
                                 {t('settingsPage.security.update')}
                             </Button>
@@ -123,7 +123,7 @@ const UserSettingsPage: React.FC = () => {
                         <Button
                             onClick={handleSave}
                             isLoading={loading}
-                            className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-500/30 px-8 py-3 rounded-xl font-bold text-lg"
+                            className="bg-gradient-to-r from-[#E10600] to-[#b80000] hover:from-[#c20500] hover:to-[#a00000] text-white shadow-lg shadow-red-500/30 px-8 py-3 rounded-xl font-bold text-lg"
                         >
                             <Save size={20} className="mr-2" />
                             {t('settingsPage.saveChanges')}

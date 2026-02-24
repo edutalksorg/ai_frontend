@@ -106,8 +106,8 @@ const UserTopicBrowser: React.FC = () => {
         <div className="space-y-6">
             <div className="glass-panel p-4 flex items-center justify-between rounded-xl">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-indigo-500/10 rounded-lg">
-                        <BookOpen className="w-6 h-6 text-indigo-500" />
+                    <div className="p-2 bg-red-500/10 rounded-lg">
+                        <BookOpen className="w-6 h-6 text-[#E10600]" />
                     </div>
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white">
                         {t('topicBrowser.title')}
@@ -136,7 +136,7 @@ const UserTopicBrowser: React.FC = () => {
                                     >
                                         {/* Card Background Decoration */}
                                         {!isLocked && (
-                                            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                                            <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
                                         )}
 
                                         <div className="p-8 sm:p-10 relative z-10">
@@ -145,7 +145,7 @@ const UserTopicBrowser: React.FC = () => {
                                                     ? 'bg-slate-100/50 dark:bg-slate-800/50 text-slate-400'
                                                     : isCompleted
                                                         ? 'bg-green-500/10 text-green-500 shadow-lg shadow-green-500/20 backdrop-blur-md'
-                                                        : 'bg-indigo-500/10 text-indigo-500 shadow-lg shadow-indigo-500/20 backdrop-blur-md'
+                                                        : 'bg-red-500/10 text-[#E10600] shadow-lg shadow-red-500/20 backdrop-blur-md'
                                                     }`}>
                                                     {isCompleted ? <CheckCircle className="w-8 h-8" strokeWidth={1.5} /> : <BookMarked className="w-8 h-8" strokeWidth={1.5} />}
                                                 </div>
@@ -188,7 +188,7 @@ const UserTopicBrowser: React.FC = () => {
                                                         onClick={() => setSelectedTopicId(topic.id || topic._id)}
                                                         className={`group relative px-8 py-4 rounded-xl font-bold text-lg shadow-xl outline-none overflow-hidden transition-all ${isCompleted
                                                             ? 'bg-white text-green-600 border border-green-200 hover:bg-green-50'
-                                                            : 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:-translate-y-1'
+                                                            : 'bg-gradient-to-r from-[#E10600] to-[#b80000] text-white shadow-red-500/30 hover:shadow-red-500/50 hover:-translate-y-1'
                                                             }`}
                                                     >
                                                         <span className="relative z-10 flex items-center gap-2">
@@ -255,7 +255,7 @@ const UserTopicBrowser: React.FC = () => {
                             disabled={currentTopicIndex >= unlockedIndex || currentTopicIndex === topics.length - 1}
                             className={`px-8 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 border bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 ${currentTopicIndex >= unlockedIndex || currentTopicIndex === topics.length - 1
                                 ? 'opacity-50 cursor-not-allowed'
-                                : 'hover:bg-slate-50 dark:hover:bg-white/10 text-indigo-600 border-indigo-500/30'
+                                : 'hover:bg-gray-50 dark:hover:bg-white/10 text-[#E10600] border-red-500/30'
                                 }`}
                         >
                             <span>{t('common.next')}</span>

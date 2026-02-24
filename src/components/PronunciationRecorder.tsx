@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Mic, StopCircle, RotateCcw, Send, Volume2 } from 'lucide-react';
+import { Mic, StopCircle, RotateCcw, Send, Volume2, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { pronunciationService } from '../services/pronunciation';
 import { formatTime } from '../utils/helpers';
@@ -50,33 +50,63 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
   const [transcript, setTranscript] = useState('');
   const recognitionRef = useRef<any>(null);
 
-  // Initialize microphone
-  useEffect(() => {
-    const initMicrophone = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        streamRef.current = stream;
-
-        const mediaRecorder = new MediaRecorder(stream);
-        mediaRecorderRef.current = mediaRecorder;
-
-        mediaRecorder.ondataavailable = (event: BlobEvent) => {
-          if (event.data.size > 0) {
-            audioChunksRef.current.push(event.data);
-          }
-        };
-
-        mediaRecorder.onstop = () => {
-          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-          setRecordedAudio(audioBlob);
-          audioChunksRef.current = [];
-        };
-      } catch (err: any) {
-        setError('Microphone access denied. Please allow microphone access.');
-        console.error('Microphone error:', err);
+  // Standalone microphone initialization
+  const initMicrophone = async () => {
+    try {
+      if (streamRef.current && mediaRecorderRef.current) {
+        return true;
       }
-    };
 
+      console.log('🎤 Initializing microphone...');
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+
+      // Detect supported mime type
+      const mimeTypes = ['audio/webm', 'audio/ogg', 'audio/mp4', 'audio/wav', 'audio/aac'];
+      let selectedMimeType = '';
+
+      for (const type of mimeTypes) {
+        if (MediaRecorder.isTypeSupported(type)) {
+          selectedMimeType = type;
+          break;
+        }
+      }
+
+      console.log(`🎙️ Selected mime type: ${selectedMimeType || 'default'}`);
+      const options = selectedMimeType ? { mimeType: selectedMimeType } : {};
+
+      const mediaRecorder = new MediaRecorder(stream, options);
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (event: BlobEvent) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const type = selectedMimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunksRef.current, { type });
+        setRecordedAudio(audioBlob);
+        audioChunksRef.current = [];
+      };
+
+      return true;
+    } catch (err: any) {
+      console.error('Microphone error:', err);
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setError('Microphone access is blocked. Please click the camera/mic icon in your browser address bar to allow access and then reload the page.');
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        setError('No microphone found. Please connect a microphone and try again.');
+      } else {
+        setError(`Microphone error: ${err.message || 'Unknown error'}`);
+      }
+      return false;
+    }
+  };
+
+  // Initialize microphone on mount (optional, but good for early feedback)
+  useEffect(() => {
     initMicrophone();
 
     return () => {
@@ -109,7 +139,7 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
   }, [isRecording]);
 
   // Start recording
-  const handleStartRecording = () => {
+  const handleStartRecording = async () => {
     // Stop speaking if recording starts
     if (isSpeaking) {
       setIsSpeaking(false);
@@ -121,15 +151,20 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
 
     try {
       setError(null);
+
+      // Ensure microphone is initialized
+      const isReady = await initMicrophone();
+      if (!isReady || !mediaRecorderRef.current) {
+        return; // Error state handled in initMicrophone
+      }
+
       audioChunksRef.current = [];
       setRecordingTime(0);
       setTranscript('');
 
       // Start Media Recorder
-      if (mediaRecorderRef.current) {
-        mediaRecorderRef.current.start();
-        setIsRecording(true);
-      }
+      mediaRecorderRef.current.start();
+      setIsRecording(true);
 
       // Start Speech Recognition
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -151,6 +186,10 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
           }
         };
 
+        recognition.onstart = () => {
+          console.log('Speech recognition started');
+        };
+
         recognition.onerror = (event: any) => {
           console.error('Speech recognition error', event.error);
         };
@@ -160,7 +199,8 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
       }
 
     } catch (err: any) {
-      setError('Failed to start recording');
+      console.error('Record start error:', err);
+      setError(`Failed to start recording: ${err.message || 'Unknown error'}`);
     }
   };
 
@@ -386,299 +426,211 @@ export const PronunciationRecorder: React.FC<PronunciationRecorderProps> = ({
     }
   };
 
-  // Show assessment result
+  // Assessment result view (Blue re-theme)
   if (showResult && assessmentResult) {
     return (
-      <div className="max-w-2xl mx-auto bg-slate-800 rounded-lg shadow-xl overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6">
-          <h2 className="text-2xl font-bold text-white">Assessment Results</h2>
+      <div className="w-full max-w-4xl mx-auto bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl overflow-hidden border border-red-50 dark:border-red-900/20">
+        <div className="bg-[#E10600] p-8 text-center sm:text-left">
+          <h2 className="text-3xl font-black text-white uppercase tracking-tight">Assessment Results</h2>
+          <p className="text-red-100 text-sm mt-1">Excellent effort! Review your performance metrics below.</p>
         </div>
 
-        {/* Content */}
-        <div className="p-6">
-          {/* Paragraph */}
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold text-slate-400 uppercase mb-2">Text to Read</h3>
-            <p className="text-lg text-white">{paragraphText}</p>
-          </div>
-
-          {/* Score */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <div className="bg-slate-700 rounded-lg p-4">
-              <p className="text-sm text-slate-400 mb-1">Accuracy</p>
-              <p className="text-3xl font-bold text-blue-400">
-                {(assessmentResult.scores?.accuracy ?? assessmentResult.pronunciationAccuracy ?? assessmentResult.accuracy)?.toFixed(1) || 'N/A'}%
+        <div className="p-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+            <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl p-6 text-center border border-red-100 dark:border-red-900/30">
+              <p className="text-xs font-bold text-red-500 uppercase tracking-widest mb-2">Accuracy</p>
+              <p className="text-4xl font-black text-red-600 dark:text-red-400">
+                {(assessmentResult.scores?.accuracy ?? assessmentResult.pronunciationAccuracy ?? assessmentResult.accuracy)?.toFixed(0) || '0'}%
               </p>
             </div>
-            <div className="bg-slate-700 rounded-lg p-4">
-              <p className="text-sm text-slate-400 mb-1">Fluency</p>
-              <p className="text-3xl font-bold text-green-400">
-                {(assessmentResult.scores?.fluency ?? assessmentResult.fluencyScore ?? assessmentResult.fluency)?.toFixed(1) || 'N/A'}%
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-6 text-center border border-emerald-100 dark:border-emerald-900/30">
+              <p className="text-xs font-bold text-emerald-500 uppercase tracking-widest mb-2">Fluency</p>
+              <p className="text-4xl font-black text-emerald-600 dark:text-emerald-400">
+                {(assessmentResult.scores?.fluency ?? assessmentResult.fluencyScore ?? assessmentResult.fluency)?.toFixed(0) || '0'}%
               </p>
             </div>
-            <div className="bg-slate-700 rounded-lg p-4">
-              <p className="text-sm text-slate-400 mb-1">Overall Score</p>
-              <p className="text-3xl font-bold text-yellow-400">
-                {(assessmentResult.scores?.overall ?? assessmentResult.overallScore ?? assessmentResult.OverallScore)?.toFixed(1) || 'N/A'}%
+            <div className="bg-amber-50 dark:bg-amber-900/20 rounded-2xl p-6 text-center border border-amber-100 dark:border-amber-900/30">
+              <p className="text-xs font-bold text-amber-500 uppercase tracking-widest mb-2">Overall</p>
+              <p className="text-4xl font-black text-amber-600 dark:text-amber-400">
+                {(assessmentResult.scores?.overall ?? assessmentResult.overallScore ?? assessmentResult.OverallScore)?.toFixed(0) || '0'}%
               </p>
             </div>
           </div>
 
-          {/* Feedback */}
-          {assessmentResult.feedback && (
-            <div className="mb-6">
-              <h3 className="text-sm font-semibold text-slate-400 uppercase mb-2">Feedback</h3>
-              <p className="text-slate-300 leading-relaxed">{assessmentResult.feedback}</p>
+          <div className="space-y-8">
+            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Lounge Feedback</h3>
+              <p className="text-slate-700 dark:text-slate-300 leading-relaxed font-medium">{assessmentResult.feedback || "You did a great job! Keep practicing to improve your consistency."}</p>
             </div>
-          )}
 
-          {/* Mistakes with Word Level Feedback fallback */}
-          {((assessmentResult.mistakes && assessmentResult.mistakes.length > 0) ||
-            (assessmentResult.wordLevelFeedback && assessmentResult.wordLevelFeedback.length > 0) ||
-            (assessmentResult.detailedFeedback?.words && assessmentResult.detailedFeedback.words.length > 0)) && (
-              <div className="mb-6">
-                <h3 className="text-sm font-semibold text-slate-400 uppercase mb-2">Areas for Improvement</h3>
-                <ul className="space-y-2">
-                  {assessmentResult.mistakes ? (
-                    assessmentResult.mistakes.map((mistake: string, idx: number) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <span className="text-red-400 mt-1">•</span>
-                        <span className="text-slate-300">{mistake}</span>
-                      </li>
-                    ))
-                  ) : (
-                    (assessmentResult.wordLevelFeedback || assessmentResult.detailedFeedback?.words || [])
-                      .filter((w: any) => w.accuracyScore < 80)
-                      .slice(0, 5) // Limit to top 5 errors
-                      .map((w: any, idx: number) => (
-                        <li key={idx} className="flex items-start gap-2">
-                          <span className="text-red-400 mt-1">•</span>
-                          <span className="text-slate-300">
-                            <span className="font-bold text-red-300">"{w.word}"</span>
-                            <span className="text-slate-400 text-sm ml-2">(Accuracy: {w.accuracyScore.toFixed(0)}%)</span>
-                            {w.errorType && w.errorType !== 'None' && <span className="text-slate-500 text-xs ml-1">[{w.errorType}]</span>}
-                          </span>
-                        </li>
-                      ))
-                  )}
-                </ul>
-              </div>
-            )}
-
-
-
-          {/* Recommendations */}
-          {assessmentResult.recommendations && assessmentResult.recommendations.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-sm font-semibold text-slate-400 uppercase mb-2">Recommendations</h3>
-              <ul className="space-y-2">
-                {assessmentResult.recommendations.map((rec: string, idx: number) => (
-                  <li key={idx} className="flex items-start gap-2">
-                    <span className="text-green-400 mt-1">✓</span>
-                    <span className="text-slate-300">{rec}</span>
-                  </li>
-                ))}
-              </ul>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button
+                onClick={handleReset}
+                className="flex-1 py-4 bg-white dark:bg-slate-800 border-2 border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-2xl font-bold transition-all flex items-center justify-center gap-2"
+              >
+                <RotateCcw className="w-5 h-5" />
+                Try Practice Again
+              </button>
+              {showNextButton && onNext && (
+                <button
+                  onClick={() => {
+                    handleReset();
+                    onNext();
+                  }}
+                  className="flex-1 py-4 bg-[#E10600] hover:bg-red-700 text-white shadow-lg shadow-red-200 dark:shadow-none rounded-2xl font-bold transition-all flex items-center justify-center gap-2"
+                >
+                  <Send className="w-5 h-5" />
+                  Next Passage
+                </button>
+              )}
             </div>
-          )}
-
-          {/* Actions */}
-          <div className="flex gap-3">
-            <Button
-              onClick={handleReset}
-              className="flex-1"
-            >
-              Try Again
-            </Button>
-            {showNextButton && onNext && (
-              <Button
-                onClick={() => {
-                  handleReset(); // Clear result before navigating
-                  onNext();
-                }}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-              >
-                Next Paragraph
-              </Button>
-            )}
-            {onCancel && (
-              <Button
-                onClick={onCancel}
-                variant={showNextButton ? "secondary" : "primary"}
-                className={showNextButton ? "flex-1" : "flex-1 bg-green-600 hover:bg-green-700 text-white"}
-              >
-                {showNextButton ? "Done" : "Finish Practice"}
-              </Button>
-            )}
           </div>
         </div>
       </div>
     );
   }
 
-  // Recording interface
+  // Recording interface (Reference Style Match)
   return (
-    <div className="max-w-2xl mx-auto bg-slate-800 rounded-lg shadow-xl overflow-hidden">
-      {/* Header */}
-      <div className={`p-6 ${isRecording ? 'bg-red-500/10' : 'bg-gradient-to-r from-blue-600 to-blue-700'} transition-colors duration-300`}>
-        <div>
-          <h2 className="text-xl font-bold text-white mb-2">
-            {assessmentResult ? 'Assessment Results' : (title || 'Pronunciation Practice')}
+    <div className="w-full max-w-4xl mx-auto bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-100 dark:border-slate-800">
+      {/* Header (Red Theme) */}
+      <div className={`p-10 ${isRecording ? 'bg-red-700' : 'bg-[#E10600]'} transition-colors duration-500`}>
+        <div className="text-center sm:text-left">
+          <h2 className="text-3xl font-black text-white uppercase tracking-tight mb-2">
+            {title || 'My Daily Routine'}
           </h2>
-          <p className="text-white/80 text-sm">
-            {assessmentResult ? 'Review your scores and feedback below' : 'Read the text below carefully and clearly'}
+          <p className="text-red-100 text-sm font-medium">
+            {t('pronunciation.practiceHelp') || 'Read the text below carefully and clearly'}
           </p>
         </div>
       </div>
-      {/* Content */}
-      <div className="p-6">
-        {/* Text to Read */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-slate-400 uppercase">Text to Read</h3>
-            <SpeakerPlayButton
-              isPlaying={isSpeaking}
-              onToggle={handleSpeakerToggle}
+
+      {/* Main Practice Content */}
+      <div className="p-8 sm:p-12 bg-white dark:bg-slate-900">
+        <div className="mb-10">
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <h3 className="text-[10px] sm:text-xs font-black text-black uppercase tracking-[0.2em]">
+              {t('pronunciation.textToRead') || 'TEXT TO READ'}
+            </h3>
+            <button
+              onClick={handleSpeakerToggle}
               disabled={isRecording || isLoadingAudio}
-              isLoading={isLoadingAudio}
-            />
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all ${isSpeaking
+                ? 'bg-red-600 text-white ring-4 ring-red-100 dark:ring-red-900/30'
+                : 'bg-red-500 hover:bg-red-600 text-white shadow-md'
+                }`}
+            >
+              <Volume2 className={`w-4 h-4 ${isSpeaking ? 'animate-pulse' : ''}`} />
+              {t('pronunciation.aiVoiceover') || 'AI VOICEOVER'}
+            </button>
           </div>
-          <div className={`bg-slate-700 rounded-lg p-6 transition-colors duration-300 ${isSpeaking ? 'ring-2 ring-blue-500/50 bg-slate-700/80' : ''}`}>
-            <p className="text-xl leading-relaxed text-white font-medium">{paragraphText}</p>
+
+          <div className={`relative bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-8 sm:p-12 border-2 transition-all duration-500 ${isSpeaking ? 'border-red-500 scale-[1.01] shadow-xl' : 'border-slate-50 dark:border-slate-800'
+            }`}>
+            <p className="text-xl sm:text-2xl leading-relaxed text-slate-800 dark:text-slate-100 font-bold text-center sm:text-left">
+              {paragraphText}
+            </p>
           </div>
         </div>
 
         {/* Error Message */}
-        {error === 'SUBSCRIPTION_REQUIRED' ? (
-          <div className="mb-6 p-4 bg-yellow-500/20 border border-yellow-500 rounded-lg text-yellow-200">
-            <p className="font-bold mb-2">Premium Feature</p>
-            <p className="mb-3">Unlimited AI pronunciation assessment is available for premium members only.</p>
-            <button
-              onClick={() => window.location.href = '/subscriptions'}
-              className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-lg transition-colors"
-            >
-              Upgrade Now
-            </button>
-          </div>
-        ) : error && (
-          <div className="mb-6 p-4 bg-red-500/20 border border-red-500 rounded-lg text-red-200">
-            {error}
+        {error && (
+          <div className="mb-8 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-2xl text-red-500 text-sm font-bold text-center">
+            {error === 'SUBSCRIPTION_REQUIRED' ? 'Premium subscription required for unlimited assessments.' : error}
           </div>
         )}
 
-        {/* Recording State */}
-        {!recordedAudio ? (
-          <div className="mb-8">
-            {/* Recording Timer */}
-            {isRecording && (
-              <div className="mb-4 text-center">
-                <div className="inline-block bg-red-600/20 border border-red-500 rounded-lg px-6 py-2">
-                  <span className="text-lg font-mono text-red-400">{formatTime(recordingTime)}</span>
-                </div>
-              </div>
-            )}
-
-            {/* Recording Button */}
-            <div className="flex justify-center mb-4">
-              {!isRecording ? (
+        {/* Action Button Section */}
+        <div className="flex flex-col items-center gap-6 mb-12">
+          {!recordedAudio ? (
+            <div className="w-full flex flex-col items-center">
+              {isRecording ? (
                 <button
-                  onClick={handleStartRecording}
-                  className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg font-semibold text-white transition-all transform hover:scale-105"
+                  onClick={handleStopRecording}
+                  className="w-full sm:w-80 group relative flex items-center justify-center gap-4 py-6 bg-orange-500 hover:bg-orange-600 text-white rounded-[2rem] font-black text-xl shadow-2xl shadow-orange-200 dark:shadow-none transition-all transform hover:scale-105"
                 >
-                  <Mic className="w-6 h-6" />
-                  Start Recording
+                  <StopCircle className="w-8 h-8 animate-pulse text-white" />
+                  STOP RECORDING
                 </button>
               ) : (
                 <button
-                  onClick={handleStopRecording}
-                  className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 rounded-lg font-semibold text-white transition-all transform hover:scale-105"
+                  onClick={handleStartRecording}
+                  className="w-full sm:w-80 group relative flex items-center justify-center gap-4 py-6 bg-[#E10600] hover:bg-red-700 text-white rounded-[2rem] font-black text-xl shadow-2xl shadow-red-200 dark:shadow-none transition-all transform hover:scale-105"
                 >
-                  <StopCircle className="w-6 h-6" />
-                  Stop Recording
+                  <Mic className="w-8 h-8 text-white/50 group-hover:text-white transition-colors" />
+                  START RECORDING
                 </button>
               )}
-            </div>
 
-            {/* Instructions */}
-            {!isRecording && !recordedAudio && (
-              <div className="text-center text-slate-400 text-sm">
-                <p>{t('pronunciation.recordingInstructions')}</p>
+              <div className="mt-6 text-center">
+                {isRecording ? (
+                  <div className="flex items-center gap-2 bg-red-50 dark:bg-red-900/20 px-6 py-2 rounded-full border border-red-100">
+                    <span className="w-2 h-2 bg-red-500 rounded-full animate-ping" />
+                    <span className="font-mono text-red-600 font-bold text-lg">{formatTime(recordingTime)}</span>
+                  </div>
+                ) : (
+                  <p className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest max-w-xs leading-loose">
+                    {t('pronunciation.recordingInstructions') || 'CLICK THE BUTTON ABOVE TO START RECORDING. READ THE TEXT CLEARLY AND NATURALLY.'}
+                  </p>
+                )}
               </div>
-            )}
-          </div>
-        ) : (
-          <div className="mb-8">
-            {/* Playback Controls */}
-            <div className="flex justify-center gap-4 mb-6">
-              <button
-                onClick={handlePlayRecording}
-                className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold text-white transition-all"
-              >
-                <Volume2 className="w-5 h-5" />
-                Play Recording
-              </button>
-              <button
-                onClick={handleReset}
-                className="flex items-center gap-2 px-6 py-3 bg-slate-600 hover:bg-slate-700 rounded-lg font-semibold text-white transition-all"
-              >
-                <RotateCcw className="w-5 h-5" />
-                Re-record
-              </button>
             </div>
-
-            {/* Audio Player */}
-            <audio
-              ref={audioPlayRef}
-              className="w-full mb-6 rounded-lg"
-              controls
-            />
-
-            {/* Submission Button */}
-            <div className="flex gap-3">
-              <Button
+          ) : (
+            <div className="w-full space-y-6">
+              <div className="flex flex-col sm:flex-row justify-center gap-4">
+                <button onClick={handlePlayRecording} className="flex-1 py-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-2 border-red-500 rounded-2xl font-bold hover:bg-red-100 transition-all flex items-center justify-center gap-2">
+                  <Volume2 className="w-5 h-5" /> Play Recording
+                </button>
+                <button onClick={handleReset} className="flex-1 py-4 bg-slate-50 dark:bg-slate-800 text-slate-500 rounded-2xl font-bold hover:bg-slate-100 transition-all flex items-center justify-center gap-2">
+                  <RotateCcw className="w-5 h-5" /> Reset
+                </button>
+              </div>
+              <button
                 onClick={handleSubmitForAssessment}
                 disabled={isLoading}
-                className="flex-1 flex items-center justify-center gap-2"
+                className="w-full py-5 bg-[#E10600] hover:bg-red-700 text-white rounded-2xl font-black text-lg shadow-xl shadow-red-200 dark:shadow-none flex items-center justify-center gap-3 transition-all"
               >
-                {isLoading ? (
-                  <>
-                    <span className="inline-block animate-spin">⟳</span>
-                    Assessing...
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4" />
-                    Submit for Assessment
-                  </>
-                )}
-              </Button>
-              {onCancel && (
-                <Button
-                  onClick={onCancel}
-                  variant="secondary"
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-              )}
+                {isLoading ? <><span className="animate-spin text-2xl">⟳</span> ASSESSING...</> : <><Send className="w-5 h-5" /> SUBMIT NOW</>}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Recording Tips (2x2 Grid) */}
+        <div className="bg-slate-50 dark:bg-slate-800/30 rounded-[2rem] p-8 border border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-3 mb-6">
+            <Sparkles className="w-4 h-4 text-red-500" />
+            <h3 className="text-xs font-black text-red-500 uppercase tracking-widest">
+              {t('pronunciation.recordingTips') || 'RECORDING TIPS:'}
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm flex items-start gap-3">
+              <div className="w-1.5 h-1.5 bg-red-400 rounded-full mt-1.5 flex-shrink-0" />
+              <p className="text-xs font-bold text-slate-600 dark:text-slate-400 leading-relaxed">Speak clearly and at a natural pace</p>
+            </div>
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm flex items-start gap-3">
+              <div className="w-1.5 h-1.5 bg-red-400 rounded-full mt-1.5 flex-shrink-0" />
+              <p className="text-xs font-bold text-slate-600 dark:text-slate-400 leading-relaxed">Avoid background noise for better accuracy</p>
+            </div>
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm flex items-start gap-3">
+              <div className="w-1.5 h-1.5 bg-red-400 rounded-full mt-1.5 flex-shrink-0" />
+              <p className="text-xs font-bold text-slate-600 dark:text-slate-400 leading-relaxed">Make sure your microphone is working properly</p>
+            </div>
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700 shadow-sm flex items-start gap-3">
+              <div className="w-1.5 h-1.5 bg-red-400 rounded-full mt-1.5 flex-shrink-0" />
+              <p className="text-xs font-bold text-slate-600 dark:text-slate-400 leading-relaxed">Pause briefly between sentences if needed</p>
             </div>
           </div>
-        )}
-
-        {/* Tips */}
-        <div className="bg-slate-700/50 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-slate-300 mb-2">{t('pronunciation.recordingTips')}</h3>
-          <ul className="space-y-1 text-sm text-slate-400">
-            <li>• {t('pronunciation.tipSpeakClearly')}</li>
-            <li>• {t('pronunciation.tipAvoidNoise')}</li>
-            <li>• {t('pronunciation.tipCheckMicrophone')}</li>
-            <li>• {t('pronunciation.tipPauseSentences')}</li>
-          </ul>
         </div>
       </div>
+
+      {/* Invisible Audio Player for playback */}
+      <audio ref={audioPlayRef} className="hidden" />
     </div>
   );
 };
+
 
 export default PronunciationRecorder;

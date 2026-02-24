@@ -1,0 +1,25 @@
+{
+    "short_name": "EduTalks",
+    "name": "EduTalks - Master English",
+    "icons": [
+        {
+            "src": "image.png",
+            "sizes": "64x64 32x32 24x24 16x16",
+            "type": "image/png"
+        },
+        {
+            "src": "logo.png",
+            "type": "image/png",
+            "sizes": "192x192"
+        },
+        {
+            "src": "logo.png",
+            "type": "image/png",
+            "sizes": "512x512"
+        }
+    ],
+    "start_url": ".",
+    "display": "standalone",
+    "theme_color": "#E10600",
+    "background_color": "#FAFAFA"
+}

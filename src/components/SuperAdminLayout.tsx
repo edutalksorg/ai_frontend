@@ -124,7 +124,7 @@ const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({ children }) => {
                                 className={`w-full flex items-center gap-3 p-2 rounded-lg hover:bg-slate-800 transition-colors ${!sidebarOpen && 'md:justify-center lg:justify-start'}`}
                             >
                                 <img
-                                    src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'SA')}`}
+                                    src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'SA')}&background=E10600&color=ffffff`}
                                     alt="Profile"
                                     className="w-9 h-9 rounded-full border border-slate-600 flex-shrink-0"
                                 />

@@ -12,8 +12,8 @@ export const LoginIllustration = () => {
                 transition={{ duration: 0.8, ease: "easeOut" }}
                 className="relative z-10 w-[400px] h-[400px] flex items-center justify-center"
             >
-                {/* Glowing Background Blob */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-violet-600/30 to-indigo-600/30 rounded-full blur-[80px] animate-pulse" />
+                {/* Glowing Background Blob - Theme Tints */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-red-600/20 to-[#E10600]/20 rounded-full blur-[80px] animate-pulse" />
 
                 {/* Orbiting Elements */}
                 <motion.div
@@ -33,9 +33,9 @@ export const LoginIllustration = () => {
                     transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                     className="relative z-20"
                 >
-                    {/* Robot Head/Body Composition using Lucide Icon as base but customized */}
-                    <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 p-8 rounded-[3rem] shadow-[0_0_60px_rgba(139,92,246,0.3)]">
-                        <Bot size={140} className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" strokeWidth={1.5} />
+                    {/* Robot Head/Body Composition */}
+                    <div className="relative bg-white/40 backdrop-blur-xl border border-red-100 p-8 rounded-[3rem] shadow-[0_0_60px_rgba(225,6,0,0.15)]">
+                        <Bot size={140} className="text-[#E10600] drop-shadow-[0_0_15px_rgba(225,6,0,0.2)]" strokeWidth={1.5} />
 
                         {/* Animated Eyes (Blinking) */}
                         <motion.div
@@ -54,7 +54,7 @@ export const LoginIllustration = () => {
                     <motion.div
                         animate={{ y: [-5, 5, -5], x: [5, -5, 5], scale: [1, 1.1, 1] }}
                         transition={{ duration: 4, repeat: Infinity, delay: 1 }}
-                        className="absolute -top-10 -right-12 bg-indigo-500/80 backdrop-blur-md p-3 rounded-2xl rounded-bl-sm border border-white/20 shadow-lg"
+                        className="absolute -top-10 -right-12 bg-[#E10600]/80 backdrop-blur-md p-3 rounded-2xl rounded-bl-sm border border-red-100 shadow-lg"
                     >
                         <MessageCircle size={32} className="text-white" fill="rgba(255,255,255,0.2)" />
                     </motion.div>
@@ -63,7 +63,7 @@ export const LoginIllustration = () => {
                     <motion.div
                         animate={{ y: [5, -5, 5], x: [-5, 5, -5], rotate: [-10, 10, -10] }}
                         transition={{ duration: 5, repeat: Infinity, delay: 0.5 }}
-                        className="absolute -bottom-4 -left-12 bg-violet-500/80 backdrop-blur-md p-3 rounded-full border border-white/20 shadow-lg"
+                        className="absolute -bottom-4 -left-12 bg-rose-500/80 backdrop-blur-md p-3 rounded-full border border-red-100 shadow-lg"
                     >
                         <Sparkles size={32} className="text-yellow-300" fill="currentColor" />
                     </motion.div>
@@ -87,13 +87,13 @@ export const LoginIllustration = () => {
                     </motion.div>
                 </motion.div>
 
-                {/* Floating Background Icons - Learning Journey */}
-                <FloatingIcon icon={<Music size={24} />} x="-40%" y="-30%" color="text-pink-400" delay={0} />
-                <FloatingIcon icon={<Zap size={24} />} x="45%" y="-20%" color="text-yellow-400" delay={1} />
-                <FloatingIcon icon={<Star size={24} />} x="-35%" y="40%" color="text-cyan-400" delay={2} />
-                <FloatingIcon icon={<BookOpen size={20} />} x="50%" y="35%" color="text-purple-400" delay={1.5} />
+                {/* Floating Background Icons */}
+                <FloatingIcon icon={<Music size={24} />} x="-40%" y="-30%" color="text-rose-400" delay={0} />
+                <FloatingIcon icon={<Zap size={24} />} x="45%" y="-20%" color="text-red-400" delay={1} />
+                <FloatingIcon icon={<Star size={24} />} x="-35%" y="40%" color="text-rose-500" delay={2} />
+                <FloatingIcon icon={<BookOpen size={20} />} x="50%" y="35%" color="text-red-400" delay={1.5} />
                 <FloatingIcon icon={<Award size={20} />} x="-45%" y="-10%" color="text-amber-400" delay={2.5} />
-                <FloatingIcon icon={<TrendingUp size={20} />} x="35%" y="-45%" color="text-emerald-400" delay={0.8} />
+                <FloatingIcon icon={<TrendingUp size={20} />} x="35%" y="-45%" color="text-[#E10600]" delay={0.8} />
 
             </motion.div>
         </div>
@@ -111,13 +111,13 @@ export const RegisterIllustration = () => {
                 className="relative z-10 w-[400px] h-[400px] flex items-center justify-center"
             >
                 {/* Glowing Background Blob */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-fuchsia-600/30 to-purple-600/30 rounded-full blur-[80px] animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-red-600/20 to-rose-600/20 rounded-full blur-[80px] animate-pulse" />
 
                 {/* Orbiting Elements */}
                 <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-                    className="absolute w-[340px] h-[340px] rounded-full border border-white/5 border-dashed"
+                    className="absolute w-[340px] h-[340px] rounded-full border border-red-100 border-dashed"
                 />
 
                 {/* CUTE STUDENT/LEARNING SCENE */}
@@ -127,8 +127,8 @@ export const RegisterIllustration = () => {
                     className="relative z-20 flex flex-col items-center"
                 >
                     {/* Main Icon: Graduation Cap */}
-                    <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 p-10 rounded-[2.5rem] shadow-[0_0_60px_rgba(217,70,239,0.3)]">
-                        <GraduationCap size={140} className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" strokeWidth={1.5} />
+                    <div className="relative bg-white/40 backdrop-blur-xl border border-red-100 p-10 rounded-[2.5rem] shadow-[0_0_60px_rgba(225,6,0,0.15)]">
+                        <GraduationCap size={140} className="text-[#E10600] drop-shadow-[0_0_15px_rgba(225,6,0,0.2)]" strokeWidth={1.5} />
                     </div>
                 </motion.div>
 
@@ -136,7 +136,7 @@ export const RegisterIllustration = () => {
                 <motion.div
                     animate={{ x: [-50, -40, -50], y: [10, -10, 10], rotate: [-10, -15, -10] }}
                     transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-20 left-0 bg-purple-500/80 backdrop-blur-md p-4 rounded-2xl border border-white/20 shadow-xl"
+                    className="absolute top-20 left-0 bg-rose-500/80 backdrop-blur-md p-4 rounded-2xl border border-white/20 shadow-xl"
                 >
                     <BookOpen size={40} className="text-white" />
                 </motion.div>
@@ -145,7 +145,7 @@ export const RegisterIllustration = () => {
                 <motion.div
                     animate={{ x: [50, 60, 50], y: [-20, 0, -20], rotate: [15, 25, 15] }}
                     transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                    className="absolute bottom-20 right-0 bg-fuchsia-500/80 backdrop-blur-md p-4 rounded-full border border-white/20 shadow-xl"
+                    className="absolute bottom-20 right-0 bg-red-500/80 backdrop-blur-md p-4 rounded-full border border-white/20 shadow-xl"
                 >
                     <PenTool size={36} className="text-white" />
                 </motion.div>
@@ -211,8 +211,8 @@ export const ForgotPasswordIllustration = () => {
                     transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                     className="relative z-20"
                 >
-                    <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 p-10 rounded-[2.5rem] shadow-[0_0_60px_rgba(251,146,60,0.3)]">
-                        <Mail size={140} className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" strokeWidth={1.5} />
+                    <div className="relative bg-white/40 backdrop-blur-xl border border-red-100 p-10 rounded-[2.5rem] shadow-[0_0_60px_rgba(251,146,60,0.15)]">
+                        <Mail size={140} className="text-amber-600 drop-shadow-[0_0_15px_rgba(251,146,60,0.2)]" strokeWidth={1.5} />
                     </div>
                 </motion.div>
 
@@ -250,12 +250,12 @@ export const ResetPasswordIllustration = () => {
                 transition={{ duration: 0.8, ease: "easeOut" }}
                 className="relative z-10 w-[400px] h-[400px] flex items-center justify-center"
             >
-                <div className="absolute inset-0 bg-gradient-to-tr from-emerald-600/30 to-teal-600/30 rounded-full blur-[80px] animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-red-600/20 to-[#E10600]/20 rounded-full blur-[80px] animate-pulse" />
 
                 <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-                    className="absolute w-[340px] h-[340px] rounded-full border border-white/5 border-dashed"
+                    className="absolute w-[340px] h-[340px] rounded-full border border-red-100/10 border-dashed"
                 />
 
                 <motion.div
@@ -263,15 +263,15 @@ export const ResetPasswordIllustration = () => {
                     transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                     className="relative z-20"
                 >
-                    <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 p-10 rounded-[2.5rem] shadow-[0_0_60px_rgba(16,185,129,0.3)]">
-                        <ShieldCheck size={140} className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" strokeWidth={1.5} />
+                    <div className="relative bg-white/40 backdrop-blur-xl border border-red-100 p-10 rounded-[2.5rem] shadow-[0_0_60px_rgba(225,6,0,0.15)]">
+                        <ShieldCheck size={140} className="text-[#E10600] drop-shadow-[0_0_15px_rgba(225,6,0,0.2)]" strokeWidth={1.5} />
                     </div>
                 </motion.div>
 
                 <motion.div
                     animate={{ x: [-45, -35, -45], y: [8, -8, 8], rotate: [-8, -12, -8] }}
                     transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-24 left-6 bg-emerald-500/80 backdrop-blur-md p-4 rounded-2xl border border-white/20 shadow-xl"
+                    className="absolute top-24 left-6 bg-red-500/80 backdrop-blur-md p-4 rounded-2xl border border-white/20 shadow-xl"
                 >
                     <Lock size={32} className="text-white" />
                 </motion.div>
@@ -279,15 +279,15 @@ export const ResetPasswordIllustration = () => {
                 <motion.div
                     animate={{ x: [45, 55, 45], y: [-12, 0, -12], rotate: [12, 18, 12] }}
                     transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                    className="absolute bottom-20 right-6 bg-teal-500/80 backdrop-blur-md p-3 rounded-full border border-white/20 shadow-xl"
+                    className="absolute bottom-20 right-6 bg-rose-500/80 backdrop-blur-md p-3 rounded-full border border-white/20 shadow-xl"
                 >
                     <Key size={30} className="text-white" />
                 </motion.div>
 
-                <FloatingIcon icon={<Check size={24} />} x="-42%" y="-28%" color="text-emerald-300" delay={0.5} />
-                <FloatingIcon icon={<RefreshCw size={20} />} x="48%" y="32%" color="text-teal-400" delay={1.5} />
-                <FloatingIcon icon={<Award size={22} />} x="-38%" y="38%" color="text-green-300" delay={2} />
-                <FloatingIcon icon={<Star size={18} />} x="42%" y="-38%" color="text-emerald-400" delay={0.8} />
+                <FloatingIcon icon={<Check size={24} />} x="-42%" y="-28%" color="text-red-400" delay={0.5} />
+                <FloatingIcon icon={<RefreshCw size={20} />} x="48%" y="32%" color="text-rose-400" delay={1.5} />
+                <FloatingIcon icon={<Award size={22} />} x="-38%" y="38%" color="text-amber-400" delay={2} />
+                <FloatingIcon icon={<Star size={18} />} x="42%" y="-38%" color="text-red-400" delay={0.8} />
             </motion.div>
         </div>
     );
@@ -302,7 +302,7 @@ export const ChangePasswordIllustration = () => {
                 transition={{ duration: 0.8, ease: "easeOut" }}
                 className="relative z-10 w-[400px] h-[400px] flex items-center justify-center"
             >
-                <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/30 to-indigo-600/30 rounded-full blur-[80px] animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-red-600/20 to-orange-600/20 rounded-full blur-[80px] animate-pulse" />
 
                 <motion.div
                     animate={{ rotate: 360 }}
@@ -315,13 +315,13 @@ export const ChangePasswordIllustration = () => {
                     transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                     className="relative z-20"
                 >
-                    <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 p-10 rounded-[2.5rem] shadow-[0_0_60px_rgba(59,130,246,0.3)]">
-                        <Lock size={140} className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" strokeWidth={1.5} />
+                    <div className="relative bg-white/40 backdrop-blur-xl border border-red-100 p-10 rounded-[2.5rem] shadow-[0_0_60px_rgba(225,6,0,0.15)]">
+                        <Lock size={140} className="text-[#E10600] drop-shadow-[0_0_15px_rgba(225,6,0,0.2)]" strokeWidth={1.5} />
 
                         <motion.div
                             animate={{ rotate: [0, 360] }}
                             transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                            className="absolute top-2 right-2 bg-blue-500/90 backdrop-blur-sm p-2 rounded-full border border-white/30"
+                            className="absolute top-2 right-2 bg-[#E10600]/90 backdrop-blur-sm p-2 rounded-full border border-red-100"
                         >
                             <RefreshCw size={24} className="text-white" />
                         </motion.div>
@@ -362,12 +362,12 @@ export const VerifyEmailIllustration = () => {
                 transition={{ duration: 0.8, ease: "easeOut" }}
                 className="relative z-10 w-[400px] h-[400px] flex items-center justify-center"
             >
-                <div className="absolute inset-0 bg-gradient-to-tr from-green-600/30 to-emerald-600/30 rounded-full blur-[80px] animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-red-600/20 to-[#E10600]/20 rounded-full blur-[80px] animate-pulse" />
 
                 <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-                    className="absolute w-[340px] h-[340px] rounded-full border border-white/5 border-dashed"
+                    className="absolute w-[340px] h-[340px] rounded-full border border-red-100/10 border-dashed"
                 />
 
                 <motion.div
@@ -375,14 +375,14 @@ export const VerifyEmailIllustration = () => {
                     transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                     className="relative z-20"
                 >
-                    <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 p-10 rounded-[2.5rem] shadow-[0_0_60px_rgba(34,197,94,0.3)]">
-                        <Mail size={140} className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" strokeWidth={1.5} />
+                    <div className="relative bg-white/40 backdrop-blur-xl border border-red-100 p-10 rounded-[2.5rem] shadow-[0_0_60px_rgba(225,6,0,0.15)]">
+                        <Mail size={140} className="text-[#E10600] drop-shadow-[0_0_15px_rgba(225,6,0,0.2)]" strokeWidth={1.5} />
 
                         <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: [0, 1.2, 1] }}
-                            transition={{ duration: 0.6, delay: 0.5, repeat: Infinity, repeatDelay: 3 }}
-                            className="absolute -top-2 -right-2 bg-green-500/90 backdrop-blur-sm p-2 rounded-full border border-white/30"
+                            transition={{ duration: 0.6, delay: 0.5 }}
+                            className="absolute -top-2 -right-2 bg-emerald-500/90 backdrop-blur-sm p-2 rounded-full border border-white/30"
                         >
                             <Check size={28} className="text-white" strokeWidth={3} />
                         </motion.div>
@@ -392,7 +392,7 @@ export const VerifyEmailIllustration = () => {
                 <motion.div
                     animate={{ x: [-38, -28, -38], y: [10, -10, 10] }}
                     transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-24 left-10 bg-green-500/80 backdrop-blur-md p-4 rounded-2xl border border-white/20 shadow-xl"
+                    className="absolute top-24 left-10 bg-red-500/80 backdrop-blur-md p-4 rounded-2xl border border-white/20 shadow-xl"
                 >
                     <CheckCircle size={32} className="text-white" />
                 </motion.div>
@@ -400,15 +400,15 @@ export const VerifyEmailIllustration = () => {
                 <motion.div
                     animate={{ x: [38, 48, 38], y: [-14, 0, -14] }}
                     transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                    className="absolute bottom-20 right-10 bg-emerald-500/80 backdrop-blur-md p-3 rounded-full border border-white/20 shadow-xl"
+                    className="absolute bottom-20 right-10 bg-rose-500/80 backdrop-blur-md p-3 rounded-full border border-white/20 shadow-xl"
                 >
                     <Send size={28} className="text-white" />
                 </motion.div>
 
-                <FloatingIcon icon={<Clock size={22} />} x="-40%" y="-32%" color="text-green-300" delay={0.5} />
-                <FloatingIcon icon={<Sparkles size={24} />} x="44%" y="30%" color="text-emerald-400" delay={1.5} />
-                <FloatingIcon icon={<Award size={20} />} x="-36%" y="40%" color="text-lime-300" delay={2} />
-                <FloatingIcon icon={<Star size={18} />} x="40%" y="-40%" color="text-green-400" delay={0.8} />
+                <FloatingIcon icon={<Clock size={22} />} x="-40%" y="-32%" color="text-red-300" delay={0.5} />
+                <FloatingIcon icon={<Sparkles size={24} />} x="44%" y="30%" color="text-rose-400" delay={1.5} />
+                <FloatingIcon icon={<Award size={20} />} x="-36%" y="40%" color="text-emerald-400" delay={2} />
+                <FloatingIcon icon={<Star size={18} />} x="40%" y="-40%" color="text-red-400" delay={0.8} />
             </motion.div>
         </div>
     );
@@ -423,7 +423,7 @@ export const ResendConfirmationIllustration = () => {
                 transition={{ duration: 0.8, ease: "easeOut" }}
                 className="relative z-10 w-[400px] h-[400px] flex items-center justify-center"
             >
-                <div className="absolute inset-0 bg-gradient-to-tr from-purple-600/30 to-violet-600/30 rounded-full blur-[80px] animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-red-600/20 to-rose-600/20 rounded-full blur-[80px] animate-pulse" />
 
                 <motion.div
                     animate={{ rotate: 360 }}
@@ -436,13 +436,13 @@ export const ResendConfirmationIllustration = () => {
                     transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                     className="relative z-20"
                 >
-                    <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 p-10 rounded-[2.5rem] shadow-[0_0_60px_rgba(139,92,246,0.3)]">
-                        <Mail size={140} className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" strokeWidth={1.5} />
+                    <div className="relative bg-white/40 backdrop-blur-xl border border-red-100 p-10 rounded-[2.5rem] shadow-[0_0_60px_rgba(225,6,0,0.15)]">
+                        <Mail size={140} className="text-[#E10600] drop-shadow-[0_0_15px_rgba(225,6,0,0.2)]" strokeWidth={1.5} />
 
                         <motion.div
                             animate={{ rotate: [0, 360] }}
                             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                            className="absolute -top-4 -right-4 bg-purple-500/90 backdrop-blur-sm p-3 rounded-full border border-white/30"
+                            className="absolute -top-4 -right-4 bg-red-500/90 backdrop-blur-sm p-3 rounded-full border border-red-100"
                         >
                             <RotateCw size={26} className="text-white" />
                         </motion.div>

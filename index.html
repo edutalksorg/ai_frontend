@@ -1,32 +1,44 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
 
 <head>
   <style>
     html,
     body {
-      background-color: #020617;
-      color: #f8fafc;
+      background-color: #FAFAFA;
+      color: #1A1A1A;
     }
   </style>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/png" href="/image.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
   <meta name="description" content="EduTalks - Master English. Connect with the World." />
+  <link rel="manifest" href="/manifest.json" />
   <!-- Content Security Policy: Allow WebSocket connections for SignalR -->
   <meta http-equiv="Content-Security-Policy"
     content="default-src 'self' https: data: blob:; connect-src 'self' https: wss: ws: %VITE_API_BASE_URL%; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https: blob: %VITE_API_BASE_URL%; font-src 'self' data: https:; media-src 'self' https: blob: %VITE_API_BASE_URL%;">
-  <meta name="theme-color" content="#0ea5e9" />
+  <meta name="theme-color" content="#E10600" />
   <title>EduTalks - Master English. Connect with the World.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('SW registered!', reg))
+          .catch(err => console.log('SW registration failed:', err));
+      });
+    }
+  </script>
 </body>
 
 </html>

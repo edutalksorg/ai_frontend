@@ -151,7 +151,7 @@ const IncomingCallModal: React.FC = () => {
                                     className="w-full h-full object-cover"
                                 />
                             ) : (
-                                <div className="w-full h-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-3xl font-bold text-indigo-600 dark:text-indigo-300">
+                                <div className="w-full h-full bg-red-600 flex items-center justify-center text-3xl font-bold text-white">
                                     {incomingInvitation.callerName.charAt(0).toUpperCase()}
                                 </div>
                             )}

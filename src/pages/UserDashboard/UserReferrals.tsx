@@ -65,8 +65,8 @@ const UserReferrals: React.FC = () => {
                 >
                     <ArrowLeft className="w-6 h-6 text-slate-500 group-hover:text-blue-500" />
                 </button>
-                <div className="p-3 bg-blue-500/10 rounded-xl">
-                    <Users className="w-6 h-6 text-blue-500" />
+                <div className="p-3 bg-red-500/10 rounded-xl">
+                    <Users className="w-6 h-6 text-red-500" />
                 </div>
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('referrals.title')}</h1>
@@ -75,7 +75,7 @@ const UserReferrals: React.FC = () => {
             </div>
 
             {/* Hero Section - Premium Gradient */}
-            <div className="glass-card relative overflow-hidden rounded-3xl p-8 text-white shadow-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 border-blue-400/30">
+            <div className="glass-card relative overflow-hidden rounded-3xl p-8 text-white shadow-2xl bg-gradient-to-r from-red-600 via-rose-600 to-orange-600 border-red-400/30">
                 {/* Decorative Patterns */}
                 <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
                 <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-64 h-64 bg-black/10 rounded-full blur-3xl" />
@@ -94,28 +94,28 @@ const UserReferrals: React.FC = () => {
 
                     <div className="flex flex-col gap-6 pt-4">
                         {/* Link Section */}
-                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2 border border-white/20 flex flex-col sm:flex-row items-center gap-2">
+                        <div className="bg-white rounded-2xl p-2 flex flex-col sm:flex-row items-center gap-2">
                             <div className="flex-1 px-4 py-2 w-full text-center sm:text-left overflow-hidden">
-                                <p className="text-xs uppercase tracking-wider text-blue-200 font-bold mb-1">{t('referrals.yourLink')}</p>
-                                <p className="font-mono text-sm truncate select-all text-white font-medium">{referralLink}</p>
+                                <p className="text-xs uppercase tracking-wider text-black font-bold mb-1">{t('referrals.yourLink')}</p>
+                                <p className="font-mono text-sm truncate select-all text-black font-medium">{referralLink}</p>
                             </div>
                             <Button
                                 onClick={() => { navigator.clipboard.writeText(referralLink); dispatch(showToast({ message: t('referrals.linkCopied'), type: 'success' })); }}
-                                className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50 font-bold px-6 py-3 rounded-xl shadow-lg ring-0 border-0"
+                                className="w-full sm:w-auto !bg-red-600 !text-white hover:!bg-red-700 font-bold px-6 py-3 rounded-xl shadow-lg"
                             >
                                 <Copy size={18} className="mr-2" /> {t('referrals.copyLink')}
                             </Button>
                         </div>
 
                         {/* Code Section */}
-                        <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="bg-white rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
                             <div className="text-center sm:text-left">
-                                <p className="text-xs uppercase tracking-wider text-blue-200 font-bold mb-1">{t('referrals.yourCode')}</p>
-                                <p className="font-mono text-2xl font-bold tracking-widest text-white">{referralCode}</p>
+                                <p className="text-xs uppercase tracking-wider text-black font-bold mb-1">{t('referrals.yourCode')}</p>
+                                <p className="font-mono text-2xl font-bold tracking-widest text-black">{referralCode}</p>
                             </div>
                             <Button
                                 onClick={() => { navigator.clipboard.writeText(referralCode); dispatch(showToast({ message: t('referrals.codeCopied'), type: 'success' })); }}
-                                className="w-full sm:w-auto bg-white/10 text-white hover:bg-white/20 font-bold px-6 py-2 rounded-xl border border-white/20"
+                                className="w-full sm:w-auto !bg-red-600 !text-white hover:!bg-red-700 font-bold px-6 py-2 rounded-xl shadow-lg"
                             >
                                 <Copy size={16} className="mr-2" /> {t('referrals.copyCode')}
                             </Button>

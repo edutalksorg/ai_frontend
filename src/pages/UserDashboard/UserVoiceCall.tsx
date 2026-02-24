@@ -351,7 +351,7 @@ const UserVoiceCall: React.FC = () => {
                 <div className="flex gap-2 p-1 bg-slate-100/50 dark:bg-slate-800/50 rounded-xl backdrop-blur-sm">
                     <button
                         className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab === 'available'
-                            ? 'bg-white dark:bg-slate-700 text-violet-600 dark:text-violet-300 shadow-sm'
+                            ? 'bg-white dark:bg-slate-700 text-red-600 dark:text-red-400 shadow-sm'
                             : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                             }`}
                         onClick={() => setActiveTab('available')}
@@ -360,7 +360,7 @@ const UserVoiceCall: React.FC = () => {
                     </button>
                     <button
                         className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab === 'history'
-                            ? 'bg-white dark:bg-slate-700 text-violet-600 dark:text-violet-300 shadow-sm'
+                            ? 'bg-white dark:bg-slate-700 text-red-600 dark:text-red-400 shadow-sm'
                             : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                             }`}
                         onClick={() => setActiveTab('history')}
@@ -399,13 +399,13 @@ const UserVoiceCall: React.FC = () => {
                     <div className="lg:col-span-2 space-y-6">
                         <div className="relative overflow-hidden glass-panel rounded-3xl p-8 sm:p-12 text-center group flex flex-col justify-center min-h-[500px]">
                             {/* Decorative Background Blobs inside card */}
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-violet-500/20 transition-all duration-700" />
-                            <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3 group-hover:bg-cyan-500/20 transition-all duration-700" />
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-red-500/20 transition-all duration-700" />
+                            <div className="absolute bottom-0 left-0 w-48 h-48 bg-orange-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3 group-hover:bg-orange-500/20 transition-all duration-700" />
 
                             <div className="relative z-10 flex flex-col items-center">
-                                <div className="w-24 h-24 mb-6 rounded-full bg-gradient-to-tr from-violet-500 to-fuchsia-500 p-[2px] shadow-lg shadow-violet-500/30">
+                                <div className="w-24 h-24 mb-6 rounded-full bg-gradient-to-tr from-red-600 to-orange-500 p-[2px] shadow-lg shadow-red-500/30">
                                     <div className="w-full h-full rounded-full bg-white dark:bg-slate-900 flex items-center justify-center backdrop-blur-sm">
-                                        <Phone className="w-10 h-10 text-violet-500 animate-pulse" />
+                                        <Phone className="w-10 h-10 text-red-600 animate-pulse" />
                                     </div>
                                 </div>
 
@@ -435,7 +435,7 @@ const UserVoiceCall: React.FC = () => {
                                             else setShowPrivacyModal(true);
                                         }}
                                         disabled={findingPartner || loading}
-                                        className={`relative group px-8 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white rounded-2xl font-bold text-lg shadow-xl shadow-violet-500/30 hover:shadow-violet-500/50 hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden`}
+                                        className={`relative group px-8 py-4 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white rounded-2xl font-bold text-lg shadow-xl shadow-red-500/30 hover:shadow-red-500/50 hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden`}
                                     >
                                         <span className="relative z-10 flex items-center gap-3">
                                             {findingPartner ? <RefreshCw className="animate-spin" /> : <Sparkles className="animate-pulse" />}
@@ -468,7 +468,7 @@ const UserVoiceCall: React.FC = () => {
                     <div className="glass-panel p-6 rounded-3xl space-y-6 flex flex-col h-[500px]">
                         <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-white/10">
                             <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                                <Clock className="w-4 h-4 text-violet-500" />
+                                <Clock className="w-4 h-4 text-red-500" />
                                 {t('voiceCall.usage')}
                             </h3>
                         </div>
@@ -490,7 +490,7 @@ const UserVoiceCall: React.FC = () => {
                                     </div>
                                     <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
                                         <div
-                                            className={`h-full rounded-full transition-all duration-500 ${!hasVoiceCallTimeRemaining ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'bg-gradient-to-r from-violet-500 to-fuchsia-500'}`}
+                                            className={`h-full rounded-full transition-all duration-500 ${!hasVoiceCallTimeRemaining ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'bg-gradient-to-r from-red-500 to-orange-500'}`}
                                             style={{ width: `${((voiceCallLimitSeconds - voiceCallRemainingSeconds) / voiceCallLimitSeconds) * 100}%` }}
                                         />
                                     </div>
@@ -535,7 +535,7 @@ const UserVoiceCall: React.FC = () => {
                                         {pendingRequests.map((req) => (
                                             <div key={req.connectionId} className="flex items-center justify-between p-2 rounded-xl bg-amber-500/5 border border-amber-500/10">
                                                 <div className="flex items-center gap-2">
-                                                    <img src={req.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(req.fullName)}`} alt="" className="w-8 h-8 rounded-full" />
+                                                    <img src={req.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(req.fullName)}&background=E10600&color=ffffff`} alt="" className="w-8 h-8 rounded-full" />
                                                     <span className="text-sm font-medium text-slate-900 dark:text-white truncate max-w-[80px]">{req.fullName}</span>
                                                 </div>
                                                 <div className="flex gap-1">
@@ -559,7 +559,7 @@ const UserVoiceCall: React.FC = () => {
                                             <div key={friend.connectionId} className="flex items-center justify-between p-2 rounded-xl hover:bg-white/50 dark:hover:bg-white/5 transition-colors group">
                                                 <div className="relative flex items-center gap-2">
                                                     <div className="relative">
-                                                        <img src={friend.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(friend.fullName)}`} alt="" className="w-8 h-8 rounded-full" />
+                                                        <img src={friend.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(friend.fullName)}&background=E10600&color=ffffff`} alt="" className="w-8 h-8 rounded-full" />
                                                         {friend.onlineStatus === 'Online' && (
                                                             <span className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 border border-white dark:border-slate-900 rounded-full" />
                                                         )}
@@ -585,7 +585,7 @@ const UserVoiceCall: React.FC = () => {
                                                             ) : (
                                                                 <button
                                                                     onClick={() => handleCall(friend.userId.toString())}
-                                                                    className="p-2 text-violet-600 dark:text-violet-400 bg-violet-500/10 hover:bg-violet-500/20 rounded-xl transition-all flex items-center gap-2"
+                                                                    className="p-2 text-red-600 dark:text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-xl transition-all flex items-center gap-2"
                                                                     title={`${t('voiceCall.call')} ${friend.fullName}`}
                                                                 >
                                                                     <Phone size={16} />
@@ -645,7 +645,7 @@ const UserVoiceCall: React.FC = () => {
                                                 {isIncoming ? <ArrowLeft size={18} className="rotate-45" /> : <Phone size={18} />}
                                             </div>
                                             <div>
-                                                <h4 className="font-semibold text-slate-900 dark:text-white group-hover:text-violet-500 transition-colors">
+                                                <h4 className="font-semibold text-slate-900 dark:text-white group-hover:text-red-600 transition-colors">
                                                     {t('voiceCall.voiceCallLabel')}
                                                 </h4>
                                                 <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">

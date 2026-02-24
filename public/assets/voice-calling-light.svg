@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none">
+  <defs>
+    <linearGradient id="bg_grad_red" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#fef2f2"/>
+    </linearGradient>
+    <filter id="shadow_red" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#991b1b" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <rect width="800" height="600" fill="url(#bg_grad_red)"/>
+
+  <!-- Decorative Blobs -->
+  <circle cx="100" cy="100" r="150" fill="#ef4444" fill-opacity="0.03"/>
+  <circle cx="700" cy="500" r="200" fill="#ef4444" fill-opacity="0.05"/>
+
+  <!-- Voice Waves -->
+  <path d="M100 300 C 200 100 300 500 400 300 S 600 100 700 300" stroke="#ef4444" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.2"/>
+  <path d="M100 300 C 200 200 300 400 400 300 S 600 200 700 300" stroke="#ef4444" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.4"/>
+  <path d="M100 300 C 200 250 300 350 400 300 S 600 250 700 300" stroke="#ef4444" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.6"/>
+
+  <!-- Central Phone/Voice Icon -->
+  <g filter="url(#shadow_red)">
+    <rect x="340" y="240" width="120" height="120" rx="30" fill="white"/>
+    <path d="M375 275 L385 275 C 390 275 395 280 395 285 L395 315 C 395 320 390 325 385 325 L375 325 C 370 325 365 320 365 315 L365 285 C 365 280 370 275 375 275 Z" fill="#ef4444"/>
+    <path d="M410 280 C 420 280 430 290 430 300 S 420 320 410 320" stroke="#ef4444" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <path d="M410 290 C 415 290 420 295 420 300 S 415 310 410 310" stroke="#ef4444" stroke-width="4" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>

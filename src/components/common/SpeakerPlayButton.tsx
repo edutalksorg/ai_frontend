@@ -54,20 +54,20 @@ export const SpeakerPlayButton: React.FC<SpeakerPlayButtonProps> = ({
             title={isPlaying ? "Pause" : "Listen Pronunciation"}
             className={`
                 relative group flex items-center justify-center gap-2 px-4 py-2 rounded-full transition-all duration-300
-                focus:outline-none focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900/50
+                focus:outline-none focus:ring-4 focus:ring-red-200 dark:focus:ring-red-900/50
                 ${disabled
                     ? 'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed'
                     : isPlaying
-                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-300/50 dark:shadow-blue-900/40 scale-105'
-                        : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 shadow-md hover:shadow-lg hover:scale-105 hover:text-blue-600 dark:hover:text-blue-400'
+                        ? 'bg-red-600 text-white shadow-lg shadow-red-300/50 dark:shadow-red-900/40 scale-105'
+                        : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 shadow-md hover:shadow-lg hover:scale-105 hover:text-red-600 dark:hover:text-red-400'
                 }
             `}
         >
             {/* Animated Ring Effect when playing */}
             {isPlaying && !disabled && (
                 <>
-                    <span className="absolute inset-0 rounded-full border-2 border-blue-400 opacity-75 animate-ping" />
-                    <span className="absolute -inset-1 rounded-full border border-blue-200 dark:border-blue-800 opacity-50 animate-pulse" />
+                    <span className="absolute inset-0 rounded-full border-2 border-red-400 opacity-75 animate-ping" />
+                    <span className="absolute -inset-1 rounded-full border border-red-200 dark:border-red-800 opacity-50 animate-pulse" />
                 </>
             )}
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,6 +20,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const ResendConfirmationPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
@@ -71,26 +73,37 @@ const ResendConfirmationPage: React.FC = () => {
     }
   };
 
+  const itemVariants: Variants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1 }
+  };
+
   return (
-    <div className="h-[100dvh] w-full relative flex overflow-hidden bg-slate-900 selection:bg-purple-500/30">
-      {/* UNIFIED BACKGROUND */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
-      <div className="absolute inset-0 bg-[url('/assets/grid-pattern.svg')] opacity-10" />
+    <div className="h-[100dvh] w-full relative flex overflow-hidden bg-white selection:bg-red-500/20">
+      {/* UNIFIED BACKGROUND - Premium Red-White Aesthetic */}
+      <div className="absolute inset-0 bg-gradient-to-br from-red-600 via-[#E10600] to-white opacity-[0.03]" />
+      <div className="absolute inset-0 bg-[url('/assets/grid-pattern.svg')] opacity-[0.02]" />
 
-      {/* Ambient Glows */}
-      <div className="absolute top-[-20%] left-[-10%] w-[800px] h-[800px] bg-purple-600/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[800px] h-[800px] bg-violet-600/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+      {/* Shared Ambient Glows - Branding Tints */}
+      <div className="absolute top-[-20%] left-[-10%] w-[800px] h-[800px] bg-red-600/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[800px] h-[800px] bg-red-500/5 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* Floating Particles */}
+      {/* Back Button */}
+      <Link to="/" className="absolute top-6 left-6 z-50 flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-sm border border-red-50 hover:border-red-200 transition-all text-slate-500 hover:text-[#E10600] group">
+        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+        <span className="text-xs font-bold uppercase tracking-wider">Back</span>
+      </Link>
+
+      {/* Floating Particles - Subtle Red Tints */}
       <motion.div
         animate={{ y: [0, -20, 0], x: [0, 10, 0], opacity: [0.3, 0.6, 0.3] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-1/4 left-1/3 w-2 h-2 bg-white rounded-full blur-[1px]"
+        className="absolute top-1/4 left-1/3 w-2 h-2 bg-red-400/20 rounded-full blur-[1px]"
       />
       <motion.div
         animate={{ y: [0, 30, 0], x: [0, -10, 0], opacity: [0.2, 0.5, 0.2] }}
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        className="absolute bottom-1/3 right-1/3 w-3 h-3 bg-purple-400 rounded-full blur-[2px]"
+        className="absolute bottom-1/3 right-1/3 w-3 h-3 bg-red-500/10 rounded-full blur-[2px]"
       />
 
       {/* MAIN CONTENT CONTAINER */}
@@ -106,10 +119,10 @@ const ResendConfirmationPage: React.FC = () => {
             transition={{ delay: 0.4 }}
             className="text-center mt-8 relative z-20"
           >
-            <h2 className="text-5xl font-black text-white mb-4 tracking-tighter drop-shadow-2xl">
-              Resend <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-violet-400">Confirmation</span>
+            <h2 className="text-5xl font-black text-slate-900 mb-4 tracking-tighter">
+              Resend <span className="text-[#E10600]">Confirmation</span>
             </h2>
-            <p className="text-slate-300 text-lg max-w-md mx-auto leading-relaxed font-medium">
+            <p className="text-slate-500 text-lg max-w-md mx-auto leading-relaxed font-medium">
               Didn't receive the email? We'll send you a new confirmation link.
             </p>
           </motion.div>
@@ -123,52 +136,60 @@ const ResendConfirmationPage: React.FC = () => {
             animate="visible"
             className="w-full relative"
           >
-            {/* Mobile Logo */}
-            <div className="lg:hidden flex justify-center mb-6">
-              <Logo className="w-12 h-12" />
-            </div>
+            {/* The Card - Matching brand transparent cards */}
+            <div className="relative overflow-hidden p-6 sm:p-10 border border-red-50 shadow-[0_20px_50px_rgba(225,6,0,0.05)] bg-white/80 backdrop-blur-xl rounded-[2.5rem]">
+              {/* Card Decoration */}
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 via-[#E10600] to-red-500 opacity-20" />
 
-            <div className="glass-panel-v2 relative overflow-hidden p-6 sm:p-10 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-slate-900/40 backdrop-blur-md rounded-[2.5rem]">
-              {/* Card Highlight */}
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-violet-500 to-purple-500 opacity-50" />
-
-              <div className="text-center mb-8">
-                <h1 className="text-3xl font-black text-white mb-2 tracking-tight">Resend Email Confirmation</h1>
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-[0.2em]">Enter your email to resend the link</p>
+              <div className="text-center mb-10">
+                <h1 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">{t('auth.resendConfirmation')}</h1>
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-[0.2em]">{t('auth.forgotPasswordDesc')}</p>
               </div>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-                <div>
-                  <label className="block text-sm font-semibold text-white mb-2">
-                    Email Address
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                <motion.div variants={itemVariants} className="space-y-1.5 group">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1 group-focus-within:text-[#E10600] transition-colors">
+                    {t('auth.emailLabel')}
                   </label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                  <div className={`relative flex items-center bg-slate-50 border border-slate-100 rounded-2xl px-4 py-4 transition-all group-focus-within:bg-white group-focus-within:border-[#E10600]/30 group-focus-within:ring-4 group-focus-within:ring-[#E10600]/5 ${errors.email ? 'border-red-500/50' : ''}`}>
+                    <Mail className="w-4 h-4 text-slate-400 mr-3 group-focus-within:text-[#E10600] transition-colors" />
                     <input
                       {...register('email')}
                       type="email"
                       placeholder="you@example.com"
-                      className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      className="flex-1 bg-transparent border-none outline-none text-slate-900 text-sm font-semibold placeholder-slate-300"
                     />
                   </div>
                   {errors.email && (
-                    <p className="text-red-400 text-sm mt-1.5">{errors.email.message}</p>
+                    <p className="text-red-500 text-[10px] font-bold ml-1 pt-1">{errors.email.message}</p>
                   )}
-                </div>
+                </motion.div>
 
-                <Button type="submit" variant="primary" fullWidth isLoading={isLoading}>
-                  Resend Confirmation
-                </Button>
+                <motion.div variants={itemVariants} className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="relative w-full group overflow-hidden rounded-2xl bg-[#E10600] hover:bg-[#b80000] shadow-lg shadow-red-500/20 transition-all active:scale-[0.98]"
+                  >
+                    <div className="relative h-14 flex items-center justify-center">
+                      {isLoading ? (
+                        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }} className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full" />
+                      ) : (
+                        <span className="font-black text-white uppercase tracking-[0.2em] text-sm group-hover:tracking-[0.25em] transition-all">{t('auth.resendConfirmation')}</span>
+                      )}
+                    </div>
+                  </button>
+                </motion.div>
               </form>
 
-              <div className="mt-6 text-center">
-                <p className="text-slate-400 text-sm">
-                  Remembered?{' '}
-                  <Link to="/login" className="text-purple-400 font-medium hover:text-purple-300 transition-colors">
-                    Login
+              <motion.div variants={itemVariants} className="mt-8 text-center">
+                <p className="text-slate-400 text-xs font-medium">
+                  {t('auth.remembered')}{' '}
+                  <Link to="/login" className="text-[#E10600] font-bold hover:text-[#b80000] transition-colors">
+                    {t('auth.login')}
                   </Link>
                 </p>
-              </div>
+              </motion.div>
             </div>
           </motion.div>
         </div>

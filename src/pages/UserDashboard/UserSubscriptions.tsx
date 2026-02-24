@@ -440,17 +440,22 @@ const UserSubscriptions: React.FC = () => {
 
             {/* Current Plan Status */}
             {currentSub && (
-                <div className="glass-panel relative overflow-hidden p-6 sm:p-8 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-6 group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                <div className={`glass-card relative overflow-hidden p-6 sm:p-8 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-6 group text-white shadow-xl transition-all hover:-translate-y-1 ${['active', 'trialing', 'succeeded', 'year'].includes(currentSub.status?.toLowerCase())
+                        ? 'bg-gradient-to-br from-red-700 via-rose-600 to-orange-700 border-red-500/30'
+                        : 'bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700'
+                    }`}>
+                    <div className="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+                    <div className="absolute bottom-0 left-0 -mb-16 -ml-16 w-64 h-64 bg-black/10 rounded-full blur-3xl" />
+
                     <div className="relative z-10 w-full">
                         <div className="flex items-center gap-3 mb-2">
                             <Crown className="w-6 h-6 text-amber-400 fill-amber-400" />
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                                {t('subscriptionsPageView.currentPlan')}: <span className="text-violet-600 dark:text-violet-400">{getTranslatedPlanName(currentSub.planName || currentSub.plan?.name) || t('subscriptionsPageView.freeTrial')}</span>
+                            <h3 className="text-xl font-bold">
+                                {t('subscriptionsPageView.currentPlan')}: <span className="text-white">{getTranslatedPlanName(currentSub.planName || currentSub.plan?.name) || t('subscriptionsPageView.freeTrial')}</span>
                             </h3>
                         </div>
-                        <p className="text-slate-600 dark:text-slate-400 flex items-center gap-2">
-                            <span className={`inline-block w-2 h-2 rounded-full ${['active', 'trialing', 'succeeded', 'year'].includes(currentSub.status?.toLowerCase()) ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-red-500'} `} />
+                        <p className={`${['active', 'trialing', 'succeeded', 'year'].includes(currentSub.status?.toLowerCase()) ? 'text-indigo-100/90' : 'text-slate-400'} flex items-center gap-2 font-medium`}>
+                            <span className={`inline-block w-2.5 h-2.5 rounded-full ${['active', 'trialing', 'succeeded', 'year'].includes(currentSub.status?.toLowerCase()) ? 'bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.6)]' : 'bg-red-400'} `} />
                             {['active', 'trialing', 'succeeded', 'year'].includes(currentSub.status?.toLowerCase()) ? t('subscriptionsPageView.active') : t('subscriptionsPageView.expired')}
                             <span className="opacity-50 mx-1">•</span>
                             {t('subscriptionsPageView.renewsOn')} {(() => {
@@ -460,11 +465,10 @@ const UserSubscriptions: React.FC = () => {
                                 return isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString();
                             })()}
                         </p>
-                        <div className="mt-4 h-1.5 w-full max-w-sm bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                            <div className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 w-3/4 rounded-full" />
+                        <div className="mt-5 h-2 w-full max-w-sm bg-black/20 rounded-full overflow-hidden">
+                            <div className="h-full bg-gradient-to-r from-green-400 to-emerald-500 w-3/4 rounded-full shadow-[0_0_10px_rgba(74,222,128,0.3)]" />
                         </div>
                     </div>
-                    {/* Buttons removed per user request */}
                 </div>
             )}
 
@@ -494,7 +498,7 @@ const UserSubscriptions: React.FC = () => {
 
                         return (
                             <div key={plan.id || plan._id} className={`glass-card relative rounded-3xl p-6 sm:p-8 flex flex-col h-full transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl ${isYearlyPlan
-                                ? 'border-violet-500/50 dark:border-violet-400/30 bg-gradient-to-b from-violet-50/50 to-white/50 dark:from-violet-900/20 dark:to-slate-900/40 shadow-violet-500/10'
+                                ? 'border-red-500/50 dark:border-red-400/30 bg-gradient-to-b from-red-50/50 to-white/50 dark:from-red-900/10 dark:to-slate-900/40 shadow-red-500/10'
                                 : isLocked
                                     ? 'border-green-500/50 ring-2 ring-green-500/20 bg-green-50/10'
                                     : ''
@@ -516,7 +520,7 @@ const UserSubscriptions: React.FC = () => {
 
                                 {/* Header Section */}
                                 <div className="mb-6 pt-2">
-                                    <h4 className={`text-xl font-bold mb-2 ${isYearlyPlan ? 'text-violet-700 dark:text-violet-300' : 'text-slate-900 dark:text-white'}`}>
+                                    <h4 className={`text-xl font-bold mb-2 ${isYearlyPlan ? 'text-red-700 dark:text-red-300' : 'text-slate-900 dark:text-white'}`}>
                                         {getTranslatedPlanName(plan.name)}
                                     </h4>
                                     <div className="flex flex-col gap-1">
@@ -526,10 +530,10 @@ const UserSubscriptions: React.FC = () => {
                                                     ₹1300
                                                 </span>
                                             )}
-                                            <span className={`text-4xl font-extrabold tracking-tight ${isYearlyPlan ? 'text-violet-900 dark:text-white' : 'text-slate-900 dark:text-white'}`}>
+                                            <span className={`text-4xl font-extrabold tracking-tight ${isYearlyPlan ? 'text-red-900 dark:text-white' : 'text-slate-900 dark:text-white'}`}>
                                                 ₹{plan.price}
                                             </span>
-                                            <span className={`text-sm font-medium ${isYearlyPlan ? 'text-violet-600 dark:text-violet-400' : 'text-slate-500'}`}>
+                                            <span className={`text-sm font-medium ${isYearlyPlan ? 'text-red-600 dark:text-red-400' : 'text-slate-500'}`}>
                                                 /{(() => {
                                                     const lowerName = plan.name?.toLowerCase() || '';
                                                     if (lowerName.includes('free trial')) return t('subscriptionsPageView.day24h');
@@ -562,7 +566,7 @@ const UserSubscriptions: React.FC = () => {
 
                                             return (
                                                 <li key={i} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300">
-                                                    <div className={`mt-0.5 p-0.5 rounded-full shrink-0 ${isYearlyPlan ? 'bg-violet-100 dark:bg-violet-900/50 text-violet-600 dark:text-violet-400' : 'bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400'}`}>
+                                                    <div className={`mt-0.5 p-0.5 rounded-full shrink-0 ${isYearlyPlan ? 'bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400' : 'bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400'}`}>
                                                         <Check size={12} strokeWidth={3} />
                                                     </div>
                                                     <span className="leading-tight">{String(t(`subscriptionsPageView.features.${getFeatureTranslationKey(displayValue) || key}`, displayValue))}</span>
@@ -599,7 +603,7 @@ const UserSubscriptions: React.FC = () => {
                                                     return (
                                                         <div className="flex gap-2 mb-2">
                                                             <input
-                                                                className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                                                                className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                                                                 value={couponCode[planId] || ''}
                                                                 onChange={e => setCouponCode(prev => ({ ...prev, [planId]: e.target.value.toUpperCase() }))}
                                                                 placeholder={t('subscriptionsPageView.enterCodePlaceholder')}
@@ -618,19 +622,15 @@ const UserSubscriptions: React.FC = () => {
                                     })()}
 
                                     <Button
-                                        className={`w-full py-4 rounded-xl font-bold shadow-lg transition-all ${isLocked ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 cursor-default' :
-                                            (isPlanUsed && isFreeTrialPlan) ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700 cursor-not-allowed' :
-                                                isYearlyPlan ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-violet-500/30' :
-                                                    'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90'
+                                        className={`w-full py-4 rounded-xl font-bold transition-all !opacity-100 ${isLocked || isPlanUsed
+                                            ? 'bg-red-600 text-white cursor-default'
+                                            : 'bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-600/20'
                                             }`}
                                         disabled={isPlanUsed}
                                         onClick={() => handleSubscribe(plan)}
                                     >
                                         {isLocked ? (
-                                            <span className="flex items-center justify-center gap-2">
-                                                <Check className="w-5 h-5" />
-                                                {isFreeTrialPlan ? t('subscriptionsPageView.planUsed') : t('subscriptionsPageView.activePlan')}
-                                            </span>
+                                            isFreeTrialPlan ? t('subscriptionsPageView.planUsed') : t('subscriptionsPageView.activePlan')
                                         ) : isPlanUsed && isFreeTrialPlan ? (
                                             t('subscriptionsPageView.planUsed')
                                         ) : isCurrentPlan ? t('subscriptionsPageView.renewPlan') : t('subscriptionsPageView.choosePlan')}

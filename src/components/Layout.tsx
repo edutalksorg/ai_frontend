@@ -86,7 +86,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="min-h-dvh bg-slate-50 dark:bg-slate-950 flex overflow-hidden">
+    <div className="min-h-dvh bg-[#FAFAFA] flex overflow-hidden font-sans">
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && !shouldHideSidebar && (
         <div
@@ -99,16 +99,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {!shouldHideSidebar && (
         <aside
           className={`
-            fixed top-0 left-0 z-50 h-full w-full md:w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex-shrink-0
+            fixed top-0 left-0 z-50 h-full w-full md:w-64 bg-white border-r border-gray-100 flex-shrink-0
             transform transition-transform duration-200 ease-in-out md:translate-x-0 md:static
             ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           `}
         >
           <div className="h-full flex flex-col">
             {/* Logo */}
-            <div className="h-14 md:h-16 flex items-center px-4 md:px-6 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
+            <div className="h-14 md:h-16 flex items-center px-4 md:px-6 border-b border-gray-100 flex-shrink-0">
               <Logo />
-              <span className="ml-2 text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-full">
+              <span className="ml-2 text-xs font-medium text-gray-500 bg-gray-50 px-2 py-0.5 rounded-full">
                 Student
               </span>
             </div>
@@ -125,8 +125,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   className={`
                     w-full flex items-center gap-3 md:gap-4 px-3 md:px-4 py-3 md:py-3 rounded-xl text-sm font-medium transition-all duration-200 mx-0 md:mx-2 min-h-[44px]
                     ${isActiveLink(item.path, location.pathname, location.search)
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-200 dark:shadow-blue-900/20'
-                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                      ? 'bg-red-50 text-primary-600 shadow-sm border border-red-100'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }
                   `}
                 >
@@ -137,25 +137,25 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </nav>
 
             {/* User Profile & Logout */}
-            <div className="p-4 border-t border-slate-200 dark:border-slate-700 space-y-2 flex-shrink-0">
+            <div className="p-4 border-t border-gray-100 space-y-2 flex-shrink-0">
               <button
                 onClick={() => navigate('/dashboard?tab=profile')}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 <img
-                  src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'User')}`}
+                  src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'User')}&background=E10600&color=ffffff`}
                   alt="Profile"
-                  className="w-8 h-8 rounded-full bg-slate-200"
+                  className="w-8 h-8 rounded-full bg-gray-100 object-cover border border-gray-200"
                 />
                 <div className="flex-1 min-w-0 text-left">
-                  <p className="truncate font-medium text-slate-900 dark:text-white">{user?.fullName}</p>
-                  <p className="truncate text-xs text-slate-500">View Profile</p>
+                  <p className="truncate font-medium text-gray-900">{user?.fullName}</p>
+                  <p className="truncate text-xs text-gray-500">View Profile</p>
                 </div>
               </button>
 
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
               >
                 <LogOut size={20} />
                 Sign Out
@@ -168,29 +168,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Header */}
-        <header className="h-14 md:h-16 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 md:px-6 lg:px-8 flex-shrink-0">
+        <header className="h-14 md:h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-6 lg:px-8 flex-shrink-0">
           {!shouldHideSidebar && (
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="md:hidden p-2 hover:bg-gray-100 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
-              <Menu className="w-6 h-6 text-slate-600 dark:text-slate-400" />
+              <Menu className="w-6 h-6 text-gray-600" />
             </button>
           )}
           {shouldHideSidebar && <div />} {/* Spacer if menu button is hidden */}
 
           <div className="flex items-center gap-2 md:gap-4 ml-auto">
             <LanguageSelector />
-            <button
-              onClick={() => dispatch(toggleTheme())}
-              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-            >
-              {theme === 'dark' ? (
-                <Sun className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-              ) : (
-                <Moon className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-              )}
-            </button>
           </div>
         </header>
 

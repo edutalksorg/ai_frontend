@@ -102,7 +102,7 @@ const InstructorLayout: React.FC<InstructorLayoutProps> = ({ children }) => {
                             className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                         >
                             <img
-                                src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'User')}`}
+                                src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'User')}&background=E10600&color=ffffff`}
                                 alt="Profile"
                                 className="w-8 h-8 rounded-full bg-slate-200"
                             />

@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none">
+  <defs>
+    <linearGradient id="bg_grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#ecfdf5"/>
+    </linearGradient>
+    <linearGradient id="wave_grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.2"/>
+      <stop offset="50%" stop-color="#10b981" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#10b981" stop-opacity="0.2"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#065f46" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <rect width="800" height="600" fill="url(#bg_grad)"/>
+
+  <!-- Decorative Blobs -->
+  <circle cx="100" cy="100" r="150" fill="#10b981" fill-opacity="0.03"/>
+  <circle cx="700" cy="500" r="200" fill="#10b981" fill-opacity="0.05"/>
+
+  <!-- Waveforms -->
+  <path d="M50 300 Q150 150 250 300 T450 300 T650 300 T750 300" stroke="url(#wave_grad)" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M50 300 Q150 450 250 300 T450 300 T650 300 T750 300" stroke="url(#wave_grad)" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- Central Mic Icon Container -->
+  <g filter="url(#shadow)">
+    <rect x="340" y="240" width="120" height="120" rx="30" fill="white"/>
+    <rect x="340" y="240" width="120" height="120" rx="30" stroke="#10b981" stroke-width="2" stroke-opacity="0.1"/>
+
+    <!-- Mic Icon -->
+    <rect x="385" y="275" width="30" height="45" rx="15" fill="#10b981"/>
+    <path d="M370 295 A30 30 0 0 0 430 295" stroke="#10b981" stroke-width="4" stroke-linecap="round"/>
+    <line x1="400" y1="325" x2="400" y2="340" stroke="#10b981" stroke-width="4" stroke-linecap="round"/>
+    <line x1="380" y1="340" x2="420" y2="340" stroke="#10b981" stroke-width="4" stroke-linecap="round"/>
+  </g>
+
+  <!-- Analysis Elements -->
+  <rect x="250" y="280" width="6" height="40" rx="3" fill="#10b981" fill-opacity="0.6"/>
+  <rect x="270" y="260" width="6" height="80" rx="3" fill="#10b981" fill-opacity="0.8"/>
+  <rect x="290" y="290" width="6" height="20" rx="3" fill="#10b981" fill-opacity="0.4"/>
+
+  <rect x="510" y="270" width="6" height="60" rx="3" fill="#10b981" fill-opacity="0.5"/>
+  <rect x="530" y="240" width="6" height="120" rx="3" fill="#10b981" fill-opacity="0.7"/>
+  <rect x="550" y="285" width="6" height="30" rx="3" fill="#10b981" fill-opacity="0.3"/>
+
+</svg>

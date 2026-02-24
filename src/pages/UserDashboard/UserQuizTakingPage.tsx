@@ -150,7 +150,19 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
             const attemptId = submitData?.id || submitData?._id || submitData?.attemptId;
 
             if (attemptId) {
-                // 3. Fetch detailed results
+                // 3. Update local progress for the sequential path
+                try {
+                    const localCompleted = JSON.parse(localStorage.getItem('completedQuizzes') || '[]');
+                    const qId = quiz.id || quiz._id;
+                    if (Array.isArray(localCompleted) && !localCompleted.includes(qId)) {
+                        localCompleted.push(qId);
+                        localStorage.setItem('completedQuizzes', JSON.stringify(localCompleted));
+                    }
+                } catch (e) {
+                    console.error('Error updating local quiz progress', e);
+                }
+
+                // 4. Fetch detailed results
                 try {
                     const attemptDetails = await quizzesService.getAttemptDetails(quiz.id || quiz._id, attemptId);
                     const resultData = (attemptDetails as any)?.data || attemptDetails;
@@ -165,6 +177,17 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
             } else {
                 console.warn('No attempt ID returned from submission');
                 setQuizResult(submitData);
+
+                // Even without attempt ID, we should try to mark progress if submission was successful
+                try {
+                    const localCompleted = JSON.parse(localStorage.getItem('completedQuizzes') || '[]');
+                    const qId = quiz.id || quiz._id;
+                    if (Array.isArray(localCompleted) && !localCompleted.includes(qId)) {
+                        localCompleted.push(qId);
+                        localStorage.setItem('completedQuizzes', JSON.stringify(localCompleted));
+                    }
+                } catch (e) { }
+
                 dispatch(showToast({ message: 'Quiz submitted successfully!', type: 'success' }));
             }
 
@@ -253,7 +276,7 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
                                 <Button
                                     variant="outline"
                                     onClick={() => onBack ? onBack() : navigate('/dashboard?tab=quizzes')}
-                                    className="glass-button"
+                                    className="bg-white hover:bg-red-50"
                                 >
                                     {t('quizTaking.backToDashboard')}
                                 </Button>
@@ -282,6 +305,64 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
                             </div>
                         </div>
                     </div>
+
+                    {/* Question Breakdown Section */}
+                    {quiz?.questions && (
+                        <div className="text-left animate-in slide-in-from-bottom duration-700">
+                            <h3 className="text-2xl font-bold mb-6 text-slate-900 dark:text-white flex items-center gap-3">
+                                <BrainCircuit className="text-indigo-500" />
+                                Question Breakdown
+                            </h3>
+                            <div className="space-y-6">
+                                {quiz.questions.map((q: any, idx: number) => {
+                                    const qId = q.id || q._id || idx;
+                                    const userAnswer = answers[qId];
+                                    // Handle correct answer - might be in result data or question data
+                                    const correctAnswer = q.correctAnswer || data.responses?.find((r: any) => r.questionId === qId)?.correctAnswer;
+                                    const isCorrect = userAnswer === correctAnswer || data.responses?.find((r: any) => r.questionId === qId)?.isCorrect;
+
+                                    return (
+                                        <div key={idx} className="glass-card p-6 md:p-8 rounded-3xl border-slate-100 dark:border-white/5 bg-white dark:bg-slate-900/50 shadow-sm">
+                                            <div className="flex items-start gap-4 mb-4">
+                                                <div className={`mt-1 p-2 rounded-xl flex-shrink-0 ${isCorrect ? 'bg-green-100 text-green-600 dark:bg-green-500/10' : 'bg-red-100 text-red-600 dark:bg-red-500/10'}`}>
+                                                    {isCorrect ? <CheckCircle size={20} /> : <XCircle size={20} />}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">Question {idx + 1}</div>
+                                                    <h4 className="text-xl font-bold text-slate-900 dark:text-white leading-relaxed">{q.questionText || q.question}</h4>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-0 md:ml-12 mt-6">
+                                                <div className={`p-4 rounded-2xl border-2 ${isCorrect ? 'border-green-200 bg-green-50/30' : 'border-red-200 bg-red-50/30'}`}>
+                                                    <div className="text-xs font-bold text-slate-400 mb-1 uppercase uppercase tracking-wider">Your Answer</div>
+                                                    <div className={`font-bold ${isCorrect ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>{userAnswer || "No answer provided"}</div>
+                                                </div>
+                                                {!isCorrect && (
+                                                    <div className="p-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50/30">
+                                                        <div className="text-xs font-bold text-slate-400 mb-1 uppercase uppercase tracking-wider">Correct Answer</div>
+                                                        <div className="font-bold text-emerald-700 dark:text-emerald-400">{correctAnswer}</div>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {(q.explanation || q.correctAnswerExplanation) && (
+                                                <div className="mt-6 ml-0 md:ml-12 p-5 bg-indigo-50/50 dark:bg-indigo-500/5 rounded-2xl border border-indigo-100 dark:border-indigo-500/20">
+                                                    <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-sm mb-2">
+                                                        <BrainCircuit size={16} />
+                                                        <span>Explanation</span>
+                                                    </div>
+                                                    <p className="text-slate-600 dark:text-slate-300 leading-relaxed italic">
+                                                        {q.explanation || q.correctAnswerExplanation}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </UserLayout>
         );
@@ -322,7 +403,7 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
                                 <Button
                                     variant="outline"
                                     onClick={() => onBack ? onBack() : navigate(-1)}
-                                    className="glass-button"
+                                    className="bg-white hover:bg-red-50"
                                 >
                                     {t('common.cancel')}
                                 </Button>

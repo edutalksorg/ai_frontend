@@ -102,7 +102,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                                 className="flex items-center gap-2 p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg min-h-[44px] min-w-[44px]"
                             >
                                 <img
-                                    src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'Admin')}`}
+                                    src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'Admin')}&background=E10600&color=ffffff`}
                                     alt="Profile"
                                     className="w-9 h-9 md:w-10 md:h-10 rounded-full"
                                 />

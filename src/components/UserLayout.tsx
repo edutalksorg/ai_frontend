@@ -9,8 +9,8 @@ import {
     User,
     Ticket,
     Home,
-
-    Clock
+    Clock,
+    Crown
 } from 'lucide-react';
 import type { RootState, AppDispatch } from '../store';
 import { logout } from '../store/authSlice';
@@ -93,15 +93,16 @@ const UserLayout: React.FC<UserLayoutProps> = ({ children, hideNavbar = false })
     ];
 
     return (
-        <div className="min-h-[100dvh] relative flex flex-col isolate">
+        <div className="min-h-[100dvh] relative flex flex-col isolate overflow-x-hidden w-full">
+
             {/* Ambient Background */}
             <BackgroundGraphics />
 
             {/* Floating Glass Header */}
             {!hideNavbar && (
-                <div className="sticky top-4 z-50 px-3 sm:px-4 md:px-6 lg:px-8 pointer-events-none">
-                    <header className="glass-panel mx-auto max-w-7xl rounded-2xl pointer-events-auto transition-all duration-300">
-                        <div className="px-4 h-16 md:h-20 flex items-center justify-between">
+                <div className="sticky top-4 z-50 px-2 sm:px-4 md:px-6 lg:px-8 pointer-events-none">
+                    <header className="glass-panel mx-auto max-w-7xl rounded-full pointer-events-auto transition-all duration-300 shadow-sm border border-gray-100">
+                        <div className="px-3 sm:px-6 h-16 md:h-20 flex items-center justify-between gap-2">
                             {/* Logo Area */}
                             <div className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/dashboard')}>
                                 <Logo />
@@ -111,16 +112,16 @@ const UserLayout: React.FC<UserLayoutProps> = ({ children, hideNavbar = false })
                             <div className="flex items-center gap-2 md:gap-4">
                                 {/* Status Badges */}
                                 {isExplicitlyCancelled ? (
-                                    <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-full animate-pulse">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
-                                        <span className="text-xs font-semibold text-red-600 dark:text-red-300">
+                                    <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-100 rounded-full animate-pulse">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-primary-600 shadow-[0_0_8px_rgba(225,6,0,0.6)]" />
+                                        <span className="text-xs font-semibold text-primary-700">
                                             {t('subscription.noActivePlan')}
                                         </span>
                                     </div>
                                 ) : isContentLocked && !hasActiveSubscription ? (
-                                    <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 border border-orange-500/20 rounded-full">
+                                    <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-orange-50 border border-orange-100 rounded-full">
                                         <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]" />
-                                        <span className="text-xs font-semibold text-orange-600 dark:text-orange-300">
+                                        <span className="text-xs font-semibold text-orange-600">
                                             {t('subscription.planExpired')}
                                         </span>
                                     </div>
@@ -139,7 +140,7 @@ const UserLayout: React.FC<UserLayoutProps> = ({ children, hideNavbar = false })
 
 
                                 {/* Language Selector */}
-                                <div className="glass-button rounded-lg px-2 flex items-center !text-slate-600 dark:!text-slate-300">
+                                <div className="rounded-lg px-2 flex items-center text-gray-600 hover:bg-gray-50 transition-colors">
                                     <LanguageSelector />
                                 </div>
 
@@ -149,27 +150,61 @@ const UserLayout: React.FC<UserLayoutProps> = ({ children, hideNavbar = false })
                                         onClick={() => setProfileOpen(!profileOpen)}
                                         className="flex items-center gap-2 focus:outline-none relative transition-transform active:scale-95"
                                     >
-                                        <div className="relative ring-2 ring-white/20 rounded-full">
+                                        <div className="relative ring-2 ring-white/50 rounded-full shadow-sm">
                                             <img
-                                                src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'User')}`}
+                                                src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'User')}&background=E10600&color=ffffff`}
                                                 alt="Profile"
-                                                className="w-10 h-10 rounded-full object-cover"
+                                                className="w-10 h-10 rounded-full object-cover border border-gray-100"
                                             />
-                                            <div className="absolute bottom-0 right-0 border-[3px] border-white dark:border-slate-900 rounded-full">
+                                            <div className="absolute bottom-0 right-0 border-[3px] border-white rounded-full">
                                                 <OnlineStatusIndicator />
                                             </div>
                                         </div>
                                     </button>
 
                                     {profileOpen && (
-                                        <div className="absolute right-0 mt-3 w-64 rounded-xl shadow-2xl py-2 z-50 animate-slideUp origin-top-right overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                                            <div className="px-4 py-4 border-b border-slate-200 dark:border-slate-800 mb-2 bg-slate-50 dark:bg-slate-900">
-                                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                                        <div className="absolute right-0 mt-3 w-64 rounded-2xl shadow-xl z-50 animate-slideUp origin-top-right overflow-hidden bg-white border border-gray-100">
+                                            <div className="px-4 py-4 border-b border-gray-100 mb-2 bg-gray-50">
+                                                <p className="text-sm font-bold text-gray-900 truncate">
                                                     {user?.fullName}
                                                 </p>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5 font-medium">
+                                                <p className="text-xs text-gray-500 truncate mt-0.5 font-medium">
                                                     {user?.email}
                                                 </p>
+                                            </div>
+
+                                            {/* Subscription Mini Card */}
+                                            <div className="px-3 mb-2">
+                                                <div
+                                                    onClick={() => {
+                                                        setProfileOpen(false);
+                                                        navigate('/profile?tab=subscriptions');
+                                                    }}
+                                                    className={`p-3 rounded-xl cursor-pointer transition-all hover:scale-[1.02] active:scale-95 shadow-sm border ${hasActiveSubscription
+                                                        ? 'bg-gradient-to-br from-red-600 to-rose-700 border-red-500 text-white'
+                                                        : 'bg-gray-50 border-gray-200 text-gray-900'
+                                                        }`}
+                                                >
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <div className={`p-1 rounded-lg ${hasActiveSubscription ? 'bg-white/20' : 'bg-gray-200'}`}>
+                                                            <Crown size={14} className={hasActiveSubscription ? 'text-white' : 'text-gray-600'} />
+                                                        </div>
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">
+                                                            {t('profilePage.currentPlanLabel')}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-extrabold truncate">
+                                                            {user?.subscriptionPlan || t('profilePage.noActivePlan')}
+                                                        </span>
+                                                        <div className="flex items-center gap-1.5 mt-1">
+                                                            <div className={`w-1.5 h-1.5 rounded-full ${hasActiveSubscription ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`} />
+                                                            <span className="text-[10px] font-medium opacity-90">
+                                                                {hasActiveSubscription ? t('profilePage.active') : t('profilePage.noActivePlan')}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
@@ -180,7 +215,7 @@ const UserLayout: React.FC<UserLayoutProps> = ({ children, hideNavbar = false })
                                                             setProfileOpen(false);
                                                             navigate(item.path);
                                                         }}
-                                                        className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-300 transition-all border-l-2 border-transparent hover:border-violet-500"
+                                                        className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-primary-600 transition-all border-l-2 border-transparent hover:border-primary-600"
                                                     >
                                                         {React.cloneElement(item.icon as any, { className: "opacity-70 group-hover:opacity-100" })}
                                                         {item.label}
@@ -188,10 +223,10 @@ const UserLayout: React.FC<UserLayoutProps> = ({ children, hideNavbar = false })
                                                 ))}
                                             </div>
 
-                                            <div className="mt-2 border-t border-slate-200 dark:border-slate-800 pt-2">
+                                            <div className="mt-2 border-t border-gray-100 pt-2">
                                                 <button
                                                     onClick={() => { setProfileOpen(false); handleLogout(); }}
-                                                    className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors"
+                                                    className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
                                                 >
                                                     <LogOut size={18} />
                                                     {t('nav.signOut')}
