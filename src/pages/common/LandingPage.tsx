@@ -44,23 +44,13 @@ const LandingPage: React.FC = () => {
                         <Logo className="!text-lg sm:!text-2xl" />
                     </div>
                     <div className="flex items-center gap-1.5 sm:gap-4 overflow-hidden">
-                        {isInstallable ? (
-                            <button
-                                onClick={installPWA}
-                                title="Download APK file"
-                                className="flex items-center justify-center p-2 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold text-[#E10600] hover:bg-red-50 rounded-full border border-[#E10600] transition-all whitespace-nowrap"
-                            >
-                                <Download size={16} className="sm:w-4 sm:h-4" /> <span className="hidden sm:inline ml-1.5">Download Now</span>
-                            </button>
-                        ) : (
-                            <button
-                                onClick={handleAPKDownload}
-                                title="Download APK file"
-                                className="flex items-center justify-center p-2 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold text-[#E10600] hover:bg-red-50 rounded-full border border-[#E10600] transition-all whitespace-nowrap"
-                            >
-                                <Download size={16} className="sm:w-4 sm:h-4" /> <span className="hidden sm:inline ml-1.5">Download Now</span>
-                            </button>
-                        )}
+                        <button
+                            onClick={isInstallable ? installPWA : handleAPKDownload}
+                            title="Install App"
+                            className="flex items-center justify-center p-2 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold text-[#E10600] hover:bg-red-50 rounded-full border border-[#E10600] transition-all whitespace-nowrap"
+                        >
+                            <Rocket size={16} className="sm:w-4 sm:h-4" /> <span className="hidden sm:inline ml-1.5">Install App</span>
+                        </button>
                         <Link to="/login" className="shrink-0">
                             <Button variant="outline" size="sm" className="!px-2 !py-1.5 !text-[10px] sm:!text-sm border-gray-200 hover:bg-gray-50 text-gray-700">
                                 {t('landing.nav.login')}
@@ -103,21 +93,11 @@ const LandingPage: React.FC = () => {
                                         Get Started
                                     </button>
                                 </Link>
-                                {isInstallable ? (
-                                    <button
-                                        onClick={installPWA}
-                                        className="h-14 px-8 bg-white border-2 border-[#E10600] text-[#E10600] hover:bg-red-50 font-bold rounded-full text-lg w-full sm:min-w-[180px] transition-transform hover:scale-105 flex items-center justify-center gap-2"
-                                    >
-                                        <Download size={20} /> Install App
+                                <Link to="/login" className="w-full sm:w-auto">
+                                    <button className="h-14 px-8 bg-[#E10600] hover:bg-[#b80000] text-white font-bold rounded-full text-lg shadow-xl shadow-red-500/20 w-full sm:min-w-[180px] transition-transform hover:scale-105 flex items-center justify-center gap-2">
+                                        Sign In
                                     </button>
-                                ) : (
-                                    <button
-                                        onClick={handleAPKDownload}
-                                        className="h-14 px-8 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 font-bold rounded-full text-lg w-full sm:min-w-[180px] transition-transform hover:scale-105"
-                                    >
-                                        Download APK
-                                    </button>
-                                )}
+                                </Link>
                             </div>
 
                             <div className="inline-flex items-center gap-3 text-sm text-gray-500 bg-white px-6 py-2 rounded-full border border-gray-100 shadow-sm mt-4">
@@ -435,62 +415,46 @@ const LandingPage: React.FC = () => {
 
             {/* App Installation Instructions Section */}
             <section id="download-app" className="bg-white py-20 border-y border-gray-100">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex flex-col md:flex-row items-center gap-16">
-                        <div className="flex-1 space-y-8 text-center md:text-left">
-                            <h2 className="text-4xl font-extrabold text-slate-900 leading-tight">
-                                Take EduTalks <br />
-                                <span className="text-[#E10600]">Everywhere You Go</span>
-                            </h2>
-                            <p className="text-xl text-slate-600 leading-relaxed max-w-xl">
-                                Experience seamless learning on your Android device. Practice pronunciation, join voice rooms, and learn on the move.
-                            </p>
+                <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                    <h2 className="text-4xl font-extrabold text-slate-900 leading-tight">
+                        Take EduTalks <br />
+                        <span className="text-[#E10600]">Everywhere You Go</span>
+                    </h2>
+                    <p className="text-xl text-slate-600 leading-relaxed max-w-xl mx-auto mt-6">
+                        Experience seamless learning on your Android device. Practice pronunciation, join voice rooms, and learn on the move.
+                    </p>
 
-                            <div className="space-y-6 pt-4">
-                                <div className="flex items-start gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0 font-bold text-[#E10600]">1</div>
-                                    <div>
-                                        <h4 className="text-lg font-bold text-slate-900">Download APK</h4>
-                                        <p className="text-slate-600">Click the button below to download the `edutalks.apk` file directly to your device.</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0 font-bold text-[#E10600]">2</div>
-                                    <div>
-                                        <h4 className="text-lg font-bold text-slate-900">Enable Unknown Sources</h4>
-                                        <p className="text-slate-600">Go to Settings &gt; Security and toggle "Unknown Sources" or "Install Unknown Apps" to allow the installation.</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0 font-bold text-[#E10600]">3</div>
-                                    <div>
-                                        <h4 className="text-lg font-bold text-slate-900">Tap to Install</h4>
-                                        <p className="text-slate-600">Open your downloads folder and tap on the `edutalks.apk` file to finish the setup.</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="pt-8">
-                                <button
-                                    onClick={handleAPKDownload}
-                                    className="h-16 px-10 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl text-lg flex items-center gap-3 transition-all shadow-xl hover:-translate-y-1 mx-auto md:mx-0"
-                                >
-                                    <Download className="" /> Download for Android (APK)
-                                </button>
+                    <div className="space-y-6 pt-8 max-w-lg mx-auto text-left">
+                        <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0 font-bold text-[#E10600]">1</div>
+                            <div>
+                                <h4 className="text-lg font-bold text-slate-900">Download APK</h4>
+                                <p className="text-slate-600">Click the button below to download the `edutalks.apk` file directly to your device.</p>
                             </div>
                         </div>
-
-                        <div className="w-full md:w-[45%] relative">
-                            <div className="absolute -inset-4 bg-gradient-to-tr from-[#E10600]/20 to-orange-500/20 rounded-[3rem] blur-3xl opacity-50"></div>
-                            <div className="relative rounded-[3rem] overflow-hidden border-8 border-slate-900 shadow-2xl max-w-[300px] mx-auto">
-                                <img
-                                    src="/hero-banner.gif"
-                                    alt="EduTalks Mobile"
-                                    className="w-full h-auto"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
+                        <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0 font-bold text-[#E10600]">2</div>
+                            <div>
+                                <h4 className="text-lg font-bold text-slate-900">Enable Unknown Sources</h4>
+                                <p className="text-slate-600">Go to Settings &gt; Security and toggle "Unknown Sources" or "Install Unknown Apps" to allow the installation.</p>
                             </div>
                         </div>
+                        <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0 font-bold text-[#E10600]">3</div>
+                            <div>
+                                <h4 className="text-lg font-bold text-slate-900">Tap to Install</h4>
+                                <p className="text-slate-600">Open your downloads folder and tap on the `edutalks.apk` file to finish the setup.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="pt-8">
+                        <button
+                            onClick={handleAPKDownload}
+                            className="h-16 px-10 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl text-lg inline-flex items-center gap-3 transition-all shadow-xl hover:-translate-y-1"
+                        >
+                            <Download className="" /> Download for Android (APK)
+                        </button>
                     </div>
                 </div>
             </section>

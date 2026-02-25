@@ -344,7 +344,7 @@ const UserProfile: React.FC = () => {
                                     value={formData.fullName}
                                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                                     disabled={!isEditing}
-                                    className="glass-input w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 focus:ring-2 focus:ring-[#E10600] disabled:opacity-60 text-gray-900"
+                                    className="glass-input w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 focus:ring-2 focus:ring-[#E10600] outline-none disabled:opacity-60 text-gray-900"
                                 />
                             </div>
                         </div>
@@ -373,9 +373,14 @@ const UserProfile: React.FC = () => {
                                 <input
                                     type="tel"
                                     value={formData.phone}
-                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                    onChange={(e) => {
+                                        const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+                                        setFormData({ ...formData, phone: value });
+                                    }}
                                     disabled={!isEditing}
-                                    className="glass-input w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 focus:ring-2 focus:ring-[#E10600] disabled:opacity-60 text-gray-900"
+                                    inputMode="numeric"
+                                    maxLength={10}
+                                    className="glass-input w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 focus:ring-2 focus:ring-[#E10600] outline-none disabled:opacity-60 text-gray-900"
                                 />
                             </div>
                         </div>

@@ -223,8 +223,21 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
         // Extract data from result - handle both nested and flat structures
         const data = quizResult.data || quizResult;
         const score = data.score ?? 0;
-        const correctAnswers = data.correctCount ?? data.correctAnswers ?? 0;
+        let correctAnswers = data.correctCount ?? data.correctAnswers;
+
+        // Fallback: Calculate from responses if available and count is missing/zero
+        if ((correctAnswers === undefined || correctAnswers === null || correctAnswers === 0) && data.responses) {
+            correctAnswers = data.responses.filter((r: any) => r.isCorrect).length;
+        }
+
         const totalQuestions = data.totalQuestions ?? quiz?.questions?.length ?? 0;
+
+        // Final score-based fallback to ensure consistency (e.g., if responses/counts are missing from API)
+        if ((correctAnswers === undefined || correctAnswers === null || correctAnswers === 0) && score > 0 && totalQuestions > 0) {
+            correctAnswers = Math.round((parseFloat(score.toString()) / 100) * totalQuestions);
+        } else {
+            correctAnswers = correctAnswers ?? 0;
+        }
         const passingScore = data.passingScore ?? quiz?.passingScore ?? 60;
         const passed = data.passed ?? (score >= passingScore);
 
@@ -257,10 +270,14 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
                                     : "Don't give up! Review the material and try again to improve your score."}
                             </p>
 
-                            <div className="grid grid-cols-3 gap-4 mb-8">
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                                 <div className="p-4 bg-slate-50/50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
                                     <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">{t('quizTaking.correct')}</div>
                                     <div className="text-2xl font-black text-green-500">{correctAnswers}</div>
+                                </div>
+                                <div className="p-4 bg-slate-50/50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
+                                    <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">{t('quizTaking.incorrect')}</div>
+                                    <div className="text-2xl font-black text-red-500">{totalQuestions - correctAnswers}</div>
                                 </div>
                                 <div className="p-4 bg-slate-50/50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
                                     <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">{t('quizTaking.totalQuestions')}</div>
@@ -317,14 +334,34 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
                                 {quiz.questions.map((q: any, idx: number) => {
                                     const qId = q.id || q._id || idx;
                                     const userAnswer = answers[qId];
-                                    // Handle correct answer - might be in result data or question data
-                                    const correctAnswer = q.correctAnswer || data.responses?.find((r: any) => r.questionId === qId)?.correctAnswer;
-                                    const isCorrect = userAnswer === correctAnswer || data.responses?.find((r: any) => r.questionId === qId)?.isCorrect;
+
+                                    const responseObj = data.responses?.find((r: any) => r.questionId === qId);
+
+                                    // Defensive extraction of correct answer - look in both question and response
+                                    let correctAnswer = q.correctAnswer || q.answer ||
+                                        responseObj?.correctAnswer || responseObj?.answer;
+
+                                    // Final fallback: Search options if they are objects with isCorrect: true
+                                    if (!correctAnswer && q.options && Array.isArray(q.options)) {
+                                        const correctOpt = q.options.find((opt: any) => opt && typeof opt === 'object' && opt.isCorrect);
+                                        if (correctOpt) correctAnswer = correctOpt.text || correctOpt.value || correctOpt;
+                                    }
+
+                                    // Resolve index to text if necessary
+                                    if (q.options && (typeof correctAnswer === 'number' || (typeof correctAnswer === 'string' && !isNaN(Number(correctAnswer)) && q.options[Number(correctAnswer)]))) {
+                                        correctAnswer = q.options[Number(correctAnswer)];
+                                    }
+
+                                    // Defensive extraction of explanation
+                                    const explanation = q.explanation || q.correctAnswerExplanation ||
+                                        responseObj?.explanation || responseObj?.correctAnswerExplanation;
+
+                                    const isCorrect = userAnswer === correctAnswer || responseObj?.isCorrect;
 
                                     return (
                                         <div key={idx} className="glass-card p-6 md:p-8 rounded-3xl border-slate-100 dark:border-white/5 bg-white dark:bg-slate-900/50 shadow-sm">
                                             <div className="flex items-start gap-4 mb-4">
-                                                <div className={`mt-1 p-2 rounded-xl flex-shrink-0 ${isCorrect ? 'bg-green-100 text-green-600 dark:bg-green-500/10' : 'bg-red-100 text-red-600 dark:bg-red-500/10'}`}>
+                                                <div className={`mt-1 p-2 rounded-xl flex-shrink-0 ${isCorrect ? 'bg-green-100 text-green-600 dark:bg-green-50/10' : 'bg-red-100 text-red-600 dark:bg-red-50/10'}`}>
                                                     {isCorrect ? <CheckCircle size={20} /> : <XCircle size={20} />}
                                                 </div>
                                                 <div className="flex-1">
@@ -333,27 +370,26 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
                                                 </div>
                                             </div>
 
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-0 md:ml-12 mt-6">
-                                                <div className={`p-4 rounded-2xl border-2 ${isCorrect ? 'border-green-200 bg-green-50/30' : 'border-red-200 bg-red-50/30'}`}>
-                                                    <div className="text-xs font-bold text-slate-400 mb-1 uppercase uppercase tracking-wider">Your Answer</div>
-                                                    <div className={`font-bold ${isCorrect ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>{userAnswer || "No answer provided"}</div>
-                                                </div>
-                                                {!isCorrect && (
-                                                    <div className="p-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50/30">
-                                                        <div className="text-xs font-bold text-slate-400 mb-1 uppercase uppercase tracking-wider">Correct Answer</div>
-                                                        <div className="font-bold text-emerald-700 dark:text-emerald-400">{correctAnswer}</div>
+                                            <div className="mt-6 ml-0 md:ml-12">
+                                                <div className={`p-4 rounded-2xl border-2 flex items-center justify-between ${isCorrect ? 'border-green-200 bg-green-50/30' : 'border-red-200 bg-red-50/30'}`}>
+                                                    <div className="flex-1">
+                                                        <div className="text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">
+                                                            {isCorrect ? 'Correct' : 'Wrong'}
+                                                        </div>
+                                                        <div className={`font-bold ${isCorrect ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>{userAnswer || "No answer provided"}</div>
                                                     </div>
-                                                )}
+                                                    {isCorrect && <CheckCircle size={20} className="text-green-500 ml-3 shrink-0" />}
+                                                </div>
                                             </div>
 
-                                            {(q.explanation || q.correctAnswerExplanation) && (
+                                            {explanation && (
                                                 <div className="mt-6 ml-0 md:ml-12 p-5 bg-indigo-50/50 dark:bg-indigo-500/5 rounded-2xl border border-indigo-100 dark:border-indigo-500/20">
                                                     <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-sm mb-2">
                                                         <BrainCircuit size={16} />
                                                         <span>Explanation</span>
                                                     </div>
                                                     <p className="text-slate-600 dark:text-slate-300 leading-relaxed italic">
-                                                        {q.explanation || q.correctAnswerExplanation}
+                                                        {explanation}
                                                     </p>
                                                 </div>
                                             )}
@@ -474,10 +510,9 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
                 {/* Controls */}
                 <div className="flex justify-between items-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm p-4 rounded-2xl border border-white/20">
                     <Button
-                        variant="ghost"
                         onClick={handlePrev}
                         disabled={currentQuestionIndex === 0}
-                        className="text-slate-500 hover:text-indigo-600"
+                        className="bg-[#E10600] hover:bg-[#b80000] text-white px-8 shadow-lg shadow-red-500/20"
                     >
                         <ArrowLeft size={20} className="mr-2" />
                         {t('quizTaking.previous')}
@@ -487,12 +522,15 @@ const UserQuizTakingPage: React.FC<UserQuizTakingPageProps> = ({ quizId: propQui
                         <Button
                             onClick={handleSubmitQuiz}
                             disabled={submitting}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 shadow-lg shadow-indigo-500/20"
+                            className="bg-[#E10600] hover:bg-[#b80000] text-white px-8 shadow-lg shadow-red-500/20"
                         >
                             {submitting ? 'Submitting...' : t('quizTaking.submitQuiz')}
                         </Button>
                     ) : (
-                        <Button onClick={handleNext} className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 shadow-lg shadow-indigo-500/20">
+                        <Button
+                            onClick={handleNext}
+                            className="bg-[#E10600] hover:bg-[#b80000] text-white px-8 shadow-lg shadow-red-500/20"
+                        >
                             {t('quizTaking.next')}
                             <ArrowRight size={20} className="ml-2" />
                         </Button>
