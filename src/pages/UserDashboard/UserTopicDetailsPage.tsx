@@ -193,16 +193,7 @@ const UserTopicDetailsPage: React.FC<UserTopicDetailsPageProps> = ({ topicId: pr
                         {t('topicDetails.markCompleted')}
                     </Button>
 
-                    {nextTopicId && (
-                        <Button
-                            onClick={() => navigate(`/topics/${nextTopicId}`)}
-                            variant="secondary"
-                            className="w-full sm:w-auto flex items-center justify-center"
-                        >
-                            {t('topicDetails.skipNext')}
-                            <ArrowRight className="ml-2" size={18} />
-                        </Button>
-                    )}
+
                 </div>
             </div>
         </div >

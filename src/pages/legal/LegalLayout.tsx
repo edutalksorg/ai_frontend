@@ -15,18 +15,18 @@ const LegalLayout: React.FC<LegalLayoutProps> = ({ title, children }) => {
     }, []);
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-200 selection:bg-blue-500/30">
+        <div className="min-h-screen bg-slate-950 text-slate-200 selection:bg-red-500/30">
             {/* Header */}
             <header className="border-b border-slate-900 bg-slate-950/50 backdrop-blur-md sticky top-0 z-50">
                 <div className="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
                     <Link to="/" className="flex items-center gap-2 group">
-                        <div className="bg-blue-600 p-1.5 rounded-lg group-hover:scale-110 transition-transform">
+                        <div className="bg-[#E10600] p-1.5 rounded-lg group-hover:scale-110 transition-transform">
                             <Mic className="w-5 h-5 text-white" />
                         </div>
                         <span className="font-bold text-xl tracking-tight text-white italic">EduTalks</span>
                     </Link>
                     <Link to="/">
-                        <Button variant="secondary" className="gap-2 text-sm h-9">
+                        <Button className="!bg-[#E10600] hover:!bg-[#b80000] !text-white border-none shadow-md shadow-red-500/30 gap-2 text-sm h-9">
                             <ArrowLeft size={16} /> Back to Home
                         </Button>
                     </Link>
@@ -39,14 +39,14 @@ const LegalLayout: React.FC<LegalLayoutProps> = ({ title, children }) => {
                     <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
                         {title}
                     </h1>
-                    <div className="h-1.5 w-20 bg-blue-600 rounded-full"></div>
+                    <div className="h-1.5 w-20 bg-[#E10600] rounded-full"></div>
                 </div>
 
-                <div className="prose prose-invert prose-blue max-w-none 
+                <div className="prose prose-invert prose-red max-w-none 
                     prose-headings:text-white prose-headings:font-bold 
                     prose-p:text-slate-400 prose-p:leading-relaxed
                     prose-li:text-slate-400
-                    prose-strong:text-blue-400 prose-strong:font-semibold
+                    prose-strong:text-red-400 prose-strong:font-semibold
                 ">
                     {children}
                 </div>

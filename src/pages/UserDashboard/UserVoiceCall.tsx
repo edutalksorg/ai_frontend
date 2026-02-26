@@ -698,7 +698,7 @@ const UserVoiceCall: React.FC = () => {
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
                     <div className="glass-panel w-full max-w-md p-6 rounded-3xl animate-slideUp">
                         <div className="text-center mb-6">
-                            <div className="w-16 h-16 bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <User size={32} />
                             </div>
                             <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{t('voiceCall.privacyTitle')}</h3>
@@ -710,7 +710,7 @@ const UserVoiceCall: React.FC = () => {
                             <button onClick={() => setShowPrivacyModal(false)} className="flex-1 px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors font-medium">
                                 {t('voiceCall.cancel')}
                             </button>
-                            <button onClick={() => { setShowPrivacyModal(false); handleRandomCall(); }} className="flex-1 px-4 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors font-bold shadow-lg shadow-blue-500/30">
+                            <button onClick={() => { setShowPrivacyModal(false); handleRandomCall(); }} className="flex-1 px-4 py-3 rounded-xl bg-red-600 text-white hover:bg-red-700 transition-colors font-bold shadow-lg shadow-red-500/30">
                                 {t('voiceCall.agree')}
                             </button>
                         </div>

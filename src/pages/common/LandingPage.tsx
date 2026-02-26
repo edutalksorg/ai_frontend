@@ -45,11 +45,17 @@ const LandingPage: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-1.5 sm:gap-4 overflow-hidden">
                         <button
-                            onClick={isInstallable ? installPWA : handleAPKDownload}
+                            onClick={() => {
+                                if (isInstallable) {
+                                    installPWA();
+                                } else {
+                                    alert("App installation prompt is not available right now. Please use the 'Add to Home Screen' option from your browser menu to install the app.");
+                                }
+                            }}
                             title="Install App"
                             className="flex items-center justify-center p-2 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold text-[#E10600] hover:bg-red-50 rounded-full border border-[#E10600] transition-all whitespace-nowrap"
                         >
-                            <Rocket size={16} className="sm:w-4 sm:h-4" /> <span className="hidden sm:inline ml-1.5">Install App</span>
+                            <Download size={16} className="sm:w-4 sm:h-4" /> <span className="hidden sm:inline ml-1.5">Install App</span>
                         </button>
                         <Link to="/login" className="shrink-0">
                             <Button variant="outline" size="sm" className="!px-2 !py-1.5 !text-[10px] sm:!text-sm border-gray-200 hover:bg-gray-50 text-gray-700">
