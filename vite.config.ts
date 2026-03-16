@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
   // Set the third parameter to '' to load all env vars regardless of the `VITE_` prefix.
   const env = loadEnv(mode, process.cwd(), '');
-  const apiTarget = env.VITE_API_BASE_URL || 'http://localhost:5000';
+ // const apiTarget = env.VITE_API_BASE_URL || 'http://localhost:5000';
 
   return {
     plugins: [
